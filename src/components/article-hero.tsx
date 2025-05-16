@@ -16,13 +16,6 @@ export default function Articles() {
           </a>
           .
         </p>
-        <p className="mt-4 text-sm text-gray-700">
-          <span className="text-blue-600">118,315</span> active editors •{" "}
-          <span className="text-blue-600">6,994,313</span> articles in{" "}
-          <a href="#" className="text-blue-600 hover:underline">
-            English
-          </a>
-        </p>
       </div>
     </div>
   );

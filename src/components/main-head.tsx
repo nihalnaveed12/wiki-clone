@@ -7,20 +7,14 @@ export default function WikipediaHeader() {
     <div className="max-w-7xl pt-10 mx-auto border-b border-gray-300 px-2">
       <div className="flex gap-3 justify-between">
         {/* Left navigation */}
-        <div className="flex gap-2">
+        <div className="">
           <Link href="#" className="py-2 font-medium">
             Main Page
-          </Link>
-          <Link href="#" className=" py-2 text-blue-600 hover:underline">
-            Talk
           </Link>
         </div>
 
         {/* Right side - Add article button */}
-        <div className="flex items-center gap-2">
-          <Link href="#" className="py-2 text-blue-600 hover:underline">
-            Read
-          </Link>
+        <div className="flex items-center gap-2 pb-4">
           <Link href={"/add-article"}>
           <Button
             variant="outline"
