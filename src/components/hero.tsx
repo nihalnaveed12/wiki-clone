@@ -31,16 +31,16 @@ export default function WikipediaHero() {
       <div className=" w-full max-w-7xl  flex flex-col items-center">
         <>
           <h1 className="text-5xl font-serif tracking-wide mb-1 font-normal">
-            WIKIPEDIA
+            Urban-Stash
           </h1>
-          <p className="text-sm mb-10 font-serif">The Free Encyclopedia</p>
+          <p className="text-sm mb-10 font-serif"> This is the stash for Urban Knowledge, Lore, and Wisdom</p>
 
           {/* Language Circle with Centered Globe */}
           <div className="w-full flex flex-col gap-4 items-center justify-center mb-12">
             {/* Wikipedia Globe Image - Centered */}
             <div className=" w-[180px] h-[180px]">
               <Image
-                src="/images/logo.png"
+                src="/images/logo.jpg"
                 alt="Wikipedia Globe"
                 width={180}
                 height={180}
@@ -67,7 +67,7 @@ export default function WikipediaHero() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-grow border border-gray-700 px-4 py-2 "
-              placeholder="Search Wikipedia"
+              placeholder="Search Urban Knowledge"
             />
             <div className="relative inline-block border-y border-r border-gray-700 px-3 py-2">
               <button className="flex items-center text-gray-400">

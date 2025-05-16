@@ -11,11 +11,11 @@ export default function WikipediaNavbar() {
 
   const router = useRouter();
 
-   const handleSearch = () => {
+  const handleSearch = () => {
     const trimmed = searchQuery.trim();
 
-    if (trimmed === '') {
-      router.push('/articles-page');
+    if (trimmed === "") {
+      router.push("/articles-page");
     } else {
       router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
     }
@@ -27,22 +27,21 @@ export default function WikipediaNavbar() {
         {/* Left section with menu and logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
-            <div className="relative sm:h-[35px]  sm:w-[35px] h-[20px] w-[20px]">
+            <div className="">
               <Image
-                src="/images/logo.png"
+                src="/images/logo.jpg"
                 alt="Wikipedia Logo"
                 width={35}
-                height={35}
-                className="rounded-full"
+                height={50}
+                className=" "
               />
             </div>
             <div className=" sm:ml-2">
               <div className="sm:text-xl text-[8px] font-serif tracking-tight text-black">
-                <span className="font-bold">W</span>IKIPEDI
-                <span className="font-bold">A</span>
+                Urban-Stash
               </div>
               <div className="mt-[-5px] sm:text-[10px] text-[5px]  text-gray-700">
-                The Free Encyclopedia
+                This is the stash for Urban Knowledge, Lore, and Wisdom
               </div>
             </div>
           </Link>
@@ -56,7 +55,7 @@ export default function WikipediaNavbar() {
             </div>
             <input
               type="text"
-              placeholder="Search Wikipedia"
+              placeholder="Search Urban Knowledge"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-[34px] ] w-full rounded-l border border-gray-400 pl-8 pr-2 text-sm focus:border-gray-500 focus:outline-none text-zinc-600"
