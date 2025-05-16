@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wikipedia",
-  description: "This is an article website where you can post your articles.",
+  title: "Urban-Stash",
+  description: "This is the stash for Urban Knowledge, Lore, and Wisdom",
 };
 
 export default function RootLayout({
