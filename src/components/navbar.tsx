@@ -23,7 +23,7 @@ export default function WikipediaNavbar() {
 
   return (
     <div className="w-full border-b border-gray-300 bg-white">
-      <div className="max-w-7xl mx-auto flex justify-between  h-[45px] w-full items-center px-1">
+      <div className="max-w-7xl mx-auto flex justify-between  h-[60px] w-full items-center px-1">
         {/* Left section with menu and logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
@@ -31,8 +31,8 @@ export default function WikipediaNavbar() {
               <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Logo"
-                width={35}
-                height={50}
+                width={54}
+                height={54}
                 className=" "
               />
             </div>

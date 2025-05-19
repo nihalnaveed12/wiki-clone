@@ -36,27 +36,28 @@ export default function WikipediaHero() {
           <p className="text-sm mb-10 font-serif"> This is the stash for Urban Knowledge, Lore, and Wisdom</p>
 
           {/* Language Circle with Centered Globe */}
-          <div className="w-full flex flex-col gap-4 items-center justify-center mb-12">
+          <div className="w-full flex flex-col gap-2 items-center justify-center mb-12">
             {/* Wikipedia Globe Image - Centered */}
-            <div className=" w-[180px] h-[180px]">
+            <div className=" w-[300px] h-[300px] ">
               <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Globe"
-                width={180}
-                height={180}
+                width={200}
+                height={200}
+                className="w-full"
               />
             </div>
 
             {/* English - Top Left */}
 
-            <div className="flex flex-col items-center">
+            <div className="flex items-center">
               <Link
                 href={"/articles-page"}
-                className="text-blue-700 hover:text-blue-500 hover:underline text-lg font-normal"
+                className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
               >
-                English
+               Add Articles 
               </Link>
-              <span className="text-sm text-gray-600">6,974,000+ articles</span>
+              
             </div>
           </div>
 
