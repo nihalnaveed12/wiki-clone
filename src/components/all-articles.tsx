@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useState } from "react";
@@ -70,7 +70,7 @@ useEffect(() => {
               <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
                 {article.image && (
                   <>
-                    <Image
+                    <img
                       height={150}
                       width={150}
                       src={article.image || "/placeholder.svg"}

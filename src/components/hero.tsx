@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+
 import { Search, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
@@ -39,7 +39,7 @@ export default function WikipediaHero() {
           <div className="w-full flex flex-col gap-2 items-center justify-center mb-12">
             {/* Wikipedia Globe Image - Centered */}
             <div className=" w-[300px] h-[300px] ">
-              <Image
+              <img
                 src="/images/logo.jpg"
                 alt="Wikipedia Globe"
                 width={200}
