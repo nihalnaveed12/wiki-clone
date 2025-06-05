@@ -1,7 +1,13 @@
 "use client";
 
 import { Search } from "lucide-react";
-
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -36,11 +42,11 @@ export default function WikipediaNavbar() {
                 className=" "
               />
             </div>
-            <div className=" sm:ml-2">
-              <div className="sm:text-xl text-[8px] font-serif tracking-tight text-black">
+            <div className=" ml-2">
+              <div className="text-xl  font-serif tracking-tight text-black">
                 Urban-Stash
               </div>
-              <div className="mt-[-5px] sm:text-[10px] text-[5px]  text-gray-700">
+              <div className="mt-[-5px] text-[10px]   text-gray-700">
                 This is the stash for Urban Knowledge, Lore, and Wisdom
               </div>
             </div>
@@ -48,7 +54,7 @@ export default function WikipediaNavbar() {
         </div>
 
         {/* Center section with search */}
-        <div className="mx-4  flex items-center">
+        <div className="mx-4   items-center hidden sm:flex">
           <div className="relative flex w-full max-w-[500px] items-center">
             <div className="absolute left-2 top-1/2 -translate-y-1/2 transform">
               <Search className="h-4 w-4  text-gray-400" />
@@ -67,6 +73,28 @@ export default function WikipediaNavbar() {
               Search
             </button>
           </div>
+        </div>
+
+        <div className="">
+          <SignedOut>
+            <div className="flex items-center gap-2">
+              <SignInButton>
+                <button className="px-4 py-2 hover:bg-zinc-100 rounded-xl cursor-pointer">
+                  Sign In
+                </button>
+              </SignInButton>
+
+              <SignUpButton>
+                <button className="px-4 py-2 hover:bg-zinc-100 rounded-xl cursor-pointer">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
+
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
         </div>
       </div>
     </div>
