@@ -64,7 +64,7 @@ useEffect(() => {
         {articles.map((article) => (
           <div key={article.id} className="bg-[#f1fdff] border border-blue-200 p-3">
             <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-[#d2f9ff]">{getRandomHeading()}</h3>
-            <h2>{article.title}</h2>
+           
 
             <div className="relative">
               <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
@@ -77,7 +77,7 @@ useEffect(() => {
                       alt="iMac G4 with external peripherals"
                       style={{ border: "1px solid #ddd", padding: "1px" }}
                     />
-                    <div className="text-xs mt-1">iMac G4 with external peripherals</div>
+                    <h1 className="text-xs mt-1">{article.title}</h1>
                   </>
                 )}
               </div>
