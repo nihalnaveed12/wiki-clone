@@ -53,9 +53,19 @@ export default function ArticleCard({
     });
   };
 
-  const truncateContent = (content: string, maxLength = 150) => {
+  const headings = [
+    " From today's featured article",
+    " In the news",
+    " Did you know?",
+    " Trending Now",
+    " Editor's Pick",
+    " Thought of the Day",
+  ];
+
+  const truncateContent = (content: string, maxLength = 1000) => {
     // Remove HTML tags and truncate
     const textContent = content.replace(/<[^>]*>/g, "");
+  ;
     return textContent.length > maxLength
       ? textContent.substring(0, maxLength) + "..."
       : textContent;
@@ -95,26 +105,56 @@ export default function ArticleCard({
     }
   };
 
+  const getRandomHeading = () => {
+    const index = Math.floor(Math.random() * headings.length);
+    return headings[index];
+  };
+
   const isAuthor = user?.id === blog.author.clerkId;
   const isAdmin = currentUserRole === "admin";
   const canEdit = isAuthor;
   const canDelete = isAuthor || isAdmin;
 
   return (
-    <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {blog.image.url && (
-        <div className="relative h-48 w-full">
-          <Image
-            src={blog.image.url}
-            alt={blog.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
+    <article className="bg-[#f1fdff] border border-blue-200 p-3">
+      <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-[#d2f9ff]">
+        {getRandomHeading()}
+      </h3>
 
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="">
+        <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
+          {blog.image.url && (
+            <>
+              <Image
+                height={250}
+                width={250}
+                src={blog.image.url}
+                alt="iMac G4 with external peripherals"
+                style={{ border: "1px solid #ddd", padding: "1px" }}
+              />
+              <Link href={`/article/${blog.slug}`}>
+                <h1 className="text-xs mt-1">{blog.title}</h1>
+              </Link>
+            </>
+          )}
+        </div>
+
+        <p className="text-gray-600 text-sm ">
+          {truncateContent(blog.content)}
+        </p>
+
+        <Link
+            href={`/article/${blog.slug}`}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            Read More →
+          </Link>
+      </div>
+
+
+
+      <div className="flex flex-col gap-3 mt-5 items-end">
+        <div className=" flex items-center gap-2 ">
           {blog.author.photo && (
             <Image
               src={blog.author.photo}
@@ -139,21 +179,8 @@ export default function ArticleCard({
           )}
         </div>
 
-        <h2 className="text-xl font-semibold mb-2 line-clamp-2">
-          <Link
-            href={`/blog/${blog.slug}`}
-            className="hover:text-blue-600 transition-colors"
-          >
-            {blog.title}
-          </Link>
-        </h2>
-
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {truncateContent(blog.content)}
-        </p>
-
         {blog.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 ">
             {blog.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
@@ -171,13 +198,7 @@ export default function ArticleCard({
         )}
 
         <div className="flex items-center justify-between">
-          <Link
-            href={`/blog/${blog.slug}`}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            Read More →
-          </Link>
-
+         
           {(canEdit || canDelete) && (
             <div className="flex gap-2">
               {canEdit && (
