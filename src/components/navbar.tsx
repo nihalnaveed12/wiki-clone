@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function WikipediaNavbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +35,7 @@ export default function WikipediaNavbar() {
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
             <div className="">
-              <img
+              <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Logo"
                 width={54}

@@ -1,4 +1,4 @@
-import ArticlePage from "@/components/all-articles";
+// import ArticlePage from "@/components/all-articles";
 import Articles from "@/components/article-hero";
 import ArticlesList from "@/components/articles-list";
 import WikipediaHeader from "@/components/main-head";

@@ -6,6 +6,7 @@ import { Search, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function WikipediaHero() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +40,7 @@ export default function WikipediaHero() {
           <div className="w-full flex flex-col gap-2 items-center justify-center mb-12">
             {/* Wikipedia Globe Image - Centered */}
             <div className=" w-[300px] h-[300px] ">
-              <img
+              <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Globe"
                 width={200}

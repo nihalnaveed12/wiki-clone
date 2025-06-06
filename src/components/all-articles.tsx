@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useEffect, useState } from "react";
@@ -36,7 +37,7 @@ export default function ArticlesPage() {
     if (search.trim() === "") {
       router.replace("/articles-page");
     }
-  }, [search]);
+  }, [search, router]);
 
   useEffect(() => {
     const stored = localStorage.getItem("allArticles");
@@ -71,7 +72,7 @@ export default function ArticlesPage() {
               <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
                 {article.image && (
                   <>
-                    <img
+                    <Image
                       height={150}
                       width={150}
                       src={article.image || "/placeholder.svg"}

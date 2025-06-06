@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import "react-quill-new/dist/quill.snow.css";
+import Image from "next/image";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -233,7 +234,9 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
 
             {imagePreview && !removeImage && (
               <div className="relative">
-                <img
+                <Image
+                height={100}
+                width={100}
                   src={imagePreview}
                   alt="Preview"
                   className="max-w-md h-48 object-cover rounded-md border"

@@ -1,4 +1,4 @@
-import EditBlogComponent from "@/components/edit-blog";
+import EditBlogComponent from "../../../../edit-blog";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
