@@ -1,3 +1,4 @@
+// models/User.ts (Updated with role field)
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IUser extends Document {
@@ -7,49 +8,46 @@ export interface IUser extends Document {
     lastName?: string;
     username?: string;
     photo?: string;
-    isAdmin: boolean;
+    role: 'user' | 'admin';
     createdAt: Date;
     updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
-    {
-        clerkId: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        firstName: {
-            type: String,
-            required: false,
-        },
-        lastName: {
-            type: String,
-            required: false,
-        },
-        username: {
-            type: String,
-            required: false,
-        },
-        photo: {
-            type: String,
-            required: false,
-        },
-        isAdmin: {
-            type: Boolean,
-            default: false,
-        },
+const UserSchema = new Schema<IUser>({
+    clerkId: {
+        type: String,
+        required: true,
+        unique: true, // Prevents duplicates
     },
-    {
-        timestamps: true,
-    }
-);
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    firstName: {
+        type: String,
+    },
+    lastName: {
+        type: String,
+    },
+    username: {
+        type: String,
+    },
+    photo: {
+        type: String,
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user',
+    },
+}, {
+    timestamps: true, // Automatically adds createdAt and updatedAt
+});
 
-const User = mongoose.models?.User || mongoose.model<IUser>('User', UserSchema);
+// Create indexes for better performance
+UserSchema.index({ role: 1 });
+
+const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default User;
