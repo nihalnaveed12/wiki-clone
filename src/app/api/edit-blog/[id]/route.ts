@@ -9,12 +9,12 @@ import dbConnect from '@/lib/database/mongodb';
 // GET single blog by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await dbConnect();
-
-        const blog = await Blog.findById(await (params.id))
+        const { id } = await params;
+        const blog = await Blog.findById(id)
             .populate('author', 'firstName lastName email username photo clerkId');
 
         if (!blog) {
@@ -31,11 +31,11 @@ export async function GET(
 // UPDATE blog
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { userId } = await auth();
-
+        const { id } = await params
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -43,7 +43,7 @@ export async function PUT(
         await dbConnect();
 
         // Check if user owns this blog
-        const existingBlog = await Blog.findById(params.id).populate('author');
+        const existingBlog = await Blog.findById(id).populate('author');
 
         if (!existingBlog) {
             return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
@@ -83,7 +83,7 @@ export async function PUT(
         }
 
         const updatedBlog = await updateBlog({
-            blogId: params.id,
+            blogId: id,
             title,
             content,
             image: imageData,
@@ -101,10 +101,11 @@ export async function PUT(
 // DELETE blog
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { userId } = await auth();
+        const { id } = await params
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -119,7 +120,7 @@ export async function DELETE(
         }
 
         // Get the blog
-        const blog = await Blog.findById(params.id).populate('author');
+        const blog = await Blog.findById(id).populate('author');
         if (!blog) {
             return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
         }
@@ -140,7 +141,7 @@ export async function DELETE(
         }
 
         // Delete the blog
-        await Blog.findByIdAndDelete(params.id);
+        await Blog.findByIdAndDelete(id);
 
         return NextResponse.json({ success: true, message: 'Blog deleted successfully' }, { status: 200 });
     } catch (error) {

@@ -3,14 +3,15 @@ import { getBlogsByAuthor } from '@/lib/actions/blog.actions';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { clerkId: string } }
+    { params }: { params: Promise<{ clerkId: string }> }
 ) {
     try {
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '10');
 
-        const result = await getBlogsByAuthor(params.clerkId, page, limit);
+        const { clerkId } = await params;
+        const result = await getBlogsByAuthor(clerkId, page, limit);
 
         return NextResponse.json(result, { status: 200 });
     } catch (error) {

@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function ArticlePage({ params }: PageProps) {
-  const blog = await getBlogBySlug(params.slug);
+  const { slug } = await params;
+  const blog = await getBlogBySlug(slug);
 
   if (!blog) {
     notFound();
