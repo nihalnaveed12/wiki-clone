@@ -12,7 +12,7 @@ export default function Page() {
 
       {/* 🧠 Suspense required here for client-side logic (useSearchParams) */}
       <Suspense fallback={<div>Loading articles...</div>}>
-        <ArticlePage />
+        {/* <ArticlePage /> */}
         <ArticlesList />
       </Suspense>
     </div>
