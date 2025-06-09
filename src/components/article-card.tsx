@@ -90,7 +90,6 @@ export default function ArticleCard({
     setLoading(true);
 
     try {
-      // Updated API endpoint to match your route structure
       const response = await fetch(`/api/edit-blog/${blog._id}`, {
         method: "DELETE",
       });
