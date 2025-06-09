@@ -34,13 +34,15 @@ interface Blog {
 interface ArticleCardProps {
   blog: Blog;
   onDelete?: (blogId: string) => void;
-  currentUserRole?: string;
+  currentUserRole?: "user" | "admin";
+  currentUserId?: string;
 }
 
 export default function ArticleCard({
   blog,
   onDelete,
-  currentUserRole,
+  currentUserRole = "user",
+  currentUserId,
 }: ArticleCardProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
@@ -65,24 +67,30 @@ export default function ArticleCard({
   const truncateContent = (content: string, maxLength = 1000) => {
     // Remove HTML tags and truncate
     const textContent = content.replace(/<[^>]*>/g, "");
-  ;
     return textContent.length > maxLength
       ? textContent.substring(0, maxLength) + "..."
       : textContent;
   };
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this article? This action cannot be undone."
-      )
-    ) {
+    const isAuthor = user?.id === blog?.author?.clerkId;
+    const isAdmin = currentUserRole === "admin";
+
+    // Show different confirmation messages for admin vs author
+    let confirmMessage =
+      "Are you sure you want to delete this article? This action cannot be undone.";
+    if (isAdmin && !isAuthor) {
+      confirmMessage = `⚠️ ADMIN ACTION: You are about to delete "${blog.title}" by ${blog.author.firstName} ${blog.author.lastName}. This action cannot be undone.`;
+    }
+
+    if (!confirm(confirmMessage)) {
       return;
     }
 
     setLoading(true);
 
     try {
+      // Updated API endpoint to match your route structure
       const response = await fetch(`/api/edit-blog/${blog._id}`, {
         method: "DELETE",
       });
@@ -110,10 +118,12 @@ export default function ArticleCard({
     return headings[index];
   };
 
-  const isAuthor = user?.id === blog.author.clerkId;
+  // Use currentUserId if provided, otherwise fall back to user?.id
+  const userId = currentUserId || user?.id;
+  const isAuthor = userId === blog?.author?.clerkId;
   const isAdmin = currentUserRole === "admin";
-  const canEdit = isAuthor;
-  const canDelete = isAuthor || isAdmin;
+  const canEdit = isAuthor; // Only authors can edit their own posts
+  const canDelete = isAuthor || isAdmin; // Authors can delete their own, admins can delete any
 
   return (
     <article className="bg-[#f1fdff] border border-blue-200 p-3">
@@ -129,7 +139,7 @@ export default function ArticleCard({
                 height={250}
                 width={250}
                 src={blog.image.url}
-                alt="iMac G4 with external peripherals"
+                alt={blog.title}
                 style={{ border: "1px solid #ddd", padding: "1px" }}
               />
               <Link href={`/article/${blog.slug}`}>
@@ -144,18 +154,16 @@ export default function ArticleCard({
         </p>
 
         <Link
-            href={`/article/${blog.slug}`}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            Read More →
-          </Link>
+          href={`/article/${blog.slug}`}
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+        >
+          Read More →
+        </Link>
       </div>
-
-
 
       <div className="flex flex-col gap-3 mt-5 items-end">
         <div className=" flex items-center gap-2 ">
-          {blog.author.photo && (
+          {blog?.author?.photo && (
             <Image
               src={blog.author.photo}
               alt={`${blog.author.firstName} ${blog.author.lastName}`}
@@ -166,7 +174,13 @@ export default function ArticleCard({
           )}
           <div>
             <p className="text-sm font-medium text-gray-900">
-              {blog.author.firstName} {blog.author.lastName}
+              {blog?.author?.firstName} {blog?.author?.lastName}
+              {/* Show admin indicator if current user is admin and this is not their post */}
+              {isAdmin && !isAuthor && (
+                <span className="ml-2 text-xs text-orange-600 font-medium">
+                  [Admin View]
+                </span>
+              )}
             </p>
             <p className="text-xs text-gray-500">
               {formatDate(blog.createdAt)}
@@ -198,7 +212,6 @@ export default function ArticleCard({
         )}
 
         <div className="flex items-center justify-between">
-         
           {(canEdit || canDelete) && (
             <div className="flex gap-2">
               {canEdit && (
@@ -213,9 +226,22 @@ export default function ArticleCard({
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-3 py-1 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isAdmin && !isAuthor
+                      ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                      : "bg-red-100 text-red-700 hover:bg-red-200"
+                  }`}
+                  title={
+                    isAdmin && !isAuthor
+                      ? "Delete as Admin"
+                      : "Delete your post"
+                  }
                 >
-                  {loading ? "..." : "Delete"}
+                  {loading
+                    ? "..."
+                    : isAdmin && !isAuthor
+                    ? "Admin Delete"
+                    : "Delete"}
                 </button>
               )}
             </div>

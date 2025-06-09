@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useCallback } from "react";
 import Link from "next/link";
 import ArticleCard from "@/components/article-card";
+
 interface Author {
   _id: string;
   firstName: string;
@@ -42,6 +43,10 @@ interface BlogsResponse {
   };
 }
 
+interface UserRole {
+  role: "user" | "admin";
+}
+
 export default function ArticlesList() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,8 +56,38 @@ export default function ArticlesList() {
     BlogsResponse["pagination"] | null
   >(null);
   const [filter, setFilter] = useState<"all" | "my-articles">("all");
+  const [userRole, setUserRole] = useState<"user" | "admin">("user");
 
   const { user } = useUser();
+
+  // Admin email - should match the one in your API
+  const ADMIN_EMAIL = "abdulsamadsiddiqui2000@gmail.com";
+
+  // Check if current user is admin
+  const checkUserRole = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      // Check by email first
+      if (user.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+        setUserRole("admin");
+        return;
+      }
+
+      // Alternatively, fetch from your API to get user role from database
+      const response = await fetch("/api/user/profile");
+      if (response.ok) {
+        const userData: UserRole = await response.json();
+        setUserRole(userData.role);
+      }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+      // Fallback to email check
+      if (user.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+        setUserRole("admin");
+      }
+    }
+  }, [user]);
 
   const fetchBlogs = useCallback(
     async (page = 1, filterType = filter) => {
@@ -83,6 +118,12 @@ export default function ArticlesList() {
   );
 
   useEffect(() => {
+    if (user) {
+      checkUserRole();
+    }
+  }, [user, checkUserRole]);
+
+  useEffect(() => {
     fetchBlogs(currentPage, filter);
   }, [currentPage, filter, user, fetchBlogs]);
 
@@ -93,6 +134,11 @@ export default function ArticlesList() {
   const handleFilterChange = (newFilter: "all" | "my-articles") => {
     setFilter(newFilter);
     setCurrentPage(1);
+  };
+
+  const handleDelete = (blogId: string) => {
+    // Remove from local state after successful deletion
+    setBlogs(blogs.filter((b) => b._id !== blogId));
   };
 
   if (loading) {
@@ -119,7 +165,14 @@ export default function ArticlesList() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Articles</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Articles</h1>
+          {userRole === "admin" && (
+            <p className="text-sm text-green-600 mt-1">
+              ✓ Admin privileges active
+            </p>
+          )}
+        </div>
 
         {user && (
           <div className="flex gap-2">
@@ -170,11 +223,9 @@ export default function ArticlesList() {
               <ArticleCard
                 key={blog._id}
                 blog={blog}
-                onDelete={(blogId) => {
-                  // Remove from local state or refetch
-                  setBlogs(blogs.filter((b) => b._id !== blogId));
-                }}
-                currentUserRole={"user"} // You may replace "user" with the actual role if available elsewhere
+                onDelete={handleDelete}
+                currentUserRole={userRole}
+                currentUserId={user?.id}
               />
             ))}
           </div>

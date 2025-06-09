@@ -6,6 +6,32 @@ import Blog from '@/lib/database/model/Blogs';
 import User from '@/lib/database/model/User';
 import dbConnect from '@/lib/database/mongodb';
 
+// Admin email - you can move this to environment variables for better security
+const ADMIN_EMAIL = 'abdulsamadsiddiqui2000@gmail.com';
+
+// Helper function to check if user is admin
+async function isUserAdmin(userId: string): Promise<boolean> {
+    try {
+        const user = await User.findOne({ clerkId: userId });
+        return user?.email === ADMIN_EMAIL || user?.role === 'admin';
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+    }
+}
+
+// Helper function to ensure user has admin role if they have admin email
+async function updateUserRoleIfAdmin(userId: string): Promise<void> {
+    try {
+        const user = await User.findOne({ clerkId: userId });
+        if (user && user.email === ADMIN_EMAIL && user.role !== 'admin') {
+            await User.findByIdAndUpdate(user._id, { role: 'admin' });
+        }
+    } catch (error) {
+        console.error('Error updating user role:', error);
+    }
+}
+
 // GET single blog by ID
 export async function GET(
     request: NextRequest,
@@ -35,12 +61,16 @@ export async function PUT(
 ) {
     try {
         const { userId } = await auth();
-        const { id } = await params
+        const { id } = await params;
+
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         await dbConnect();
+
+        // Update user role if they're admin by email
+        await updateUserRoleIfAdmin(userId);
 
         // Check if user owns this blog
         const existingBlog = await Blog.findById(id).populate('author');
@@ -49,8 +79,11 @@ export async function PUT(
             return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
         }
 
+        // Only the author can edit their own posts (admin cannot edit others' posts)
         if (existingBlog.author.clerkId !== userId) {
-            return NextResponse.json({ error: 'Forbidden - You can only edit your own posts' }, { status: 403 });
+            return NextResponse.json({
+                error: 'Forbidden - You can only edit your own posts'
+            }, { status: 403 });
         }
 
         const formData = await request.formData();
@@ -105,13 +138,16 @@ export async function DELETE(
 ) {
     try {
         const { userId } = await auth();
-        const { id } = await params
+        const { id } = await params;
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         await dbConnect();
+
+        // Update user role if they're admin by email
+        await updateUserRoleIfAdmin(userId);
 
         // Get current user
         const currentUser = await User.findOne({ clerkId: userId });
@@ -127,7 +163,7 @@ export async function DELETE(
 
         // Check permissions - only author or admin can delete
         const isAuthor = blog.author.clerkId === userId;
-        const isAdmin = currentUser.role === 'admin'; // Assuming you have role field in User model
+        const isAdmin = await isUserAdmin(userId);
 
         if (!isAuthor && !isAdmin) {
             return NextResponse.json({
@@ -143,7 +179,10 @@ export async function DELETE(
         // Delete the blog
         await Blog.findByIdAndDelete(id);
 
-        return NextResponse.json({ success: true, message: 'Blog deleted successfully' }, { status: 200 });
+        return NextResponse.json({
+            success: true,
+            message: 'Blog deleted successfully'
+        }, { status: 200 });
     } catch (error) {
         console.error('Error deleting blog:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -48,7 +48,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Author and Date */}
         <div className="flex items-center gap-4 mb-6">
-          {blog.author.photo && (
+          {blog?.author?.photo && (
             <Image
               src={blog.author.photo}
               alt={`${blog.author.firstName} ${blog.author.lastName}`}
@@ -59,7 +59,7 @@ export default async function ArticlePage({ params }: PageProps) {
           )}
           <div>
             <p className="font-medium text-gray-900">
-              {blog.author.firstName} {blog.author.lastName}
+              {blog?.author?.firstName} {blog?.author?.lastName}
             </p>
             <p className="text-gray-600 text-sm">
               Published on {formatDate(blog.createdAt)}
@@ -71,9 +71,9 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
 
         {/* Tags */}
-        {blog.tags.length > 0 && (
+        {blog?.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {blog.tags.map((tag: string, index: number) => (
+            {blog?.tags?.map((tag: string, index: number) => (
               <span
                 key={index}
                 className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
@@ -85,7 +85,7 @@ export default async function ArticlePage({ params }: PageProps) {
         )}
 
         {/* Featured Image */}
-        {blog.image.url && (
+        {blog?.image?.url && (
           <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden">
             <Image
               src={blog.image.url}
@@ -109,7 +109,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <footer className="mt-12 pt-8 border-t">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {blog.author.photo && (
+            {blog?.author?.photo && (
               <Image
                 src={blog.author.photo}
                 alt={`${blog.author.firstName} ${blog.author.lastName}`}
@@ -120,9 +120,9 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
             <div>
               <p className="font-medium text-gray-900">
-                Written by {blog.author.firstName} {blog.author.lastName}
+                Written by {blog?.author?.firstName} {blog?.author?.lastName}
               </p>
-              <p className="text-gray-600 text-sm">{blog.author.email}</p>
+              <p className="text-gray-600 text-sm">{blog.author?.email}</p>
             </div>
           </div>
 
