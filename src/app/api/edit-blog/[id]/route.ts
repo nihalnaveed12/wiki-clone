@@ -6,8 +6,8 @@ import Blog from '@/lib/database/model/Blogs';
 import User from '@/lib/database/model/User';
 import dbConnect from '@/lib/database/mongodb';
 
-// Admin email - you can move this to environment variables for better security
-const ADMIN_EMAIL = 'abdulsamadsiddiqui2000@gmail.com';
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
 
 // Helper function to check if user is admin
 async function isUserAdmin(userId: string): Promise<boolean> {

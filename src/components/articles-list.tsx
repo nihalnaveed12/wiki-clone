@@ -60,15 +60,15 @@ export default function ArticlesList() {
 
   const { user } = useUser();
 
-  // Admin email - should match the one in your API
-  const ADMIN_EMAIL = "abdulsamadsiddiqui2000@gmail.com";
+  // Admin email
+  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
 
-  // Check if current user is admin
+  // Checking if current user is admin
   const checkUserRole = useCallback(async () => {
     if (!user) return;
 
     try {
-      // Check by email first
+      // Checkingg by email first
       if (user.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
         setUserRole("admin");
         return;
@@ -87,7 +87,7 @@ export default function ArticlesList() {
         setUserRole("admin");
       }
     }
-  }, [user]);
+  }, [user, ADMIN_EMAIL]);
 
   const fetchBlogs = useCallback(
     async (page = 1, filterType = filter) => {

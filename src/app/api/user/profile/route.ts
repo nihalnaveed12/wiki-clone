@@ -1,10 +1,9 @@
-// /api/user/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import User from '@/lib/database/model/User';
 import dbConnect from '@/lib/database/mongodb';
 
-const ADMIN_EMAIL = 'abdulsamadsiddiqui2000@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
 
 export async function GET(request: NextRequest) {
     try {
