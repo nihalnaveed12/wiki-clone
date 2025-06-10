@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     try {
         const result = await getAllUsers();
-        console.log(request)
 
         return NextResponse.json(result, { status: 200 });
     } catch (error) {
