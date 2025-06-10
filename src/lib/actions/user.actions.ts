@@ -18,6 +18,20 @@ interface UpdateUserParams {
     photo?: string;
 }
 
+export async function getAllUsers() {
+    try {
+        await dbConnect();
+
+        const users = await User.find({});
+
+        return JSON.parse(JSON.stringify(users));
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+}
+
+
 export async function createUser(userData: CreateUserParams) {
     try {
         await dbConnect();
