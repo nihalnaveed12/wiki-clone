@@ -12,18 +12,85 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+
+interface Author {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  photo: string;
+  clerkId: string;
+}
+
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  image: {
+    id: string;
+    url: string;
+  };
+  author: Author;
+  slug: string;
+  published: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BlogsResponse {
+  blogs: Blog[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalBlogs: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+
 export default function WikipediaNavbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const router = useRouter();
 
-  const handleSearch = () => {
-    const trimmed = searchQuery.trim();
+ const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchQuery.trim().toLowerCase();
 
-    if (trimmed === "") {
-      router.push("/articles-page");
-    } else {
-      router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
+    if (!trimmed) {
+      // If empty search, maybe show all articles or home
+      router.push("/");
+      return;
+    }
+
+    try {
+      // Fetch all blogs
+      const response = await fetch('/api/blogs');
+      const data: BlogsResponse = await response.json();
+      console.log("Fetched blogs:", data);
+      
+      // Find blog with matching slug
+      const matchingBlog = data.blogs.find(
+        (blog: Blog) => blog.slug.toLowerCase().includes(trimmed) || blog.title.toLowerCase().includes(trimmed) || blog.content.toLowerCase().includes(trimmed)
+      );
+
+      console.log("Matching blog:", matchingBlog);
+
+      if (matchingBlog) {
+        // Redirect to matching article
+        router.push(`/article/${matchingBlog.slug}`);
+      } else {
+        // Show not found or all articles
+        router.push(`/article/not-found?query=${encodeURIComponent(trimmed)}`);
+        // OR show all articles:
+        // router.push('/articles-page');
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+      router.push('/');
     }
   };
    
@@ -68,7 +135,7 @@ export default function WikipediaNavbar() {
             />
             <button
               onClick={handleSearch}
-              className="h-[34px]   rounded-r border border-l-0 border-gray-400 bg-white px-4 text-sm  hover:bg-gray-100 text-zinc-600"
+              className="h-[34px] cursor-pointer  rounded-r border border-l-0 border-gray-400 bg-white px-4 text-sm  hover:bg-gray-100 text-zinc-600"
             >
               Search
             </button>
