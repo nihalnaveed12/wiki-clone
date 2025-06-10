@@ -26,7 +26,7 @@ export default function WikipediaNavbar() {
       router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
     }
   };
-
+   
   return (
     <div className="w-full border-b border-gray-300 bg-white">
       <div className="max-w-7xl mx-auto flex justify-between  h-[60px] w-full items-center px-1">
