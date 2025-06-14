@@ -8,9 +8,35 @@ interface PageProps {
   }>;
 }
 
+interface Author {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  photo: string;
+  clerkId: string;
+}
+
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  image: {
+    id: string;
+    url: string;
+  };
+  author: Author;
+  slug: string;
+  published: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const blog = await getBlogBySlug(slug);
+  const blog: Blog = await getBlogBySlug(slug);
 
   if (!blog) {
     notFound();
@@ -25,8 +51,7 @@ export default async function ArticlePage({ params }: PageProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* Back Button */}
+    <div className="max-w-5xl mx-auto px-7 py-[92px]">
       <Link
         href="/articles-page"
         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8"
@@ -34,106 +59,74 @@ export default async function ArticlePage({ params }: PageProps) {
         ← Back to Articles
       </Link>
 
-      {/* Article Header */}
-      <header className="mb-8">
-        {!blog.published && (
-          <div className="mb-4">
-            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-              Draft - Not Published
-            </span>
-          </div>
-        )}
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
+          <h1 className="text-3xl font-bold font-serif italic ">
+            {blog?.author?.firstName} {blog?.author?.lastName}
+          </h1>
 
-        <h1 className="text-4xl font-bold mb-6">{blog.title}</h1>
-
-        {/* Author and Date */}
-        <div className="flex items-center gap-4 mb-6">
-          {blog?.author?.photo && (
-            <Image
-              src={blog.author.photo}
-              alt={`${blog.author.firstName} ${blog.author.lastName}`}
-              width={48}
-              height={48}
-              className="rounded-full"
-            />
-          )}
-          <div>
-            <p className="font-medium text-gray-900">
-              {blog?.author?.firstName} {blog?.author?.lastName}
-            </p>
-            <p className="text-gray-600 text-sm">
-              Published on {formatDate(blog.createdAt)}
-              {blog.updatedAt !== blog.createdAt && (
-                <span> • Updated {formatDate(blog.updatedAt)}</span>
-              )}
-            </p>
-          </div>
+          <p className="text-gray-600 text-sm">
+            Published on {formatDate(blog.createdAt)}
+            {blog.updatedAt !== blog.createdAt && (
+              <span> • Updated {formatDate(blog.updatedAt)}</span>
+            )}
+          </p>
         </div>
 
-        {/* Tags */}
-        {blog?.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {blog?.tags?.map((tag: string, index: number) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="">
+          <h1 className="text-xl  ">{blog.title.toUpperCase()}</h1>
+        </div>
 
-        {/* Featured Image */}
-        {blog?.image?.url && (
-          <div className="relative w-full h-96 mb-8 rounded-lg overflow-hidden">
-            <Image
-              src={blog.image.url}
-              alt={blog.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
-      </header>
-
-      {/* Article Content */}
-      <article className="prose prose-lg max-w-none">
-        <div
-          dangerouslySetInnerHTML={{ __html: blog.content }}
-          className="article-content"
-        />
-      </article>
-
-      {/* Footer */}
-      <footer className="mt-12 pt-8 border-t">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {blog?.author?.photo && (
-              <Image
-                src={blog.author.photo}
-                alt={`${blog.author.firstName} ${blog.author.lastName}`}
-                width={64}
-                height={64}
-                className="rounded-full"
+        <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
+          <div className="sm:w-[90%]">
+            <article className="prose prose-lg max-w-none">
+              <div
+                dangerouslySetInnerHTML={{ __html: blog.content }}
+                className="article-content"
               />
-            )}
-            <div>
-              <p className="font-medium text-gray-900">
-                Written by {blog?.author?.firstName} {blog?.author?.lastName}
+            </article>
+          </div>
+
+          <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
+            <div className="bg-orange-100 p-3">
+              <h2 className="text-xl font-semibold font-serif italic pb-2 ">
+                {blog.author.firstName} {blog.author.lastName}
+              </h2>
+              <Image
+                src={blog.image.url}
+                alt={blog.title}
+                height={1000}
+                width={1000}
+              />
+            </div>
+
+            <div className="">
+              <p className="text-gray-600 text-sm text-center">
+                Published on {formatDate(blog.createdAt)}
+                {blog.updatedAt !== blog.createdAt && (
+                  <span> • Updated {formatDate(blog.updatedAt)}</span>
+                )}
               </p>
-              <p className="text-gray-600 text-sm">{blog.author?.email}</p>
+            </div>
+
+            <div className="">
+              {blog?.tags?.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
+                  {blog?.tags?.map((tag: string, index: number) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          <Link
-            href="/articles-page"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            Read More Articles
-          </Link>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
