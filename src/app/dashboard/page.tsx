@@ -133,7 +133,7 @@ export default function Dashboard() {
   if (userRole !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-red-600 text-lg font-semibold">
-        <p>🚫 Sorry, you can't access this page.</p>
+        <p>🚫 Sorry, you cannot access this page.</p>
         <p>Only admins are allowed to view the dashboard.</p>
       </div>
     );
