@@ -34,16 +34,10 @@ interface Blog {
 interface ArticleCardProps {
   blog: Blog;
   onDelete?: (blogId: string) => void;
-  currentUserRole?: "user" | "admin";
   currentUserId?: string;
 }
 
-export default function ArticleCard({
-  blog,
-  onDelete,
-  currentUserRole = "user",
-  currentUserId,
-}: ArticleCardProps) {
+export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
 
@@ -73,15 +67,8 @@ export default function ArticleCard({
   };
 
   const handleDelete = async () => {
-    const isAuthor = user?.id === blog?.author?.clerkId;
-    const isAdmin = currentUserRole === "admin";
-
-    // Show different confirmation messages for admin vs author
-    let confirmMessage =
+    const confirmMessage =
       "Are you sure you want to delete this article? This action cannot be undone.";
-    if (isAdmin && !isAuthor) {
-      confirmMessage = `⚠️ ADMIN ACTION: You are about to delete "${blog.title}" by ${blog.author.firstName} ${blog.author.lastName}. This action cannot be undone.`;
-    }
 
     if (!confirm(confirmMessage)) {
       return;
@@ -117,12 +104,7 @@ export default function ArticleCard({
     return headings[index];
   };
 
-  // Use currentUserId if provided, otherwise fall back to user?.id
-  const userId = currentUserId || user?.id;
-  const isAuthor = userId === blog?.author?.clerkId;
-  const isAdmin = currentUserRole === "admin";
-  const canEdit = isAuthor; // Only authors can edit their own posts
-  const canDelete = isAuthor || isAdmin; // Authors can delete their own, admins can delete any
+  const isAuthor = user?.id === blog?.author?.clerkId;
 
   return (
     <article className="bg-[#f1fdff] border border-blue-200 p-3">
@@ -174,12 +156,6 @@ export default function ArticleCard({
           <div>
             <p className="text-sm font-medium text-gray-900">
               {blog?.author?.firstName} {blog?.author?.lastName}
-              {/* Show admin indicator if current user is admin and this is not their post */}
-              {isAdmin && !isAuthor && (
-                <span className="ml-2 text-xs text-orange-600 font-medium">
-                  [Admin View]
-                </span>
-              )}
             </p>
             <p className="text-xs text-gray-500">
               {formatDate(blog.createdAt)}
@@ -211,38 +187,21 @@ export default function ArticleCard({
         )}
 
         <div className="flex items-center justify-between">
-          {(canEdit || canDelete) && (
+          {isAuthor && (
             <div className="flex gap-2">
-              {canEdit && (
-                <Link
-                  href={`/edit-article/${blog._id}`}
-                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                >
-                  Edit
-                </Link>
-              )}
-              {canDelete && (
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className={`px-3 py-1 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isAdmin && !isAuthor
-                      ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                      : "bg-red-100 text-red-700 hover:bg-red-200"
-                  }`}
-                  title={
-                    isAdmin && !isAuthor
-                      ? "Delete as Admin"
-                      : "Delete your post"
-                  }
-                >
-                  {loading
-                    ? "..."
-                    : isAdmin && !isAuthor
-                    ? "Admin Delete"
-                    : "Delete"}
-                </button>
-              )}
+              <Link
+                href={`/edit-article/${blog._id}`}
+                className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+              >
+                Edit
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "..." : "Delete"}
+              </button>
             </div>
           )}
         </div>

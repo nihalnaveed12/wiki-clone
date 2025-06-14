@@ -39,7 +39,6 @@ interface Blog {
   updatedAt: string;
 }
 
-
 interface BlogsResponse {
   blogs: Blog[];
   pagination: {
@@ -50,8 +49,6 @@ interface BlogsResponse {
     hasPrevPage: boolean;
   };
 }
-
-
 
 export default function Dashboard() {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -67,6 +64,8 @@ export default function Dashboard() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const postsPerPage = 10;
 
   useEffect(() => {
@@ -109,7 +108,7 @@ export default function Dashboard() {
       setLoadingPosts(true);
       try {
         const res = await fetch(`${BASE_URL}/api/blogs`);
-        const data:BlogsResponse = await res.json();
+        const data: BlogsResponse = await res.json();
         setPosts(data.blogs);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
@@ -123,11 +122,90 @@ export default function Dashboard() {
     }
   }, [userRole, activeTab, BASE_URL]);
 
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
+
+    setDeletingPostId(postId);
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/admin/delete-blog?id=${postId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (res.ok) {
+        setPosts(posts.filter((post) => post._id !== postId));
+        alert("Post deleted successfully!");
+      } else {
+        const error = await res.json();
+        alert(`Failed to delete post: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post");
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
+
+  const handleRoleChange = async (
+    userId: string,
+    newRole: "admin" | "user"
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to change this user's role to ${newRole}?`
+      )
+    ) {
+      return;
+    }
+
+    setUpdatingUserId(userId);
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/manage-users`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetUserId: userId,
+          newRole,
+        }),
+      });
+
+      if (res.ok) {
+        setUsers(
+          users.map((user) =>
+            user._id === userId ? { ...user, role: newRole } : user
+          )
+        );
+        alert(`User role updated to ${newRole}!`);
+      } else {
+        const error = await res.json();
+        alert(`Failed to update role: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      alert("Failed to update user role");
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
   const totalPages = Math.ceil(posts.length / postsPerPage);
-  const paginatedPosts = posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage);
+  const paginatedPosts = posts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage
+  );
+  const adminCount = users.filter((user) => user.role === "admin").length;
 
   if (!isLoaded || userRole === null) {
-    return <div className="p-4 text-center text-gray-500">Loading dashboard...</div>;
+    return (
+      <div className="p-4 text-center text-gray-500">Loading dashboard...</div>
+    );
   }
 
   if (userRole !== "admin") {
@@ -174,7 +252,12 @@ export default function Dashboard() {
       <div className="flex-1 p-8">
         {activeTab === "users" && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">All Users</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">All Users</h2>
+              <div className="text-sm text-gray-600">
+                Admins: {adminCount}/3
+              </div>
+            </div>
             <div className="bg-white p-4 shadow rounded-lg">
               {loadingUsers ? (
                 <p className="text-gray-500">Loading users...</p>
@@ -199,6 +282,38 @@ export default function Dashboard() {
                       <p className="text-xs mt-1 font-medium">
                         Role: <span className="text-blue-600">{u.role}</span>
                       </p>
+
+                      {u.email !== ADMIN_EMAIL && (
+                        <div className="mt-3 flex gap-2">
+                          {u.role === "user" ? (
+                            <button
+                              onClick={() => handleRoleChange(u._id, "admin")}
+                              disabled={
+                                adminCount >= 3 || updatingUserId === u._id
+                              }
+                              className={`px-3 py-1 text-xs rounded ${
+                                adminCount >= 3
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-green-500 text-white hover:bg-green-600"
+                              }`}
+                            >
+                              {updatingUserId === u._id
+                                ? "Updating..."
+                                : "Make Admin"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleRoleChange(u._id, "user")}
+                              disabled={updatingUserId === u._id}
+                              className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
+                            >
+                              {updatingUserId === u._id
+                                ? "Updating..."
+                                : "Remove Admin"}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -230,16 +345,22 @@ export default function Dashboard() {
                         />
                         <div className="p-4">
                           <a href={`/article/${post.slug}`}>
-                          <h3 className="text-lg font-bold text-gray-800 mb-1">
-                            {post.title}
-                          </h3>
-
+                            <h3 className="text-lg font-bold text-gray-800 mb-1">
+                              {post.title}
+                            </h3>
                           </a>
                           <p className="text-sm text-gray-600 mb-2">
-                            Author: {post.author.firstName} {post.author.lastName}
+                            Author: {post.author.firstName}{" "}
+                            {post.author.lastName}
                           </p>
-                          <button className="px-4 py-1 mt-2 text-sm bg-red-500 text-white rounded hover:bg-red-600">
-                            Delete
+                          <button
+                            onClick={() => handleDeletePost(post._id)}
+                            disabled={deletingPostId === post._id}
+                            className="px-4 py-1 mt-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-red-300"
+                          >
+                            {deletingPostId === post._id
+                              ? "Deleting..."
+                              : "Delete"}
                           </button>
                         </div>
                       </div>

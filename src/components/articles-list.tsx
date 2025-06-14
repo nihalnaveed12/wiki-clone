@@ -224,7 +224,6 @@ export default function ArticlesList() {
                 key={blog._id}
                 blog={blog}
                 onDelete={handleDelete}
-                currentUserRole={userRole}
                 currentUserId={user?.id}
               />
             ))}
