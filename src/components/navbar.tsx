@@ -10,12 +10,27 @@ import {
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export default function WikipediaNavbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const router = useRouter();
+
+  const { user } = useUser();
+
+  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
+
+  const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
+
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+      setUserRole("admin");
+    } else {
+      setUserRole("user");
+    }
+  });
 
   const handleSearch = () => {
     const trimmed = searchQuery.trim();
@@ -26,7 +41,7 @@ export default function WikipediaNavbar() {
       router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
     }
   };
-   
+
   return (
     <div className="w-full border-b border-gray-300 bg-white">
       <div className="max-w-7xl mx-auto flex justify-between  h-[60px] w-full items-center px-1">
@@ -75,7 +90,9 @@ export default function WikipediaNavbar() {
           </div>
         </div>
 
-        <div className="">
+        <div className="flex gap-7">
+          {userRole === "admin" && <Link href={"/dashboard"}>Dashboard</Link>}
+
           <SignedOut>
             <div className="flex items-center gap-2">
               <SignInButton>
