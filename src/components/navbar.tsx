@@ -13,14 +13,53 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 
+interface Author {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  photo: string;
+  clerkId: string;
+}
+
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  image: {
+    id: string;
+    url: string;
+  };
+  author: Author;
+  slug: string;
+  published: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BlogsResponse {
+  blogs: Blog[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalBlogs: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export default function WikipediaNavbar() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
   const router = useRouter();
 
   const { user } = useUser();
 
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL
 
   const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
 
@@ -31,14 +70,36 @@ export default function WikipediaNavbar() {
       setUserRole("user");
     }
   });
+ useEffect(() => {
+    async function loadBlogs() {
+      const res = await fetch(`${BaseUrl}/api/blogs`);
+      const data:BlogsResponse = await res.json();
+      setBlogs(data.blogs || []);
+    }
+    loadBlogs();
+  }, []);
 
   const handleSearch = () => {
-    const trimmed = searchQuery.trim();
-
-    if (trimmed === "") {
-      router.push("/articles-page");
+    
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return;
+    // exact match by slug or title
+    let blog = blogs.find(b =>
+      b.slug.toLowerCase() === query ||
+      b.title.toLowerCase() === query
+    );
+    if (!blog) {
+      // fallback: partial match in slug or title
+      blog = blogs.find(b =>
+        b.slug.toLowerCase().includes(query) ||
+        b.title.toLowerCase().includes(query)
+      );
+    }
+    if (blog) {
+      router.push(`/article/${blog.slug}`);
     } else {
-      router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
+      // no match found - handle as needed
+      console.log('No article found for query:', query);
     }
   };
 
