@@ -51,7 +51,7 @@ interface BlogsResponse {
 }
 
 export default function Dashboard() {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
@@ -68,29 +68,49 @@ export default function Dashboard() {
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const postsPerPage = 10;
 
+  // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       router.push("/");
     }
   }, [isLoaded, isSignedIn, router]);
 
+  // Fetch current user's role
   useEffect(() => {
-    if (isLoaded) {
-      if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
-        setUserRole("admin");
-      } else {
-        setUserRole("user");
-      }
+    if (isLoaded && isSignedIn) {
+      const fetchUserRole = async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/api/user/role`, {
+            credentials: "include", // Ensure Clerk auth cookies are sent
+          });
+          if (res.ok) {
+            const data: { role: "user" | "admin" } = await res.json();
+            setUserRole(data.role);
+          } else {
+            console.error("Failed to fetch user role:", await res.text());
+            setUserRole("user");
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setUserRole("user");
+        }
+      };
+      fetchUserRole();
     }
-  }, [isLoaded, user, ADMIN_EMAIL]);
+  }, [isLoaded, isSignedIn, BASE_URL]);
 
+  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
         const res = await fetch(`${BASE_URL}/api/user`);
-        const data = await res.json();
-        setUsers(data);
+        if (res.ok) {
+          const data: UserData[] = await res.json();
+          setUsers(data);
+        } else {
+          console.error("Failed to fetch users:", await res.text());
+        }
       } catch (error) {
         console.error("Failed to fetch users:", error);
       } finally {
@@ -103,13 +123,18 @@ export default function Dashboard() {
     }
   }, [userRole, activeTab, BASE_URL]);
 
+  // Fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
       setLoadingPosts(true);
       try {
         const res = await fetch(`${BASE_URL}/api/blogs`);
-        const data: BlogsResponse = await res.json();
-        setPosts(data.blogs);
+        if (res.ok) {
+          const data: BlogsResponse = await res.json();
+          setPosts(data.blogs);
+        } else {
+          console.error("Failed to fetch posts:", await res.text());
+        }
       } catch (error) {
         console.error("Failed to fetch posts:", error);
       } finally {

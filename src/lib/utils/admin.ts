@@ -8,6 +8,23 @@ const MAX_ADMINS = 3;
 /**
  * Check if a user is an admin by their Clerk ID
  */
+
+export async function ensureMainAdminRole(): Promise<void> {
+    try {
+        await dbConnect();
+        const mainAdmin = await User.findOne({ email: ADMIN_EMAIL });
+        if (mainAdmin && mainAdmin.role !== 'admin') {
+            mainAdmin.role = 'admin';
+            await mainAdmin.save();
+            console.log('Main admin role updated to admin');
+        } else if (!mainAdmin) {
+            console.log('No user found with ADMIN_EMAIL. Ensure the user is created.');
+        }
+    } catch (error) {
+        console.error('Error ensuring main admin role:', error);
+    }
+}
+
 export async function isUserAdmin(clerkId: string): Promise<boolean> {
     try {
         await dbConnect();
