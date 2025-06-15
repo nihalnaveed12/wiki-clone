@@ -3,6 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface UserData {
   _id: string;
@@ -71,7 +72,7 @@ export default function Dashboard() {
   // Redirect if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push("/");
+      router.push("/sign-in");
     }
   }, [isLoaded, isSignedIn, router]);
 
@@ -295,7 +296,9 @@ export default function Dashboard() {
                       key={u._id}
                       className="border p-4 rounded-lg shadow hover:shadow-md transition bg-gray-50"
                     >
-                      <img
+                      <Image
+                      height={1000}
+                      width={1000}
                         src={u.photo}
                         alt={`${u.firstName} ${u.lastName}`}
                         className="w-16 h-16 rounded-full object-cover mb-2"
@@ -363,7 +366,9 @@ export default function Dashboard() {
                         key={post._id}
                         className="border rounded-lg shadow hover:shadow-md transition bg-gray-50 overflow-hidden"
                       >
-                        <img
+                        <Image
+                        height={1000}
+                        width={1000}
                           src={post.image.url}
                           alt={post.title}
                           className="w-full h-40 object-cover"

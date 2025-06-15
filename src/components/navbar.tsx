@@ -10,23 +10,99 @@ import {
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+
+interface Author {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  photo: string;
+  clerkId: string;
+}
+
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  image: {
+    id: string;
+    url: string;
+  };
+  author: Author;
+  slug: string;
+  published: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BlogsResponse {
+  blogs: Blog[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalBlogs: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
 
 export default function WikipediaNavbar() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
   const router = useRouter();
 
-  const handleSearch = () => {
-    const trimmed = searchQuery.trim();
+  const { user } = useUser();
 
-    if (trimmed === "") {
-      router.push("/articles-page");
+  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL
+
+  const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
+
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+      setUserRole("admin");
     } else {
-      router.push(`/articles-page?search=${encodeURIComponent(trimmed)}`);
+      setUserRole("user");
+    }
+  });
+ useEffect(() => {
+    async function loadBlogs() {
+      const res = await fetch(`${BaseUrl}/api/blogs`);
+      const data:BlogsResponse = await res.json();
+      setBlogs(data.blogs || []);
+    }
+    loadBlogs();
+  }, []);
+
+  const handleSearch = () => {
+    
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return;
+    // exact match by slug or title
+    let blog = blogs.find(b =>
+      b.slug.toLowerCase() === query ||
+      b.title.toLowerCase() === query
+    );
+    if (!blog) {
+      // fallback: partial match in slug or title
+      blog = blogs.find(b =>
+        b.slug.toLowerCase().includes(query) ||
+        b.title.toLowerCase().includes(query)
+      );
+    }
+    if (blog) {
+      router.push(`/article/${blog.slug}`);
+    } else {
+      // no match found - handle as needed
+      console.log('No article found for query:', query);
     }
   };
-   
+
   return (
     <div className="w-full border-b border-gray-300 bg-white">
       <div className="max-w-7xl mx-auto flex justify-between  h-[60px] w-full items-center px-1">
@@ -75,7 +151,9 @@ export default function WikipediaNavbar() {
           </div>
         </div>
 
-        <div className="">
+        <div className="flex gap-7">
+          {userRole === "admin" && <Link href={"/dashboard"}>Dashboard</Link>}
+
           <SignedOut>
             <div className="flex items-center gap-2">
               <SignInButton>
