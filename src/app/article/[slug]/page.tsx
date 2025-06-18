@@ -62,7 +62,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <div className="flex flex-col gap-4">
         <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
           <h1 className="text-3xl font-bold font-serif italic ">
-            {blog?.author?.firstName} {blog?.author?.lastName}
+           {blog.title}
           </h1>
 
           <p className="text-gray-600 text-sm">
@@ -73,9 +73,6 @@ export default async function ArticlePage({ params }: PageProps) {
           </p>
         </div>
 
-        <div className="">
-          <h1 className="text-xl  ">{blog.title.toUpperCase()}</h1>
-        </div>
 
         <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
           <div className="sm:w-[90%]">
@@ -90,7 +87,7 @@ export default async function ArticlePage({ params }: PageProps) {
           <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
             <div className="bg-orange-100 p-3">
               <h2 className="text-xl font-semibold font-serif italic pb-2 ">
-                {blog.author.firstName} {blog.author.lastName}
+                {blog?.author?.firstName} {blog?.author?.lastName}
               </h2>
               <Image
                 src={blog.image.url}
