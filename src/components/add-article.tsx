@@ -17,6 +17,14 @@ export default function AddYourArticle() {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
 
+  // New fields
+  const [bornDate, setBornDate] = useState("");
+  const [bornPlace, setBornPlace] = useState("");
+  const [diedDate, setDiedDate] = useState("");
+  const [diedPlace, setDiedPlace] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [spouses, setSpouses] = useState("");
+
   const router = useRouter();
   const { isSignedIn, user } = useUser();
 
@@ -26,7 +34,6 @@ export default function AddYourArticle() {
 
     setImage(file);
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -55,6 +62,12 @@ export default function AddYourArticle() {
       formData.append("content", content);
       formData.append("tags", tags);
       formData.append("published", published.toString());
+      formData.append("bornDate", bornDate);
+      formData.append("bornPlace", bornPlace);
+      formData.append("diedDate", diedDate);
+      formData.append("diedPlace", diedPlace);
+      formData.append("occupation", occupation);
+      formData.append("spouses", spouses);
 
       if (image) {
         formData.append("image", image);
@@ -69,15 +82,18 @@ export default function AddYourArticle() {
 
       if (response.ok) {
         alert("Article created successfully!");
-        // Reset form
         setTitle("");
         setContent("");
         setImage(null);
         setTags("");
         setPublished(false);
         setImagePreview("");
-
-        // Redirect to articles page or the created article
+        setBornDate("");
+        setBornPlace("");
+        setDiedDate("");
+        setDiedPlace("");
+        setOccupation("");
+        setSpouses("");
         router.push("/articles-page");
       } else {
         alert(result.error || "Failed to create article");
@@ -134,6 +150,84 @@ export default function AddYourArticle() {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={loading}
+          />
+        </div>
+
+        {/* Born Fields */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Born</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Born Date (e.g., June 19, 1903)"
+              value={bornDate}
+              onChange={(e) => setBornDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+              disabled={loading}
+            />
+            <input
+              type="text"
+              placeholder="Born Place/Description"
+              value={bornPlace}
+              onChange={(e) => setBornPlace(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+              disabled={loading}
+            />
+          </div>
+        </div>
+
+        {/* Died Fields */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Died</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Died Date (e.g., June 2, 1941)"
+              value={diedDate}
+              onChange={(e) => setDiedDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+              disabled={loading}
+            />
+            <input
+              type="text"
+              placeholder="Died Place/Description"
+              value={diedPlace}
+              onChange={(e) => setDiedPlace(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md"
+              disabled={loading}
+            />
+          </div>
+        </div>
+
+        {/* Occupation */}
+        <div>
+          <label htmlFor="occupation" className="block text-sm font-medium mb-2">
+            Occupation
+          </label>
+          <input
+            id="occupation"
+            type="text"
+            placeholder="e.g., Actor, Politician"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+            disabled={loading}
+          />
+        </div>
+
+        {/* Spouses */}
+        <div>
+          <label htmlFor="spouses" className="block text-sm font-medium mb-2">
+            Spouses
+          </label>
+          <input
+            id="spouses"
+            type="text"
+            placeholder="e.g., Jane Doe (m. 1950–1980)"
+            value={spouses}
+            onChange={(e) => setSpouses(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
             disabled={loading}
           />
         </div>
