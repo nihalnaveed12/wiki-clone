@@ -1,4 +1,3 @@
-// models/Blog.ts (Updated)
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBlog extends Document {
@@ -12,6 +11,13 @@ export interface IBlog extends Document {
     slug: string;
     published: boolean;
     tags: string[];
+    // Additional biographical fields
+    bornDate: string;
+    bornPlace: string;
+    diedDate: string;
+    diedPlace: string;
+    occupation: string;
+    spouses: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -55,6 +61,37 @@ const BlogSchema = new Schema<IBlog>(
             type: String,
             trim: true,
         }],
+        // Additional biographical fields
+        bornDate: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        bornPlace: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        diedDate: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        diedPlace: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        occupation: {
+            type: String,
+            default: '',
+            trim: true,
+        },
+        spouses: {
+            type: String,
+            default: '',
+            trim: true,
+        },
     },
     {
         timestamps: true,
@@ -66,6 +103,8 @@ BlogSchema.index({ author: 1 });
 BlogSchema.index({ published: 1 });
 BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ tags: 1 });
+// Additional indexes for biographical fields if needed for searching
+BlogSchema.index({ occupation: 1 });
 
 const Blog = mongoose.models?.Blog || mongoose.model<IBlog>('Blog', BlogSchema);
 
