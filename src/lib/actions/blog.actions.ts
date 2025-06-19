@@ -13,6 +13,12 @@ interface CreateBlogParams {
     authorClerkId: string;
     tags?: string[];
     published?: boolean;
+    bornDate?: string;
+    bornPlace?: string;
+    diedDate?: string;
+    diedPlace?: string;
+    occupation?: string;
+    spouses?: string;
 }
 
 interface UpdateBlogParams {
@@ -25,6 +31,12 @@ interface UpdateBlogParams {
     };
     tags?: string[];
     published?: boolean;
+    bornDate?: string;
+    bornPlace?: string;
+    diedDate?: string;
+    diedPlace?: string;
+    occupation?: string;
+    spouses?: string;
 }
 
 export async function createBlog(blogData: CreateBlogParams) {
@@ -57,6 +69,13 @@ export async function createBlog(blogData: CreateBlogParams) {
             slug,
             published: blogData.published || false,
             tags: blogData.tags || [],
+            // Additional biographical fields
+            bornDate: blogData.bornDate || '',
+            bornPlace: blogData.bornPlace || '',
+            diedDate: blogData.diedDate || '',
+            diedPlace: blogData.diedPlace || '',
+            occupation: blogData.occupation || '',
+            spouses: blogData.spouses || '',
         });
 
         await blog.save();
@@ -175,10 +194,19 @@ export async function updateBlog(updateData: UpdateBlogParams) {
             updateFields.slug = slug;
         }
 
+        // Standard fields
         if (updateData.content) updateFields.content = updateData.content;
         if (updateData.image) updateFields.image = updateData.image;
         if (updateData.tags) updateFields.tags = updateData.tags;
         if (updateData.published !== undefined) updateFields.published = updateData.published;
+
+        // Additional biographical fields
+        if (updateData.bornDate !== undefined) updateFields.bornDate = updateData.bornDate;
+        if (updateData.bornPlace !== undefined) updateFields.bornPlace = updateData.bornPlace;
+        if (updateData.diedDate !== undefined) updateFields.diedDate = updateData.diedDate;
+        if (updateData.diedPlace !== undefined) updateFields.diedPlace = updateData.diedPlace;
+        if (updateData.occupation !== undefined) updateFields.occupation = updateData.occupation;
+        if (updateData.spouses !== undefined) updateFields.spouses = updateData.spouses;
 
         const blog = await Blog.findByIdAndUpdate(
             updateData.blogId,

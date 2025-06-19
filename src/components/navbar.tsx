@@ -59,7 +59,7 @@ export default function WikipediaNavbar() {
   const { user } = useUser();
 
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
-  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
 
@@ -69,37 +69,37 @@ export default function WikipediaNavbar() {
     } else {
       setUserRole("user");
     }
-  });
- useEffect(() => {
+  }, [user, ADMIN_EMAIL]);
+
+  useEffect(() => {
     async function loadBlogs() {
       const res = await fetch(`${BaseUrl}/api/blogs`);
-      const data:BlogsResponse = await res.json();
+      const data: BlogsResponse = await res.json();
       setBlogs(data.blogs || []);
     }
     loadBlogs();
-  }, []);
+  }, [BaseUrl]);
 
   const handleSearch = () => {
-    
     const query = searchQuery.trim().toLowerCase();
     if (!query) return;
     // exact match by slug or title
-    let blog = blogs.find(b =>
-      b.slug.toLowerCase() === query ||
-      b.title.toLowerCase() === query
+    let blog = blogs.find(
+      (b) => b.slug.toLowerCase() === query || b.title.toLowerCase() === query
     );
     if (!blog) {
       // fallback: partial match in slug or title
-      blog = blogs.find(b =>
-        b.slug.toLowerCase().includes(query) ||
-        b.title.toLowerCase().includes(query)
+      blog = blogs.find(
+        (b) =>
+          b.slug.toLowerCase().includes(query) ||
+          b.title.toLowerCase().includes(query)
       );
     }
     if (blog) {
       router.push(`/article/${blog.slug}`);
     } else {
       // no match found - handle as needed
-      console.log('No article found for query:', query);
+      console.log("No article found for query:", query);
     }
   };
 

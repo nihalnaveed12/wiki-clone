@@ -15,6 +15,7 @@ export default function UserSync() {
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({
               clerkId: user.id,
               email: user.emailAddresses[0].emailAddress,
