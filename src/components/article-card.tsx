@@ -49,14 +49,7 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
     });
   };
 
-  const headings = [
-    " From today's featured article",
-    " In the news",
-    " Did you know?",
-    " Trending Now",
-    " Editor's Pick",
-    " Thought of the Day",
-  ];
+
 
   const truncateContent = (content: string, maxLength = 1000) => {
     // Remove HTML tags and truncate
@@ -99,17 +92,14 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
     }
   };
 
-  const getRandomHeading = () => {
-    const index = Math.floor(Math.random() * headings.length);
-    return headings[index];
-  };
+  
 
   const isAuthor = user?.id === blog?.author?.clerkId;
 
   return (
     <article className="bg-[#f1fdff] border border-blue-200 p-3">
       <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-[#d2f9ff]">
-        {getRandomHeading()}
+        {blog.title}
       </h3>
 
       <div className="">
