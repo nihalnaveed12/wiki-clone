@@ -28,6 +28,12 @@ interface Blog {
   };
   author: Author;
   slug: string;
+  bornDate: string;
+  bornPlace: string;
+  diedDate: string;
+  diedPlace: string;
+  occupation: string;
+  spouses: string;
   published: boolean;
   tags: string[];
   createdAt: string;
@@ -62,7 +68,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <div className="flex flex-col gap-4">
         <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
           <h1 className="text-3xl font-bold font-serif italic ">
-           {blog.title}
+            {blog.title}
           </h1>
 
           <p className="text-gray-600 text-sm">
@@ -72,7 +78,6 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
           </p>
         </div>
-
 
         <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
           <div className="sm:w-[90%]">
@@ -85,28 +90,59 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
 
           <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
-            <div className="bg-orange-100 p-3">
-              <h2 className="text-xl font-semibold font-serif italic pb-2 ">
-                {blog?.author?.firstName} {blog?.author?.lastName}
-              </h2>
-              <Image
-                src={blog.image.url}
-                alt={blog.title}
-                height={1000}
-                width={1000}
-              />
+            <div className="p-4">
+              <div className="bg-orange-100 p-3">
+                <Image
+                  src={blog.image.url}
+                  alt={blog.title}
+                  height={1000}
+                  width={1000}
+                />
+              </div>
             </div>
 
-            <div className="">
-              <p className="text-gray-600 text-sm text-center">
-                Published on {formatDate(blog.createdAt)}
-                {blog.updatedAt !== blog.createdAt && (
-                  <span> • Updated {formatDate(blog.updatedAt)}</span>
-                )}
-              </p>
+            <div className="px-2 flex flex-col gap-3">
+              <div className="flex  sm:justify-between sm:gap-3 gap-10">
+                <h1 className="font-semibold font-sans">Born</h1>
+
+                <div className="text-sm">
+                  <h2>{blog.bornDate}</h2>
+
+                  <p>{blog.bornPlace}</p>
+                </div>
+              </div>
+
+              {blog.diedDate && blog.diedPlace ? (
+                <div className="flex  sm:justify-between sm:gap-3 gap-10">
+                  <h1 className="font-semibold font-sans">Died</h1>
+
+                  <div className="text-sm">
+                    <h2>{blog.diedDate}</h2>
+
+                    <p>{blog.diedPlace}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className=""></div>
+              )}
+
+              <div className="flex  sm:justify-between sm:gap-3 gap-10">
+                <h1 className="font-semibold font-sans">Occupation</h1>
+
+                <div className="text-sm">
+                  <h2>{blog.occupation}</h2>
+                </div>
+              </div>
+              <div className="flex  sm:justify-between sm:gap-3 gap-10">
+                <h1 className="font-semibold font-sans">Spouses</h1>
+
+                <div className="text-sm">
+                  <h2>{blog.spouses}</h2>
+                </div>
+              </div>
             </div>
 
-            <div className="">
+            {/* <div className="">
               {blog?.tags?.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-2 mb-6">
                   {blog?.tags?.map((tag: string, index: number) => (
@@ -119,9 +155,8 @@ export default async function ArticlePage({ params }: PageProps) {
                   ))}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
-
         </div>
       </div>
     </div>
