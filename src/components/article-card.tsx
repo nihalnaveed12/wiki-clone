@@ -49,15 +49,13 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
     });
   };
 
-
-
-  const truncateContent = (content: string, maxLength = 1000) => {
-    // Remove HTML tags and truncate
-    const textContent = content.replace(/<[^>]*>/g, "");
-    return textContent.length > maxLength
-      ? textContent.substring(0, maxLength) + "..."
-      : textContent;
-  };
+  // const truncateContent = (content: string, maxLength = 1000) => {
+  //   // Remove HTML tags and truncate
+  //   const textContent = content.replace(/<[^>]*>/g, "");
+  //   return textContent.length > maxLength
+  //     ? textContent.substring(0, maxLength) + "..."
+  //     : textContent;
+  // };
 
   const handleDelete = async () => {
     const confirmMessage =
@@ -92,12 +90,10 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
     }
   };
 
-  
-
   const isAuthor = user?.id === blog?.author?.clerkId;
 
   return (
-    <article className="bg-[#f1fdff] border border-blue-200 p-3">
+    <article className="bg-[#f1fdff] border border-blue-200 p-3 ">
       <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-[#d2f9ff]">
         {blog.title}
       </h3>
@@ -120,16 +116,36 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
           )}
         </div>
 
-        <p className="text-gray-600 text-sm ">
+        {/* <p className="text-gray-600 text-sm ">
           {truncateContent(blog.content)}
-        </p>
+        </p> */}
 
-        <Link
-          href={`/article/${blog.slug}`}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-        >
-          Read More →
-        </Link>
+        {/* <article className="">
+              <div
+                dangerouslySetInnerHTML={{ __html: blog.content }}
+                className="article-content"
+              />
+            </article> */}
+
+        <article className="flex flex-col">
+          <div className="relative max-h-[350px] overflow-hidden article-content">
+            <div
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+              className="prose max-w-none"
+            />
+            {/* Fade effect at bottom */}
+            <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#f1fdff] to-transparent" />
+          </div>
+
+          <span>
+            <Link
+              href={`/article/${blog.slug}`}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block"
+            >
+              Read More →
+            </Link>
+          </span>
+        </article>
       </div>
 
       <div className="flex flex-col gap-3 mt-5 items-end">
