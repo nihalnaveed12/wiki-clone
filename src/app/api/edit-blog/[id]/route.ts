@@ -93,6 +93,12 @@ export async function PUT(
         const tags = formData.get('tags') as string;
         const published = formData.get('published') === 'true';
         const removeImage = formData.get('removeImage') === 'true';
+        const bornDate = formData.get('bornDate') as string;
+        const bornPlace = formData.get('bornPlace') as string;
+        const diedDate = formData.get('diedDate') as string;
+        const diedPlace = formData.get('diedPlace') as string;
+        const occupation = formData.get('occupation') as string;
+        const spouses = formData.get('spouses') as string;
 
         if (!title || !content) {
             return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
@@ -122,6 +128,12 @@ export async function PUT(
             image: imageData,
             tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
             published,
+            bornDate: bornDate || '',
+            bornPlace: bornPlace || '',
+            diedDate: diedDate || '',
+            diedPlace: diedPlace || '',
+            occupation: occupation || '',
+            spouses: spouses || '',
         });
 
         return NextResponse.json({ success: true, blog: updatedBlog }, { status: 200 });
