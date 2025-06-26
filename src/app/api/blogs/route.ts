@@ -23,9 +23,18 @@ export async function POST(request: NextRequest) {
         const diedPlace = formData.get('diedPlace') as string;
         const occupation = formData.get('occupation') as string;
         const spouses = formData.get('spouses') as string;
+        const youtubeUrl = formData.get('youtubeUrl') as string; // NEW: Extract YouTube URL
 
         if (!title || !content) {
             return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+        }
+
+        // Optional: Server-side YouTube URL validation
+        if (youtubeUrl && youtubeUrl.trim()) {
+            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+            if (!youtubeRegex.test(youtubeUrl.trim())) {
+                return NextResponse.json({ error: 'Invalid YouTube URL format' }, { status: 400 });
+            }
         }
 
         let imageData = { id: '', url: '' };
@@ -47,6 +56,7 @@ export async function POST(request: NextRequest) {
             diedPlace: diedPlace || '',
             occupation: occupation || '',
             spouses: spouses || '',
+            youtubeUrl: youtubeUrl || '', // NEW: Include YouTube URL in blog creation
         });
 
         return NextResponse.json({ success: true, blog }, { status: 201 });

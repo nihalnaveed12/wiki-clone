@@ -19,6 +19,7 @@ interface CreateBlogParams {
     diedPlace?: string;
     occupation?: string;
     spouses?: string;
+    youtubeUrl?: string;
 }
 
 interface UpdateBlogParams {
@@ -37,25 +38,23 @@ interface UpdateBlogParams {
     diedPlace?: string;
     occupation?: string;
     spouses?: string;
+    youtubeUrl?: string; // Add youtubeUrl to UpdateBlogParams
 }
 
 export async function createBlog(blogData: CreateBlogParams) {
     try {
         await dbConnect();
 
-        // Get the user by clerkId to get the MongoDB _id
         const user = await User.findOne({ clerkId: blogData.authorClerkId });
 
         if (!user) {
             throw new Error('User not found');
         }
 
-        // Generate unique slug
         const baseSlug = generateSlug(blogData.title);
         let slug = baseSlug;
         let counter = 1;
 
-        // Check if slug exists and make it unique
         while (await Blog.findOne({ slug })) {
             slug = `${baseSlug}-${counter}`;
             counter++;
@@ -69,18 +68,17 @@ export async function createBlog(blogData: CreateBlogParams) {
             slug,
             published: blogData.published || false,
             tags: blogData.tags || [],
-            // Additional biographical fields
             bornDate: blogData.bornDate || '',
             bornPlace: blogData.bornPlace || '',
             diedDate: blogData.diedDate || '',
             diedPlace: blogData.diedPlace || '',
             occupation: blogData.occupation || '',
             spouses: blogData.spouses || '',
+            ...(blogData.youtubeUrl && blogData.youtubeUrl.trim() && { youtubeUrl: blogData.youtubeUrl.trim() }),
         });
 
         await blog.save();
 
-        // Populate author data before returning
         await blog.populate('author', 'firstName lastName email username photo');
 
         return JSON.parse(JSON.stringify(blog));
@@ -182,7 +180,6 @@ export async function updateBlog(updateData: UpdateBlogParams) {
 
         if (updateData.title) {
             updateFields.title = updateData.title;
-            // Generate new slug if title is updated
             const baseSlug = generateSlug(updateData.title);
             let slug = baseSlug;
             let counter = 1;
@@ -194,23 +191,27 @@ export async function updateBlog(updateData: UpdateBlogParams) {
             updateFields.slug = slug;
         }
 
-        // Standard fields
         if (updateData.content) updateFields.content = updateData.content;
         if (updateData.image) updateFields.image = updateData.image;
         if (updateData.tags) updateFields.tags = updateData.tags;
         if (updateData.published !== undefined) updateFields.published = updateData.published;
-
-        // Additional biographical fields
         if (updateData.bornDate !== undefined) updateFields.bornDate = updateData.bornDate;
         if (updateData.bornPlace !== undefined) updateFields.bornPlace = updateData.bornPlace;
         if (updateData.diedDate !== undefined) updateFields.diedDate = updateData.diedDate;
         if (updateData.diedPlace !== undefined) updateFields.diedPlace = updateData.diedPlace;
         if (updateData.occupation !== undefined) updateFields.occupation = updateData.occupation;
         if (updateData.spouses !== undefined) updateFields.spouses = updateData.spouses;
+        if (updateData.youtubeUrl !== undefined) {
+            if (updateData.youtubeUrl && updateData.youtubeUrl.trim()) {
+                updateFields.youtubeUrl = updateData.youtubeUrl.trim();
+            } else {
+                updateFields.youtubeUrl = undefined; // Explicitly unset if empty
+            }
+        }
 
         const blog = await Blog.findByIdAndUpdate(
             updateData.blogId,
-            { $set: updateFields },
+            updateData.youtubeUrl === '' ? { $set: updateFields, $unset: { youtubeUrl: '' } } : { $set: updateFields },
             { new: true }
         ).populate('author', 'firstName lastName email username photo clerkId');
 

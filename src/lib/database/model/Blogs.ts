@@ -18,6 +18,8 @@ export interface IBlog extends Document {
     diedPlace: string;
     occupation: string;
     spouses: string;
+    // New YouTube video URL field
+    youtubeUrl: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -91,6 +93,23 @@ const BlogSchema = new Schema<IBlog>(
             type: String,
             default: '',
             trim: true,
+        },
+        // New YouTube video URL field
+        youtubeUrl: {
+            type: String,
+            default: '',
+            trim: true,
+            validate: {
+                validator: function (v: string) {
+                    // If empty, it's valid (optional field)
+                    if (!v || v.trim() === '') return true;
+
+                    // Validate YouTube URL format
+                    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+                    return youtubeRegex.test(v);
+                },
+                message: 'Please provide a valid YouTube URL'
+            }
         },
     },
     {

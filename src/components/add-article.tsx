@@ -17,16 +17,27 @@ export default function AddYourArticle() {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
 
-  // New fields
+  // Biographical fields
   const [bornDate, setBornDate] = useState("");
   const [bornPlace, setBornPlace] = useState("");
   const [diedDate, setDiedDate] = useState("");
   const [diedPlace, setDiedPlace] = useState("");
   const [occupation, setOccupation] = useState("");
   const [spouses, setSpouses] = useState("");
+  
+  // New YouTube video URL field
+  const [youtubeUrl, setYoutubeUrl] = useState("");
 
   const router = useRouter();
   const { isSignedIn, user } = useUser();
+
+  // Function to validate YouTube URL
+  const isValidYouTubeUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Empty is valid since it's optional
+    
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+    return youtubeRegex.test(url);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,6 +65,12 @@ export default function AddYourArticle() {
       return;
     }
 
+    // Validate YouTube URL if provided
+    if (youtubeUrl.trim() && !isValidYouTubeUrl(youtubeUrl)) {
+      alert("Please enter a valid YouTube URL");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -68,6 +85,7 @@ export default function AddYourArticle() {
       formData.append("diedPlace", diedPlace);
       formData.append("occupation", occupation);
       formData.append("spouses", spouses);
+      formData.append("youtubeUrl", youtubeUrl.trim()); // Add YouTube URL to form data
 
       if (image) {
         formData.append("image", image);
@@ -94,6 +112,7 @@ export default function AddYourArticle() {
         setDiedPlace("");
         setOccupation("");
         setSpouses("");
+        setYoutubeUrl(""); // Reset YouTube URL
         router.push("/articles-page");
       } else {
         alert(result.error || "Failed to create article");
@@ -230,6 +249,34 @@ export default function AddYourArticle() {
             className="w-full px-4 py-2 border border-gray-300 rounded-md"
             disabled={loading}
           />
+        </div>
+
+        {/* YouTube Video URL - NEW FIELD */}
+        <div>
+          <label htmlFor="youtubeUrl" className="block text-sm font-medium mb-2">
+            YouTube Video URL (Optional)
+          </label>
+          <input
+            id="youtubeUrl"
+            type="url"
+            placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              youtubeUrl.trim() && !isValidYouTubeUrl(youtubeUrl)
+                ? "border-red-300 focus:ring-red-500"
+                : "border-gray-300"
+            }`}
+            disabled={loading}
+          />
+          {youtubeUrl.trim() && !isValidYouTubeUrl(youtubeUrl) && (
+            <p className="text-red-500 text-sm mt-1">
+              Please enter a valid YouTube URL
+            </p>
+          )}
+          <p className="text-gray-500 text-sm mt-1">
+            Add a YouTube video link to embed in your article (optional)
+          </p>
         </div>
 
         {/* Image Upload */}

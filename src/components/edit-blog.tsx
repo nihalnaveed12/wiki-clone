@@ -38,6 +38,7 @@ interface Blog {
   diedPlace?: string;
   occupation?: string;
   spouses?: string;
+  youtubeUrl?: string;
 }
 
 interface EditBlogProps {
@@ -53,14 +54,13 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(blog.image?.url || "");
   const [removeImage, setRemoveImage] = useState(false);
-
-  // Additional Fields
   const [bornDate, setBornDate] = useState(blog.bornDate || "");
   const [bornPlace, setBornPlace] = useState(blog.bornPlace || "");
   const [diedDate, setDiedDate] = useState(blog.diedDate || "");
   const [diedPlace, setDiedPlace] = useState(blog.diedPlace || "");
   const [occupation, setOccupation] = useState(blog.occupation || "");
   const [spouses, setSpouses] = useState(blog.spouses || "");
+  const [youtubeUrl, setYoutubeUrl] = useState(blog.youtubeUrl || "");
 
   const router = useRouter();
   const { isSignedIn, user } = useUser();
@@ -113,14 +113,13 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
       formData.append("tags", tags);
       formData.append("published", published.toString());
       formData.append("removeImage", removeImage.toString());
-
-      // New fields
       formData.append("bornDate", bornDate);
       formData.append("bornPlace", bornPlace);
       formData.append("diedDate", diedDate);
       formData.append("diedPlace", diedPlace);
       formData.append("occupation", occupation);
       formData.append("spouses", spouses);
+      formData.append("youtubeUrl", youtubeUrl);
 
       if (image) {
         formData.append("image", image);
@@ -147,56 +146,13 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this article?")) return;
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(`/api/edit-blog/${blog._id}`, {
-        method: "DELETE",
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert("Article deleted successfully!");
-        router.push("/articles-page");
-      } else {
-        alert(result.error || "Failed to delete article");
-      }
-    } catch (error) {
-      console.error("Error deleting article:", error);
-      alert("An error occurred while deleting the article");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isSignedIn || !user || user.id !== blog.author.clerkId) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
-        <p>You can only edit your own articles.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-sans">Edit Article</h1>
-        <button
-          onClick={handleDelete}
-          disabled={loading}
-          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {loading ? "Deleting..." : "Delete Article"}
-        </button>
       </div>
 
       <div className="space-y-6">
-        {/* Title */}
         <div>
           <label className="block text-sm font-medium mb-2">Title *</label>
           <input
@@ -208,7 +164,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           />
         </div>
 
-        {/* Tags */}
         <div>
           <label className="block text-sm font-medium mb-2">Tags</label>
           <input
@@ -220,7 +175,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           />
         </div>
 
-        {/* Born */}
         <div>
           <label className="block text-sm font-medium mb-2">Born</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,7 +197,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           </div>
         </div>
 
-        {/* Died */}
         <div>
           <label className="block text-sm font-medium mb-2">Died</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +219,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           </div>
         </div>
 
-        {/* Occupation */}
         <div>
           <label className="block text-sm font-medium mb-2">Occupation</label>
           <input
@@ -278,7 +230,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           />
         </div>
 
-        {/* Spouses */}
         <div>
           <label className="block text-sm font-medium mb-2">Spouses</label>
           <input
@@ -290,9 +241,23 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           />
         </div>
 
-        {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium mb-2">Featured Image</label>
+          <label className="block text-sm font-medium mb-2">
+            YouTube Video URL (Optional)
+          </label>
+          <input
+            type="text"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Featured Image
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -319,7 +284,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           )}
         </div>
 
-        {/* Content */}
         <div>
           <label className="block text-sm font-medium mb-2">Content *</label>
           <div className="border border-gray-300 rounded-md">
@@ -333,7 +297,6 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           </div>
         </div>
 
-        {/* Publish */}
         <div className="flex items-center gap-2 pt-6">
           <input
             id="published"
@@ -348,13 +311,14 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           </label>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-4 pt-6">
           <button
             onClick={handleSubmit}
             disabled={loading}
             className={`px-6 py-3 rounded-md text-white font-medium ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
             } transition-colors`}
           >
             {loading ? "Updating..." : "Update Article"}

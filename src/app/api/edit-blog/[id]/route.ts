@@ -99,6 +99,7 @@ export async function PUT(
         const diedPlace = formData.get('diedPlace') as string;
         const occupation = formData.get('occupation') as string;
         const spouses = formData.get('spouses') as string;
+        const youtubeUrl = formData.get('youtubeUrl') as string;
 
         if (!title || !content) {
             return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
@@ -134,6 +135,7 @@ export async function PUT(
             diedPlace: diedPlace || '',
             occupation: occupation || '',
             spouses: spouses || '',
+            youtubeUrl: youtubeUrl || '',
         });
 
         return NextResponse.json({ success: true, blog: updatedBlog }, { status: 200 });
@@ -143,7 +145,6 @@ export async function PUT(
     }
 }
 
-// DELETE blog
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
