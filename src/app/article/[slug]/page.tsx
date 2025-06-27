@@ -58,7 +58,7 @@ function extractYouTubeId(url: string): string | null {
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   const blog: Blog = await getBlogBySlug(slug);
-  console.log(blog);
+  
 
   if (!blog) {
     notFound();

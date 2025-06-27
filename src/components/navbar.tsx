@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 interface Author {
   _id: string;
@@ -110,7 +111,7 @@ export default function WikipediaNavbar() {
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
             <div className="">
-              <img
+              <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Logo"
                 width={54}
