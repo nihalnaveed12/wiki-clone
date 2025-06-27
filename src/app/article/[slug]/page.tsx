@@ -22,7 +22,7 @@ interface Blog {
   _id: string;
   title: string;
   content: string;
-  image: {
+  image?: {
     id: string;
     url: string;
   };
@@ -37,12 +37,28 @@ interface Blog {
   published: boolean;
   tags: string[];
   createdAt: string;
+  youtubeUrl?: string;
   updatedAt: string;
 }
+
+function extractYouTubeId(url: string): string | null {
+  const shortRegex = /youtu\.be\/([^?&]+)/;
+  const longRegex = /v=([^?&]+)/;
+
+  const shortMatch = url.match(shortRegex);
+  if (shortMatch && shortMatch[1]) return shortMatch[1];
+
+  const longMatch = url.match(longRegex);
+  if (longMatch && longMatch[1]) return longMatch[1];
+
+  return null;
+}
+
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   const blog: Blog = await getBlogBySlug(slug);
+  console.log(blog);
 
   if (!blog) {
     notFound();
@@ -90,6 +106,8 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
 
           <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
+            {blog.image?.url &&  (
+
             <div className="p-4">
               <div className="bg-orange-100 p-3">
                 <Image
@@ -99,6 +117,23 @@ export default async function ArticlePage({ params }: PageProps) {
                   width={1000}
                 />
               </div>
+            </div>
+            )}
+
+            <div className="p-4">
+              {blog.youtubeUrl && (
+                <iframe
+                  width="100%"
+                  height="315"
+                  src={`https://www.youtube.com/embed/${extractYouTubeId(
+                    blog.youtubeUrl
+                  )}?mute=1&autoplay=1`}
+                  title="YouTube video player"
+                  
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
             </div>
 
             <div className="px-2 flex flex-col gap-3">

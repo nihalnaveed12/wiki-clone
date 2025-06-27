@@ -6,6 +6,7 @@ import { Search, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
+import ArticleCard from "./article-card";
 
 interface Author {
   _id: string;
@@ -62,7 +63,7 @@ export default function WikipediaHero() {
 
   const handleSearch = () => {
     const query = searchQuery.trim().toLowerCase();
-    console.log(query)
+    console.log(query);
     if (!query) return;
     // exact match by slug or title
     let blog = blogs.find(
@@ -143,6 +144,20 @@ export default function WikipediaHero() {
             </button>
           </div>
         </>
+
+        <h1 className="py-10 text-3xl font-bold font-sans">Latest Articles</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
+          {blogs.slice(0, 4).map((blog, index) => (
+            <ArticleCard blog={blog} />
+          ))}
+        </div>
+
+        <Link
+          href={"/articles-page"}
+          className="text-blue-700 hover:text-blue-500 border px-4 py-2 my-10 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
+        >
+          More Articles
+        </Link>
       </div>
     </div>
   );
