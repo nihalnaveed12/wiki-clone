@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import "react-quill-new/dist/quill.snow.css";
+import Image from "next/image";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -298,7 +299,9 @@ export default function AddYourArticle() {
         {imagePreview && (
           <div className="mt-4">
             <p className="text-sm font-medium mb-2">Image Preview:</p>
-            <img
+            <Image
+              height={1000} 
+              width={1000}
               src={imagePreview}
               alt="Preview"
               className="max-w-md h-48 object-cover rounded-md border"

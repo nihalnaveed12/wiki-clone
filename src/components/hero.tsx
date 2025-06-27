@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 import ArticleCard from "./article-card";
+import Image from "next/image";
 
 interface Author {
   _id: string;
@@ -63,7 +64,7 @@ export default function WikipediaHero() {
 
   const handleSearch = () => {
     const query = searchQuery.trim().toLowerCase();
-    console.log(query);
+   
     if (!query) return;
     // exact match by slug or title
     let blog = blogs.find(
@@ -101,7 +102,7 @@ export default function WikipediaHero() {
           <div className="w-full flex flex-col gap-2 items-center justify-center mb-12">
             {/* Wikipedia Globe Image - Centered */}
             <div className=" w-[300px] h-[300px] ">
-              <img
+              <Image
                 src="/images/logo.jpg"
                 alt="Wikipedia Globe"
                 width={200}
@@ -148,7 +149,7 @@ export default function WikipediaHero() {
         <h1 className="py-10 text-3xl font-bold font-sans">Latest Articles</h1>
         <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
           {blogs.slice(0, 4).map((blog, index) => (
-            <ArticleCard blog={blog} />
+            <ArticleCard blog={blog} key={index}/>
           ))}
         </div>
 
