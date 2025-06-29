@@ -1,7 +1,11 @@
+
 import { getBlogBySlug } from "@/lib/actions/blog.actions";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+
+
 import Link from "next/link";
+import EditButton from "@/components/edit-button";
 interface PageProps {
   params: Promise<{
     slug: string;
@@ -54,11 +58,10 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const blog: Blog = await getBlogBySlug(slug);
   
+  const blog: Blog = await getBlogBySlug(slug);
 
   if (!blog) {
     notFound();
@@ -72,14 +75,20 @@ export default async function ArticlePage({ params }: PageProps) {
     });
   };
 
+
   return (
     <div className="max-w-5xl mx-auto px-7 py-[92px]">
+      <div className="flex justify-between sm:flex-row flex-col">
+
       <Link
         href="/articles-page"
         className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8"
       >
         ← Back to Articles
       </Link>
+      <EditButton AuthorId={blog.author.clerkId} blogId={blog._id} />
+      </div>
+
 
       <div className="flex flex-col gap-4">
         <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
@@ -93,6 +102,9 @@ export default async function ArticlePage({ params }: PageProps) {
               <span> • Updated {formatDate(blog.updatedAt)}</span>
             )}
           </p>
+          
+          
+
         </div>
 
         <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
@@ -106,18 +118,17 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
 
           <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
-            {blog.image?.url &&  (
-
-            <div className="p-4">
-              <div className="bg-orange-100 p-3">
-                <Image
-                  src={blog.image.url}
-                  alt={blog.title}
-                  height={1000}
-                  width={1000}
-                />
+            {blog.image?.url && (
+              <div className="p-4">
+                <div className="bg-orange-100 p-3">
+                  <Image
+                    src={blog.image.url}
+                    alt={blog.title}
+                    height={1000}
+                    width={1000}
+                  />
+                </div>
               </div>
-            </div>
             )}
 
             <div className="p-4">
@@ -129,7 +140,6 @@ export default async function ArticlePage({ params }: PageProps) {
                     blog.youtubeUrl
                   )}?mute=1&autoplay=1`}
                   title="YouTube video player"
-                  
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
