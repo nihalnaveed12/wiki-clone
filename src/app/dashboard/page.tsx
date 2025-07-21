@@ -52,7 +52,7 @@ interface BlogsResponse {
 }
 
 export default function Dashboard() {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
 
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL as string;
@@ -75,6 +75,14 @@ export default function Dashboard() {
       router.push("/sign-in");
     }
   }, [isLoaded, isSignedIn, router]);
+
+   useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+      setUserRole("admin");
+    } else {
+      setUserRole("user");
+    }
+  }, [user, ADMIN_EMAIL]);
 
   // Fetch current user's role
   useEffect(() => {
