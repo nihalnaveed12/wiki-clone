@@ -82,7 +82,7 @@ export default function Dashboard() {
     } else {
       setUserRole("user");
     }
-  },[]);
+  });
 
   // Fetch current user's role
   useEffect(() => {
