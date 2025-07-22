@@ -76,7 +76,7 @@ export default function Dashboard() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
       setUserRole("admin");
     } else {
@@ -305,8 +305,8 @@ export default function Dashboard() {
                       className="border p-4 rounded-lg shadow hover:shadow-md transition bg-gray-50"
                     >
                       <Image
-                      height={1000}
-                      width={1000}
+                        height={1000}
+                        width={1000}
                         src={u.photo}
                         alt={`${u.firstName} ${u.lastName}`}
                         className="w-16 h-16 rounded-full object-cover mb-2"
@@ -375,8 +375,8 @@ export default function Dashboard() {
                         className="border rounded-lg shadow hover:shadow-md transition bg-gray-50 overflow-hidden"
                       >
                         <Image
-                        height={1000}
-                        width={1000}
+                          height={1000}
+                          width={1000}
                           src={post.image.url}
                           alt={post.title}
                           className="w-full h-40 object-cover"
@@ -387,10 +387,12 @@ export default function Dashboard() {
                               {post.title}
                             </h3>
                           </a>
-                          <p className="text-sm text-gray-600 mb-2">
-                            Author: {post.author.firstName}{" "}
-                            {post.author.lastName}
-                          </p>
+                          {post.author.firstName && post.author.lastName && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              Author: {post.author.firstName}{" "}
+                              {post.author.lastName}
+                            </p>
+                          )}
                           <button
                             onClick={() => handleDeletePost(post._id)}
                             disabled={deletingPostId === post._id}
