@@ -314,7 +314,7 @@ export default function Dashboard() {
                       <h3 className="font-semibold text-lg">
                         {u.firstName} {u.lastName}
                       </h3>
-                      <p className="text-sm text-gray-600">{u.email}</p>
+                      <p className="text-sm text-gray-600">{u.email}</p> 
                       <p className="text-xs mt-1 font-medium">
                         Role: <span className="text-blue-600">{u.role}</span>
                       </p>
@@ -387,7 +387,7 @@ export default function Dashboard() {
                               {post.title}
                             </h3>
                           </a>
-                          {post.author.firstName && post.author.lastName && (
+                          {post.author && (
                             <p className="text-sm text-gray-600 mb-2">
                               Author: {post.author.firstName}{" "}
                               {post.author.lastName}
