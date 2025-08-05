@@ -1,8 +1,6 @@
-
 import { getBlogBySlug } from "@/lib/actions/blog.actions";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-
 
 import Link from "next/link";
 import EditButton from "@/components/edit-button";
@@ -60,7 +58,7 @@ function extractYouTubeId(url: string): string | null {
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  
+
   const blog: Blog = await getBlogBySlug(slug);
 
   if (!blog) {
@@ -75,20 +73,17 @@ export default async function ArticlePage({ params }: PageProps) {
     });
   };
 
-
   return (
     <div className="max-w-5xl mx-auto px-7 py-[92px]">
       <div className="flex justify-between sm:flex-row flex-col">
-
-      <Link
-        href="/articles-page"
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8"
-      >
-        ← Back to Articles
-      </Link>
-      <EditButton AuthorId={blog.author.clerkId} blogId={blog._id} />
+        <Link
+          href="/articles-page"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8"
+        >
+          ← Back to Articles
+        </Link>
+        <EditButton AuthorId={blog.author.clerkId} blogId={blog._id} />
       </div>
-
 
       <div className="flex flex-col gap-4">
         <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
@@ -102,9 +97,6 @@ export default async function ArticlePage({ params }: PageProps) {
               <span> • Updated {formatDate(blog.updatedAt)}</span>
             )}
           </p>
-          
-          
-
         </div>
 
         <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
