@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRapperById, updateRapper, deleteRapper } from '@/lib/actions/rapper.actions';
 
 interface RouteParams {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
-// GET - Get single rapper by ID (public)
 export async function GET(
     request: NextRequest,
     { params }: RouteParams
 ) {
     try {
-        const result = await getRapperById(params.id);
+        const { id } = await params;
+        const result = await getRapperById(id);
 
         if (!result.success) {
             const statusCode = result.error === 'Rapper not found' ? 404 : 500;
@@ -36,16 +36,16 @@ export async function GET(
     }
 }
 
-// PUT - Update rapper (admin only)
 export async function PUT(
     request: NextRequest,
     { params }: RouteParams
 ) {
     try {
+        const { id } = await params;
         const body = await request.json();
 
         const result = await updateRapper({
-            _id: params.id,
+            _id: id,
             ...body
         });
 
@@ -78,13 +78,13 @@ export async function PUT(
     }
 }
 
-// DELETE - Delete rapper (admin only)
 export async function DELETE(
     request: NextRequest,
     { params }: RouteParams
 ) {
     try {
-        const result = await deleteRapper(params.id);
+        const { id } = await params;
+        const result = await deleteRapper(id);
 
         if (!result.success) {
             let statusCode = 400;
