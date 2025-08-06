@@ -4,6 +4,31 @@ import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { fetchMusicians } from "@/lib/fetchmusicians";
+import MapClient from "@/components/musician-com/MapClient";
+
+interface Musicians {
+  socials: {
+    instagram: string;
+    twitter: string;
+    youtube: string;
+    spotify: string;
+  };
+  image: {
+    id: string;
+    url: string;
+  };
+  _id: string;
+  name: string;
+  city: string;
+  lat: number;
+  lng: number;
+  category: string;
+  shortBio: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 
 interface UserData {
   _id: string;
@@ -59,7 +84,9 @@ export default function Dashboard() {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "posts">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "posts" | "musicians">(
+    "users"
+  );
   const [users, setUsers] = useState<UserData[]>([]);
   const [posts, setPosts] = useState<Blog[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -67,6 +94,8 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [musicians, setMusicians] = useState<Musicians[]>([]);
+  const [loading, setLoading] = useState(true);
   const postsPerPage = 10;
 
   // Redirect if not signed in
@@ -155,6 +184,16 @@ export default function Dashboard() {
       fetchPosts();
     }
   }, [userRole, activeTab, BASE_URL]);
+
+  useEffect(() => {
+    const getMusicians = async () => {
+      const data = await fetchMusicians();
+      setMusicians(data);
+      setLoading(false);
+    };
+
+    getMusicians();
+  }, []);
 
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Are you sure you want to delete this post?")) {
@@ -280,6 +319,18 @@ export default function Dashboard() {
               Posts
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("musicians")}
+              className={`w-full text-left px-3 py-2 rounded-lg transition ${
+                activeTab === "musicians"
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-200 text-gray-700"
+              }`}
+            >
+              Musicians
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -314,7 +365,7 @@ export default function Dashboard() {
                       <h3 className="font-semibold text-lg">
                         {u.firstName} {u.lastName}
                       </h3>
-                      <p className="text-sm text-gray-600">{u.email}</p> 
+                      <p className="text-sm text-gray-600">{u.email}</p>
                       <p className="text-xs mt-1 font-medium">
                         Role: <span className="text-blue-600">{u.role}</span>
                       </p>
@@ -427,6 +478,72 @@ export default function Dashboard() {
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === "musicians" && (
+          <div className="">
+            {musicians.length === 0 && loading ? (
+              <p>loading....</p>
+            ) : (
+              <div className="">
+                {musicians.map((m) => (
+                  <div key={m._id} className="bg-zinc-50 shadow rounded">
+                    <img src="/images/logo.jpg" alt="" />
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold">{m.name}</h3>
+
+                      <p className="text-gray-600">
+                        {m.city} - {m.category}
+                      </p>
+                      <p className="mt-2">{m.shortBio}</p>
+                      <div className="mt-4 flex gap-2">
+                        {m.socials.instagram && (
+                          <a
+                            href={m.socials.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            Instagram
+                          </a>
+                        )}
+                        {m.socials.twitter && (
+                          <a
+                            href={m.socials.twitter}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            Twitter
+                          </a>
+                        )}
+                        {m.socials.youtube && (
+                          <a
+                            href={m.socials.youtube}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            YouTube
+                          </a>
+                        )}
+                        {m.socials.spotify && (
+                          <a
+                            href={m.socials.spotify}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            Spotify
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
