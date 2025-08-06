@@ -23,7 +23,7 @@ interface Musician {
 }
 
 export async function fetchMusicians(): Promise<Musician[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const apiUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   const response = await fetch(`${apiUrl}/api/rappers`);
   const data = await response.json();
   return data.data;

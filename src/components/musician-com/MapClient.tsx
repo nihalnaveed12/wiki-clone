@@ -67,7 +67,7 @@ export default function MapClient() {
     getMusicians();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p className="p-10 text-center text-2xl">Loading...</p>;
 
   if (!musicians || musicians.length === 0) {
     return <p>No musicians found.</p>;
