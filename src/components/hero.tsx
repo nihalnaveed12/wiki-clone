@@ -51,7 +51,7 @@ export default function WikipediaHero() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
 
   const router = useRouter();
-  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   useEffect(() => {
     async function loadBlogs() {
@@ -113,14 +113,22 @@ export default function WikipediaHero() {
 
             {/* English - Top Left */}
 
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <Link
                 href={"/articles-page"}
                 className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
               >
                 Add Articles
               </Link>
+              <Link
+                href={"/musicians-map"}
+                className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
+              >
+                Find Musicians
+              </Link>
             </div>
+            
+           
           </div>
 
           {/* Search Bar */}
