@@ -122,7 +122,6 @@ BlogSchema.index({ author: 1 });
 BlogSchema.index({ published: 1 });
 BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ tags: 1 });
-// Additional indexes for biographical fields if needed for searching
 BlogSchema.index({ occupation: 1 });
 
 const Blog = mongoose.models?.Blog || mongoose.model<IBlog>('Blog', BlogSchema);
