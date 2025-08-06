@@ -2,7 +2,7 @@
  
 import dynamic from 'next/dynamic'
  
-const MapClient = dynamic(() => import('@/components/map/MapClient'), {
+const MapClient = dynamic(() => import('@/components/musician-com/MapClient'), {
   ssr: false,
 })
 export default function MusiciansMap() {
