@@ -1,19 +1,21 @@
 import dbConnect from "@/lib/database/mongodb";
-import Rapper from '@/lib/database/model/Rappers';
+import Rapper from "@/lib/database/model/Rappers";
 import User from "../database/model/User";
 import { auth } from "@clerk/nextjs/server";
 
+// Define the structure for the Rapper parameters
 interface RapperParams {
     name: string;
     city: string;
-    lat: number;
-    lng: number;
+    country: string;
+    address: string;
     category: string;
+    website?: string;
     socials: {
         instagram?: string;
-        twitter?: string;
         youtube?: string;
         spotify?: string;
+        soundcloud?: string;
     };
     image: {
         id: string;
@@ -22,46 +24,102 @@ interface RapperParams {
     shortBio: string;
 }
 
-interface UpdateRapperParams extends RapperParams {
+interface UpdateRapperParams extends Omit<RapperParams, 'country'> {
     _id: string;
+    lat: number;
+    lng: number;
 }
 
-// Helper function to check if current user is admin
+// Helper function to check if the current user is an admin
 async function checkAdminAccess(): Promise<void> {
     const { userId } = await auth();
-
     if (!userId) {
-        throw new Error('Unauthorized: Please sign in');
+        throw new Error("Unauthorized: Please sign in");
     }
 
     await dbConnect();
-
     const user = await User.findOne({ clerkId: userId });
 
-    if (!user) {
-        throw new Error('User not found');
+    if (!user || !user.isAdmin()) {
+        throw new Error("Access denied: Admin privileges required");
+    }
+}
+
+// Function to get coordinates from OpenCage API
+async function getCoordinates(address: string, city: string, country: string) {
+    const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
+    if (!apiKey) {
+        throw new Error("OpenCage API key is not configured.");
     }
 
-    // Use the schema method to check if user is admin
-    if (!user.isAdmin()) {
-        throw new Error('Access denied: Admin privileges required');
+    // Create a more specific query with full address
+    const query = `${address}, ${city}, ${country}`.trim();
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+            const { lat, lng } = data.results[0].geometry;
+            console.log(`Geocoded location: ${query} -> ${lat}, ${lng}`);
+            return { lat: Number(lat), lng: Number(lng) };
+        } else {
+            // Fallback: try with just city and country if full address doesn't work
+            const fallbackQuery = `${city}, ${country}`;
+            const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fallbackQuery)}&key=${apiKey}&limit=1`;
+
+            const fallbackRes = await fetch(fallbackUrl);
+            const fallbackData = await fallbackRes.json();
+
+            if (fallbackData.results && fallbackData.results.length > 0) {
+                const { lat, lng } = fallbackData.results[0].geometry;
+                console.log(`Fallback geocoded location: ${fallbackQuery} -> ${lat}, ${lng}`);
+                return { lat: Number(lat), lng: Number(lng) };
+            }
+        }
+
+        throw new Error(`Could not find coordinates for: ${query}`);
+    } catch (error) {
+        console.error("Geocoding API Error:", error);
+        throw new Error(`Failed to fetch coordinates for "${query}". Please verify the address is correct.`);
     }
 }
 
 export async function createRapper(params: RapperParams) {
     try {
-        // Check admin access first
         await checkAdminAccess();
 
+        // Get coordinates for the address, city and country
+        const { lat, lng } = await getCoordinates(params.address, params.city, params.country);
+
         await dbConnect();
+
+        // Check if rapper with same name already exists
+        const existingRapper = await Rapper.findOne({ name: params.name });
+        if (existingRapper) {
+            throw new Error("A rapper with this name already exists");
+        }
 
         const rapper = await Rapper.create({
             name: params.name,
             city: params.city,
-            lat: params.lat,
-            lng: params.lng,
+            address: params.address,
+            lat,
+            lng,
             category: params.category,
-            socials: params.socials,
+            website: params.website || '',
+            socials: {
+                instagram: params.socials.instagram || '',
+                youtube: params.socials.youtube || '',
+                spotify: params.socials.spotify || '',
+                soundcloud: params.socials.soundcloud || '',
+                twitter: '', // Keep twitter field for existing schema
+            },
             image: params.image,
             shortBio: params.shortBio,
         });
@@ -69,13 +127,13 @@ export async function createRapper(params: RapperParams) {
         return {
             success: true,
             data: JSON.parse(JSON.stringify(rapper)),
-            message: 'Rapper created successfully'
+            message: "Rapper created successfully",
         };
     } catch (error) {
-        console.error('Error creating rapper:', error);
+        console.error("Error creating rapper:", error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Failed to create rapper'
+            error: error instanceof Error ? error.message : "Failed to create rapper",
         };
     }
 }
@@ -84,9 +142,7 @@ export async function createRapper(params: RapperParams) {
 export async function getAllRappers() {
     try {
         await dbConnect();
-
         const rappers = await Rapper.find({}).sort({ createdAt: -1 });
-
         return {
             success: true,
             data: JSON.parse(JSON.stringify(rappers))

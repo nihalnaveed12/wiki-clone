@@ -1,3 +1,4 @@
+// @/app/admin/dashboard/page.tsx (Updated)
 "use client";
 
 import { useUser } from "@clerk/nextjs";
@@ -7,7 +8,10 @@ import Image from "next/image";
 import { fetchMusicians } from "@/lib/fetchmusicians";
 import MusicianForm from "@/components/musician-com/form";
 
+// IMPORT the shared form type
+import { type FormData as MusicianFormData } from "@/components/musician-com/form";
 
+// ... (your other interface definitions like Musicians, UserData, etc. remain the same)
 interface Musicians {
   socials: {
     instagram: string;
@@ -78,6 +82,7 @@ interface BlogsResponse {
 }
 
 export default function Dashboard() {
+  // ... (all your state and useEffect hooks remain the same)
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
 
@@ -85,8 +90,10 @@ export default function Dashboard() {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "posts" | "musicians" | "Add Musicians">("users")
-  
+  const [activeTab, setActiveTab] = useState<
+    "users" | "posts" | "musicians" | "Add Musicians"
+  >("users");
+
   const [users, setUsers] = useState<UserData[]>([]);
   const [posts, setPosts] = useState<Blog[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -98,7 +105,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const postsPerPage = 10;
 
-  // Redirect if not signed in
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  console.log("isSubmitting:", isSubmitting);
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       router.push("/sign-in");
@@ -108,36 +116,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
       setUserRole("admin");
-    } else {
+    } else if (isLoaded && isSignedIn) {
       setUserRole("user");
     }
-  });
+  }, [user, isLoaded, isSignedIn, ADMIN_EMAIL]);
 
-  // Fetch current user's role
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const fetchUserRole = async () => {
-        try {
-          const res = await fetch(`${BASE_URL}/api/user/role`, {
-            credentials: "include", // Ensure Clerk auth cookies are sent
-          });
-          if (res.ok) {
-            const data: { role: "user" | "admin" } = await res.json();
-            setUserRole(data.role);
-          } else {
-            console.error("Failed to fetch user role:", await res.text());
-            setUserRole("user");
-          }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-          setUserRole("user");
-        }
-      };
-      fetchUserRole();
-    }
-  }, [isLoaded, isSignedIn, BASE_URL]);
-
-  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
@@ -161,7 +144,6 @@ export default function Dashboard() {
     }
   }, [userRole, activeTab, BASE_URL]);
 
-  // Fetch posts
   useEffect(() => {
     const fetchPosts = async () => {
       setLoadingPosts(true);
@@ -187,13 +169,69 @@ export default function Dashboard() {
 
   useEffect(() => {
     const getMusicians = async () => {
+      setLoading(true);
       const data = await fetchMusicians();
       setMusicians(data);
       setLoading(false);
     };
 
-    getMusicians();
-  }, []);
+    if (activeTab === "musicians") {
+      getMusicians();
+    }
+  }, [activeTab]);
+
+  // Use the imported type here
+  const handleSubmit = async (data: MusicianFormData) => {
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+
+    // This logic correctly handles the optional image
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === "image" && value && value.length > 0) {
+        formData.append("image", value[0]);
+      } else if (value) {
+        // Check for truthy value before appending
+        formData.append(key, String(value));
+      }
+    });
+
+    try {
+      const res = await fetch("/api/rappers", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        alert("Musician registered successfully!");
+        setActiveTab("musicians");
+      } else {
+        const errorData = await res.json();
+        alert(`Error: ${errorData.error || "Failed to register musician."}`);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ... (The rest of your component, including the return statement and JSX, remains the same)
+  if (!isLoaded || userRole === null) {
+    return (
+      <div className="p-4 text-center text-gray-500">Loading dashboard...</div>
+    );
+  }
+
+  if (userRole !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-red-600 text-lg font-semibold">
+        <p>🚫 Sorry, you cannot access this page.</p>
+        <p>Only admins are allowed to view the dashboard.</p>
+      </div>
+    );
+  }
 
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Are you sure you want to delete this post?")) {
@@ -275,29 +313,11 @@ export default function Dashboard() {
   );
   const adminCount = users.filter((user) => user.role === "admin").length;
 
-  if (!isLoaded || userRole === null) {
-    return (
-      <div className="p-4 text-center text-gray-500">Loading dashboard...</div>
-    );
-  }
-
-  if (userRole !== "admin") {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-red-600 text-lg font-semibold">
-        <p>🚫 Sorry, you cannot access this page.</p>
-        <p>Only admins are allowed to view the dashboard.</p>
-      </div>
-    );
-  }
-
- const handleSubmit = () => {
-  console.log("hello")
- }
-
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="w-64 bg-white shadow-md p-6">
         <h1 className="text-2xl font-bold mb-6 text-blue-700">Admin Panel</h1>
+        {/* ... Sidebar navigation ... */}
         <ul className="space-y-2">
           <li>
             <button
@@ -564,7 +584,7 @@ export default function Dashboard() {
         )}
 
         {activeTab === "Add Musicians" && (
-          <MusicianForm submitForm={handleSubmit}/>
+          <MusicianForm submitForm={handleSubmit} />
         )}
       </div>
     </div>
