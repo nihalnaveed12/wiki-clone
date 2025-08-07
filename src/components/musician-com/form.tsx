@@ -32,11 +32,9 @@ const schema = z.object({
     .or(z.literal("")),
 });
 
-// EXPORT this type so other files can use it as the single source of truth
 export type FormData = z.infer<typeof schema>;
 
 interface Props {
-  // Update the function signature to be more flexible with async functions
   submitForm: (data: FormData) => void | Promise<void>;
 }
 
