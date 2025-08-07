@@ -8,7 +8,7 @@ import { fetchMusicians } from "@/lib/fetchmusicians";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 
-delete (L.Icon.Default.prototype as any).getIconUrl;
+delete (L.Icon.Default.prototype as { getIconUrl?: () => string }).getIconUrl;
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -134,12 +134,20 @@ export default function MapClient() {
           {filteredMusicians.map((musician, index) => (
             <Marker key={index} position={[musician.lat, musician.lng]}>
               <Popup className="">
-                <Link href={`/musicians/${musician._id}`} className="w-[100%] font-sans">
-                  <img src="/images/logo.jpg" className="w-full"alt={musician.name} />
+                <Link
+                  href={`/musicians/${musician._id}`}
+                  className="w-[100%] font-sans"
+                >
+                  <img
+                    src="/images/logo.jpg"
+                    className="w-full"
+                    alt={musician.name}
+                  />
                   <div className="flex flex-col pt-4">
-                   <h1 className="text-2xl text-zinc-800">{musician.name}</h1>
-                   <p className="text-zinc-600 text-[14px]">{musician.category} - {musician.city}</p>
-
+                    <h1 className="text-2xl text-zinc-800">{musician.name}</h1>
+                    <p className="text-zinc-600 text-[14px]">
+                      {musician.category} - {musician.city}
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-2 text-zinc-600">
