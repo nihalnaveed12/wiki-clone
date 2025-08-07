@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  country: z.string().min(1, 'Country is required'),
-  city: z.string().min(1, 'City is required'),
+  name: z.string().min(1, "Name is required"),
+  country: z.string().min(1, "Country is required"),
+  city: z.string().min(1, "City is required"),
   image: z.any().optional(),
-  address: z.string().min(1, 'Address is required'),
-  bio: z.string().max(200, 'Bio must be under 200 characters'),
+  address: z.string().min(1, "Address is required"),
+  bio: z.string().max(200, "Bio must be under 200 characters"),
   website: z.string().url().optional(),
-  category: z.string().min(1, 'Category is required'),
+  category: z.string().min(1, "Category is required"),
   instagram: z.string().url().optional(),
   youtube: z.string().url().optional(),
   spotify: z.string().url().optional(),
@@ -22,10 +22,13 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function MusicianForm() {
+interface Props {
+  submitForm: (data: FormData) => void;
+}
+
+export default function MusicianForm({ submitForm }: Props) {
   const [countries, setCountries] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
-
 
   const {
     register,
@@ -37,28 +40,28 @@ export default function MusicianForm() {
     resolver: zodResolver(schema),
   });
 
-  
-  const countryWatch = watch('country');
+  const countryWatch = watch("country");
 
-  
   useEffect(() => {
     const fetchCountries = async () => {
-      const res = await fetch('https://countriesnow.space/api/v0.1/countries');
+      const res = await fetch("https://countriesnow.space/api/v0.1/countries");
       const json = await res.json();
       setCountries(json.data.map((c: any) => c.country));
     };
     fetchCountries();
   }, []);
 
-  
   useEffect(() => {
     const fetchCities = async () => {
       if (!countryWatch) return;
-      const res = await fetch('https://countriesnow.space/api/v0.1/countries/cities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ country: countryWatch }),
-      });
+      const res = await fetch(
+        "https://countriesnow.space/api/v0.1/countries/cities",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ country: countryWatch }),
+        }
+      );
       const json = await res.json();
       setCities(json.data || []);
     };
@@ -66,25 +69,27 @@ export default function MusicianForm() {
   }, [countryWatch]);
 
   const onSubmit = (data: FormData) => {
-    console.log('Form submitted:', data);
+    submitForm(data)
     
-    reset();
-  };
+    reset()
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Musician Registration Form</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
         <div>
           <label>Name</label>
-          <input {...register('name')} className="w-full border p-2 rounded" />
+          <input {...register("name")} className="w-full border p-2 rounded" />
           <p className="text-red-500">{errors.name?.message}</p>
         </div>
 
         <div>
           <label>Country</label>
-          <select {...register('country')} className="w-full border p-2 rounded">
+          <select
+            {...register("country")}
+            className="w-full border p-2 rounded"
+          >
             <option value="">Select a country</option>
             {countries.map((country) => (
               <option key={country}>{country}</option>
@@ -95,7 +100,7 @@ export default function MusicianForm() {
 
         <div>
           <label>City</label>
-          <select {...register('city')} className="w-full border p-2 rounded">
+          <select {...register("city")} className="w-full border p-2 rounded">
             <option value="">Select a city</option>
             {cities.map((city) => (
               <option key={city}>{city}</option>
@@ -109,53 +114,75 @@ export default function MusicianForm() {
           <input type="file" {...register("image")} />
         </div>
 
-      
-
         <div>
           <label>Address</label>
-          <input {...register('address')} className="w-full border p-2 rounded" />
+          <input
+            {...register("address")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.address?.message}</p>
         </div>
 
         <div>
           <label>Short Bio</label>
-          <textarea {...register('bio')} className="w-full border p-2 rounded" />
+          <textarea
+            {...register("bio")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.bio?.message}</p>
         </div>
 
         <div>
           <label>Website</label>
-          <input {...register('website')} className="w-full border p-2 rounded" />
+          <input
+            {...register("website")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.website?.message}</p>
         </div>
 
         <div>
           <label>Category</label>
-          <input {...register('category')} className="w-full border p-2 rounded" />
+          <input
+            {...register("category")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.category?.message}</p>
         </div>
 
         <div>
           <label>Instagram</label>
-          <input {...register('instagram')} className="w-full border p-2 rounded" />
+          <input
+            {...register("instagram")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.instagram?.message}</p>
         </div>
 
         <div>
           <label>YouTube</label>
-          <input {...register('youtube')} className="w-full border p-2 rounded" />
+          <input
+            {...register("youtube")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.youtube?.message}</p>
         </div>
 
         <div>
           <label>Spotify</label>
-          <input {...register('spotify')} className="w-full border p-2 rounded" />
+          <input
+            {...register("spotify")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.spotify?.message}</p>
         </div>
 
         <div>
           <label>SoundCloud</label>
-          <input {...register('soundcloud')} className="w-full border p-2 rounded" />
+          <input
+            {...register("soundcloud")}
+            className="w-full border p-2 rounded"
+          />
           <p className="text-red-500">{errors.soundcloud?.message}</p>
         </div>
 

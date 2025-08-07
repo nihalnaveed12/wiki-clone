@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { fetchMusicians } from "@/lib/fetchmusicians";
-import MapClient from "@/components/musician-com/MapClient";
+import MusicianForm from "@/components/musician-com/form";
+
 
 interface Musicians {
   socials: {
@@ -84,9 +85,8 @@ export default function Dashboard() {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const [userRole, setUserRole] = useState<"user" | "admin" | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "posts" | "musicians">(
-    "users"
-  );
+  const [activeTab, setActiveTab] = useState<"users" | "posts" | "musicians" | "Add Musicians">("users")
+  
   const [users, setUsers] = useState<UserData[]>([]);
   const [posts, setPosts] = useState<Blog[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -290,6 +290,10 @@ export default function Dashboard() {
     );
   }
 
+ const handleSubmit = () => {
+  console.log("hello from dashboard")
+ }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="w-64 bg-white shadow-md p-6">
@@ -329,6 +333,18 @@ export default function Dashboard() {
               }`}
             >
               Musicians
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("Add Musicians")}
+              className={`w-full text-left px-3 py-2 rounded-lg transition ${
+                activeTab === "Add Musicians"
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-200 text-gray-700"
+              }`}
+            >
+              Add Musicians
             </button>
           </li>
         </ul>
@@ -545,6 +561,10 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === "Add Musicians" && (
+          <MusicianForm submitForm={handleSubmit}/>
         )}
       </div>
     </div>
