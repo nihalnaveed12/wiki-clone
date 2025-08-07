@@ -5,6 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { fetchMusicians } from "@/lib/fetchmusicians";
+import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 delete (L.Icon.Default.prototype as any).getIconUrl;
 
@@ -14,7 +16,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
 });
-
 
 interface Musicians {
   socials: {
@@ -38,7 +39,6 @@ interface Musicians {
   updatedAt: string;
   __v: number;
 }
-
 
 function FlyToLocation({ position }: { position: [number, number] }) {
   const map = useMap();
@@ -78,30 +78,36 @@ export default function MapClient() {
   );
 
   return (
-    <div className="text-black flex h-screen">
-      <div className="absolute top-20 left-20 z-10">
+    <div className="text-black flex h-screen font-sans">
+      <div className="absolute top-20 left-20 z-10 w-[25%]">
         <input
           type="text"
           placeholder="Enter city name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2 w-full rounded-full focus:outline-none bg-white z-10 shadow-lg"
+          className={` ${
+            search ? "rounded-t-lg" : "rounded-full"
+          } px-4 py-2 w-full border-b   focus:outline-none bg-white z-10 `}
         />
         {filteredMusicians.length === 0 && <p>No musicians found.</p>}
 
         {search && filteredMusicians.length > 0 && (
-          <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl shadow-lg">
+          <div className="flex flex-col gap-6 bg-white p-4 rounded-b-2xl ">
             {search &&
               filteredMusicians.map((musician, idx) => (
-                <div key={idx} className="">
-                  <strong>{musician.name}</strong>
-                  <br />
-                  {musician.city} - {musician.category}
-                  <br />
-                  <a href={musician.socials.instagram} target="_blank">
-                    Instagram
-                  </a>
-                </div>
+                <Link
+                  href={`/musicians/${musician._id}`}
+                  key={idx}
+                  className="flex items-center gap-2"
+                >
+                  <MapPin size={18} />
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-semibold">{musician.name}</h2>
+                    <p className="text-zinc-600 text-[14px] ">
+                      {musician.category} - {musician.city}
+                    </p>
+                  </div>
+                </Link>
               ))}
           </div>
         )}
@@ -127,14 +133,23 @@ export default function MapClient() {
 
           {filteredMusicians.map((musician, index) => (
             <Marker key={index} position={[musician.lat, musician.lng]}>
-              <Popup>
-                <strong>{musician.name}</strong>
-                <br />
-                {musician.category}
-                <br />
-                <a href={musician.socials.instagram} target="_blank">
-                  Instagram
-                </a>
+              <Popup className="">
+                <Link href={`/musicians/${musician._id}`} className="w-[100%] font-sans">
+                  <img src="/images/logo.jpg" className="w-full"alt={musician.name} />
+                  <div className="flex flex-col pt-4">
+                   <h1 className="text-2xl text-zinc-800">{musician.name}</h1>
+                   <p className="text-zinc-600 text-[14px]">{musician.category} - {musician.city}</p>
+
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-zinc-600">
+                    <h2 className="text-zinc-600 ">{musician.shortBio}</h2>
+                    <Link href={musician.socials.instagram}>Insta</Link>
+                    <Link href={musician.socials.spotify}>Spotify</Link>
+                    <Link href={musician.socials.twitter}>Twitter</Link>
+                    <Link href={musician.socials.youtube}>YouTube</Link>
+                  </div>
+                </Link>
               </Popup>
             </Marker>
           ))}

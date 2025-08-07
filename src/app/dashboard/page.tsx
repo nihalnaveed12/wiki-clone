@@ -291,7 +291,7 @@ export default function Dashboard() {
   }
 
  const handleSubmit = () => {
-  console.log("hello from dashboard")
+  console.log("hello")
  }
 
   return (
