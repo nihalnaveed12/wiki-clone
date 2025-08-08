@@ -1,12 +1,15 @@
 "use client";
 import MusicianForm from "@/components/musician-com/form";
 import { addMusician } from "@/lib/api/musicians";
-import { useState } from "react";
 import { type FormData as MusicianFormData } from "@/components/musician-com/form";
 
-export default function AddMusicianTab({ onSuccess, baseUrl }: { onSuccess?: () => void , baseUrl:string}) {
- 
-
+export default function AddMusicianTab({
+  onSuccess,
+  baseUrl,
+}: {
+  onSuccess?: () => void;
+  baseUrl: string;
+}) {
   async function handleSubmit(data: MusicianFormData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -17,7 +20,6 @@ export default function AddMusicianTab({ onSuccess, baseUrl }: { onSuccess?: () 
       }
     });
 
-   
     try {
       await addMusician(formData, baseUrl);
       alert("Musician added successfully!");
@@ -26,7 +28,7 @@ export default function AddMusicianTab({ onSuccess, baseUrl }: { onSuccess?: () 
       console.error(err);
       alert("Failed to add musician");
     } finally {
-      console.log("Finaallyy Form Submitted")
+      console.log("Finaallyy Form Submitted");
     }
   }
 
