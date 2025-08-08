@@ -35,7 +35,8 @@ useEffect(() => {
       .then(setMusicians)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [baseUrl]);
+    }, [baseUrl]);
+    
 
   return loading ? (
     <p>Loading musicians...</p>
