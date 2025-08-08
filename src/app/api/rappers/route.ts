@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
 
-        // Extract form fields - note the mapping between form fields and expected fields
         const name = formData.get("name") as string;
         const country = formData.get("country") as string;
         const city = formData.get("city") as string;
@@ -32,13 +31,11 @@ export async function POST(request: NextRequest) {
         const website = formData.get("website") as string;
         const imageFile = formData.get("image") as File;
 
-        // Social media fields
         const instagram = formData.get("instagram") as string;
         const youtube = formData.get("youtube") as string;
         const spotify = formData.get("spotify") as string;
         const soundcloud = formData.get("soundcloud") as string;
 
-        // Validate required fields
         const requiredFields = [
             { field: "name", value: name },
             { field: "country", value: country },
@@ -59,7 +56,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Handle image upload
         let imageData = { id: '', url: '' };
         if (imageFile && imageFile.size > 0 && imageFile.name !== 'undefined') {
             try {
@@ -73,14 +69,13 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Create rapper with proper field mapping
         const result = await createRapper({
             name: name.trim(),
             country: country.trim(),
             city: city.trim(),
             address: address.trim(),
             category: category.trim(),
-            shortBio: bio.trim(), // Map 'bio' to 'shortBio'
+            shortBio: bio.trim(),
             website: website?.trim() || undefined,
             image: imageData,
             socials: {

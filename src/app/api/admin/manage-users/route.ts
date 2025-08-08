@@ -2,20 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import User from '@/lib/database/model/User';
 import dbConnect from '@/lib/database/mongodb';
+import { isUserAdmin } from '@/lib/utils/admin';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
 
-async function isUserAdmin(userId: string): Promise<boolean> {
-    try {
-        const user = await User.findOne({ clerkId: userId });
-        return user?.email === ADMIN_EMAIL || user?.role === 'admin';
-    } catch (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-    }
-}
 
-// Update user role
 export async function PUT(request: NextRequest) {
     try {
         const { userId } = await auth();
@@ -26,7 +17,6 @@ export async function PUT(request: NextRequest) {
 
         await dbConnect();
 
-        // Check if current user is admin
         const isAdmin = await isUserAdmin(userId);
         if (!isAdmin) {
             return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });

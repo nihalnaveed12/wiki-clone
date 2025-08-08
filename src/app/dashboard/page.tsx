@@ -8,10 +8,7 @@ import Image from "next/image";
 import { fetchMusicians } from "@/lib/fetchmusicians";
 import MusicianForm from "@/components/musician-com/form";
 
-// IMPORT the shared form type
 import { type FormData as MusicianFormData } from "@/components/musician-com/form";
-
-// ... (your other interface definitions like Musicians, UserData, etc. remain the same)
 interface Musicians {
   socials: {
     instagram: string;
@@ -82,7 +79,6 @@ interface BlogsResponse {
 }
 
 export default function Dashboard() {
-  // ... (all your state and useEffect hooks remain the same)
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
 
@@ -186,12 +182,10 @@ export default function Dashboard() {
 
     const formData = new FormData();
 
-    // This logic correctly handles the optional image
     Object.entries(data).forEach(([key, value]) => {
       if (key === "image" && value && value.length > 0) {
         formData.append("image", value[0]);
       } else if (value) {
-        // Check for truthy value before appending
         formData.append(key, String(value));
       }
     });
@@ -216,8 +210,6 @@ export default function Dashboard() {
       setIsSubmitting(false);
     }
   };
-
-  // ... (The rest of your component, including the return statement and JSX, remains the same)
   if (!isLoaded || userRole === null) {
     return (
       <div className="p-4 text-center text-gray-500">Loading dashboard...</div>

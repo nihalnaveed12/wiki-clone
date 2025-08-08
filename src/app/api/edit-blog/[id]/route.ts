@@ -5,34 +5,9 @@ import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary';
 import Blog from '@/lib/database/model/Blogs';
 import User from '@/lib/database/model/User';
 import dbConnect from '@/lib/database/mongodb';
+import { isUserAdmin, updateUserRoleIfAdmin } from '@/lib/utils/admin';
 
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
-
-// Helper function to check if user is admin
-async function isUserAdmin(userId: string): Promise<boolean> {
-    try {
-        const user = await User.findOne({ clerkId: userId });
-        return user?.email === ADMIN_EMAIL || user?.role === 'admin';
-    } catch (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-    }
-}
-
-// Helper function to ensure user has admin role if they have admin email
-async function updateUserRoleIfAdmin(userId: string): Promise<void> {
-    try {
-        const user = await User.findOne({ clerkId: userId });
-        if (user && user.email === ADMIN_EMAIL && user.role !== 'admin') {
-            await User.findByIdAndUpdate(user._id, { role: 'admin' });
-        }
-    } catch (error) {
-        console.error('Error updating user role:', error);
-    }
-}
-
-// GET single blog by ID
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -68,18 +43,14 @@ export async function PUT(
         }
 
         await dbConnect();
-
-        // Update user role if they're admin by email
         await updateUserRoleIfAdmin(userId);
 
-        // Check if user owns this blog
         const existingBlog = await Blog.findById(id).populate('author');
 
         if (!existingBlog) {
             return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
         }
 
-        // Only the author can edit their own posts (admin cannot edit others' posts)
         if (existingBlog.author.clerkId !== userId) {
             return NextResponse.json({
                 error: 'Forbidden - You can only edit your own posts'
@@ -107,15 +78,12 @@ export async function PUT(
 
         let imageData = existingBlog.image;
 
-        // Handle image removal
         if (removeImage && existingBlog.image.id) {
             await deleteFromCloudinary(existingBlog.image.id);
             imageData = { id: '', url: '' };
         }
 
-        // Handle new image upload
         if (image && image.size > 0) {
-            // Delete old image if exists
             if (existingBlog.image.id) {
                 await deleteFromCloudinary(existingBlog.image.id);
             }
@@ -158,8 +126,6 @@ export async function DELETE(
         }
 
         await dbConnect();
-
-        // Update user role if they're admin by email
         await updateUserRoleIfAdmin(userId);
 
         // Get current user
@@ -167,14 +133,11 @@ export async function DELETE(
         if (!currentUser) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
-
-        // Get the blog
         const blog = await Blog.findById(id).populate('author');
         if (!blog) {
             return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
         }
 
-        // Check permissions - only author or admin can delete
         const isAuthor = blog.author.clerkId === userId;
         const isAdmin = await isUserAdmin(userId);
 
@@ -184,7 +147,6 @@ export async function DELETE(
             }, { status: 403 });
         }
 
-        // Delete image from Cloudinary if exists
         if (blog.image.id) {
             await deleteFromCloudinary(blog.image.id);
         }

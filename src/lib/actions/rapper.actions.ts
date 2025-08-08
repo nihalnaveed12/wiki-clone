@@ -30,7 +30,7 @@ interface UpdateRapperParams extends Omit<RapperParams, 'country'> {
     lng: number;
 }
 
-// Helper function to check if the current user is an admin
+
 async function checkAdminAccess(): Promise<void> {
     const { userId } = await auth();
     if (!userId) {
@@ -45,7 +45,6 @@ async function checkAdminAccess(): Promise<void> {
     }
 }
 
-// Function to get coordinates from OpenCage API
 async function getCoordinates(address: string, city: string, country: string) {
     const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
     if (!apiKey) {
@@ -94,12 +93,10 @@ export async function createRapper(params: RapperParams) {
     try {
         await checkAdminAccess();
 
-        // Get coordinates for the address, city and country
         const { lat, lng } = await getCoordinates(params.address, params.city, params.country);
 
         await dbConnect();
 
-        // Check if rapper with same name already exists
         const existingRapper = await Rapper.findOne({ name: params.name });
         if (existingRapper) {
             throw new Error("A rapper with this name already exists");
@@ -118,7 +115,7 @@ export async function createRapper(params: RapperParams) {
                 youtube: params.socials.youtube || '',
                 spotify: params.socials.spotify || '',
                 soundcloud: params.socials.soundcloud || '',
-                twitter: '', // Keep twitter field for existing schema
+                twitter: '',
             },
             image: params.image,
             shortBio: params.shortBio,
@@ -138,7 +135,6 @@ export async function createRapper(params: RapperParams) {
     }
 }
 
-// Get all rappers (public access)
 export async function getAllRappers() {
     try {
         await dbConnect();
@@ -156,7 +152,6 @@ export async function getAllRappers() {
     }
 }
 
-// Update rapper (admin only)
 export async function updateRapper(params: UpdateRapperParams) {
     try {
         await checkAdminAccess();
@@ -188,7 +183,6 @@ export async function updateRapper(params: UpdateRapperParams) {
     }
 }
 
-// Delete rapper (admin only)
 export async function deleteRapper(_id: string) {
     try {
         await checkAdminAccess();
@@ -213,7 +207,6 @@ export async function deleteRapper(_id: string) {
     }
 }
 
-// Get single rapper by ID (public access)
 export async function getRapperById(_id: string) {
     try {
         await dbConnect();
@@ -240,7 +233,6 @@ export async function getRapperById(_id: string) {
     }
 }
 
-// Get rappers by city (public access)
 export async function getRappersByCity(city: string) {
     try {
         await dbConnect();

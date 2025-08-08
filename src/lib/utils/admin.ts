@@ -5,10 +5,6 @@ import dbConnect from '@/lib/database/mongodb';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL as string;
 const MAX_ADMINS = 3;
 
-/**
- * Check if a user is an admin by their Clerk ID
- */
-
 export async function ensureMainAdminRole(): Promise<void> {
     try {
         await dbConnect();
