@@ -22,6 +22,7 @@ export interface IRapper extends Document {
         url: string;
     };
     shortBio: string;
+    submittedBy: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -97,6 +98,10 @@ const RapperSchema = new Schema<IRapper>(
             required: true,
             trim: true,
             maxlength: 500,
+        },
+        submittedBy: {
+            type: String,
+            default: '',
         },
     },
     {

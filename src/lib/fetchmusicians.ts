@@ -1,4 +1,3 @@
-// lib/fetchMusicians.ts
 interface Musicians {
   socials: {
     instagram: string;
@@ -16,11 +15,11 @@ interface Musicians {
   lat: number;
   lng: number;
   category: string;
-  country:string
+  country: string
   shortBio: string;
-  website:string
+  website: string
   createdAt: string;
-  address:string;
+  address: string;
   updatedAt: string;
   __v: number;
 }

@@ -111,6 +111,7 @@ export async function POST(
             },
             image: musicianRequest.image,
             shortBio: musicianRequest.shortBio,
+            submittedBy: musicianRequest.submittedBy,
         });
 
         // Update the request status

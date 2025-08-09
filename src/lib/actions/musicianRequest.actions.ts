@@ -115,7 +115,7 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
             },
             image: params.image,
             shortBio: params.shortBio,
-            submittedBy: params.submittedBy || '',
+            submittedBy: params.submittedBy,
             status: 'pending',
         });
 

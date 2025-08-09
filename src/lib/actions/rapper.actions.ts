@@ -22,6 +22,7 @@ interface RapperParams {
         url: string;
     };
     shortBio: string;
+    submittedBy: string;
 }
 
 interface UpdateRapperParams extends Omit<RapperParams, 'country'> {
@@ -29,7 +30,6 @@ interface UpdateRapperParams extends Omit<RapperParams, 'country'> {
     lat: number;
     lng: number;
 }
-
 
 async function checkAdminAccess(): Promise<void> {
     const { userId } = await auth();
@@ -44,6 +44,35 @@ async function checkAdminAccess(): Promise<void> {
         throw new Error("Access denied: Admin privileges required");
     }
 }
+
+async function checkAdminOrOwnerAccess(rapperId: string): Promise<void> {
+    const { userId } = await auth();
+    if (!userId) {
+        throw new Error("Unauthorized: Please sign in");
+    }
+
+    await dbConnect();
+    const user = await User.findOne({ clerkId: userId });
+    const rapper = await Rapper.findById(rapperId);
+
+    if (!rapper) {
+        throw new Error("Rapper not found");
+    }
+
+    // Agar admin hai → allow
+    if (user?.isAdmin && typeof user.isAdmin === "function" && user.isAdmin()) {
+        return;
+    }
+
+    // Agar owner hai → allow
+    if (rapper.submittedBy === userId) {
+        return;
+    }
+
+    // Agar dono nahi hai → deny
+    throw new Error("Access denied: You are not allowed to perform this action");
+}
+
 
 async function getCoordinates(address: string, city: string, country: string) {
     const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
@@ -119,6 +148,7 @@ export async function createRapper(params: RapperParams) {
             },
             image: params.image,
             shortBio: params.shortBio,
+            submittedBy: params.submittedBy,
         });
 
         return {
@@ -154,7 +184,7 @@ export async function getAllRappers() {
 
 export async function updateRapper(params: UpdateRapperParams) {
     try {
-        await checkAdminAccess();
+        await checkAdminOrOwnerAccess(params._id);
         await dbConnect();
 
         const { _id, ...updateData } = params;
@@ -185,7 +215,7 @@ export async function updateRapper(params: UpdateRapperParams) {
 
 export async function deleteRapper(_id: string) {
     try {
-        await checkAdminAccess();
+        await checkAdminOrOwnerAccess(_id);
         await dbConnect();
 
         const rapper = await Rapper.findByIdAndDelete(_id);
