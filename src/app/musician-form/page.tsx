@@ -4,6 +4,7 @@ import { type FormData as MusicianFormData } from "@/components/musician-com/for
 import { addMusicianReq } from "@/lib/api/requestMusicians";
 
 export default function MusicianFormPage() {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   async function submitForm(data: MusicianFormData) {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -14,8 +15,9 @@ export default function MusicianFormPage() {
       }
     });
 
+
     try {
-      const response = await addMusicianReq(formData);
+      const response = await addMusicianReq(formData, BASE_URL);
       if (response.success) {
         alert(
           "Your request to add musician has been sent to the admin for review!"

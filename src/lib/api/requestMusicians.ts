@@ -1,6 +1,6 @@
-export async function addMusicianReq(data: FormData) {
-    const res = await fetch(`/api/rappers/request`, { method: "POST", body: data });
-    if (!res.ok) throw new Error(await res.text());
+export async function addMusicianReq(data: FormData, BaseUrl:string) {
+    const res = await fetch(`${BaseUrl}/api/rappers/requests`, { method: "POST", body: data });
+    if (!res.ok) throw new Error("Response Failed");
     return res.json();
 }
 
