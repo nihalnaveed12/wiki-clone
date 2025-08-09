@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRapper, getAllRappers } from "@/lib/actions/rapper.actions";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
     try {
@@ -19,6 +20,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+    const { userId } = await auth();
+    if (!userId) {
+        throw new Error("Unauthorized: Please sign in");
+    }
+
     try {
         const formData = await request.formData();
 
@@ -84,6 +90,7 @@ export async function POST(request: NextRequest) {
                 spotify: spotify?.trim() || undefined,
                 soundcloud: soundcloud?.trim() || undefined,
             },
+            submittedBy: userId,
         });
 
         if (!result.success) {
