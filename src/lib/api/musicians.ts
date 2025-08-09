@@ -1,10 +1,9 @@
-// lib/fetchMusicians.ts
-interface Musician {
+interface Musicians {
   socials: {
     instagram: string;
-    twitter: string;
     youtube: string;
     spotify: string;
+    soundcloud: string;
   };
   image: {
     id: string;
@@ -16,12 +15,15 @@ interface Musician {
   lat: number;
   lng: number;
   category: string;
+  country:string
   shortBio: string;
+  website:string
   createdAt: string;
+  address:string;
   updatedAt: string;
   __v: number;
 }
-export async function fetchMusicians(baseUrl: string):Promise<Musician[]>  {
+export async function fetchMusicians(baseUrl: string):Promise<Musicians[]>  {
   const res = await fetch(`${baseUrl}/api/rappers`);
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json()
