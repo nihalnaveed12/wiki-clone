@@ -76,10 +76,7 @@ export default function MapClient() {
     const map = useMap();
     useEffect(() => {
       if (filteredMusicians.length > 0) {
-        map.flyTo(
-          [filteredMusicians[0].lat, filteredMusicians[0].lng],
-          10
-        );
+        map.flyTo([filteredMusicians[0].lat, filteredMusicians[0].lng], 10);
       }
     }, [filteredMusicians, map]);
     return null;
@@ -117,10 +114,7 @@ export default function MapClient() {
               search ? "rounded-t-lg" : "rounded-full"
             } px-4 py-2 w-full border focus:outline-none bg-white`}
           />
-          <button
-            className="absolute right-4"
-            onClick={handleSearchSubmit}
-          >
+          <button className="absolute right-4" onClick={handleSearchSubmit}>
             <Search size={20} color="gray" />
           </button>
         </div>
@@ -144,11 +138,11 @@ export default function MapClient() {
         {searchSubmitted && filteredMusicians.length > 0 && (
           <div className="grid gap-4 p-4 bg-white overflow-y-scroll h-screen">
             {filteredMusicians.map((musician) => (
-              <div
+              <Link
+                href={`/musician/${musician._id}`}
                 key={musician._id}
                 className="bg-white rounded-lg border shadow-lg p-4 flex gap-4"
               >
-                
                 <div className="flex flex-col gap-2">
                   <h2 className="text-lg font-semibold">{musician.name}</h2>
                   <p className="text-gray-600">
@@ -157,16 +151,36 @@ export default function MapClient() {
                   <p className="text-sm mt-2">{musician.shortBio}</p>
                   <div className="flex gap-3 flex-wrap  text-blue-500 text-sm">
                     {musician.socials.instagram && (
-                      <Link className="hover:text-blue-500" href={musician.socials.instagram}>Instagram</Link>
+                      <Link
+                        className="hover:text-blue-500"
+                        href={musician.socials.instagram}
+                      >
+                        Instagram
+                      </Link>
                     )}
                     {musician.socials.spotify && (
-                      <Link className="hover:text-blue-500" href={musician.socials.spotify}>Spotify</Link>
+                      <Link
+                        className="hover:text-blue-500"
+                        href={musician.socials.spotify}
+                      >
+                        Spotify
+                      </Link>
                     )}
                     {musician.socials.soundcloud && (
-                      <Link className="hover:text-blue-500" href={musician.socials.soundcloud}>SoundCloud</Link>
+                      <Link
+                        className="hover:text-blue-500"
+                        href={musician.socials.soundcloud}
+                      >
+                        SoundCloud
+                      </Link>
                     )}
                     {musician.socials.youtube && (
-                      <Link className="hover:text-blue-500" href={musician.socials.youtube}>YouTube</Link>
+                      <Link
+                        className="hover:text-blue-500"
+                        href={musician.socials.youtube}
+                      >
+                        YouTube
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -175,7 +189,7 @@ export default function MapClient() {
                   alt={musician.name}
                   className="w-24 h-24 object-cover  rounded-lg"
                 />
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -218,7 +232,6 @@ export default function MapClient() {
                   </div>
                   <div className="flex flex-col gap-2 text-zinc-600">
                     <h2>{musician.shortBio}</h2>
-                    
 
                     {musician.socials.instagram && (
                       <Link href={musician.socials.instagram}>Instagram</Link>
@@ -232,7 +245,6 @@ export default function MapClient() {
                     {musician.socials.youtube && (
                       <Link href={musician.socials.youtube}>YouTube</Link>
                     )}
-                    
                   </div>
                 </Link>
               </Popup>

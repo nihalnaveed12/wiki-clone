@@ -113,7 +113,7 @@ export default function WikipediaHero() {
 
             {/* English - Top Left */}
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 href={"/articles-page"}
                 className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
@@ -125,6 +125,12 @@ export default function WikipediaHero() {
                 className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
               >
                 Find Musicians
+              </Link>
+              <Link
+                href={"/musician-form"}
+                className="text-blue-700 hover:text-blue-500 border px-4 py-2 bg-zinc-50 hover:bg-zinc-100 hover:underline text-xl font-semibold`"
+              >
+               Musician Registration
               </Link>
             </div>
             

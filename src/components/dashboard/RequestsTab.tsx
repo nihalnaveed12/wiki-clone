@@ -43,7 +43,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
   const [requests, setRequests] = useState<MusicianRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
-  console.log(baseUrl);
+  const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending");
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -52,7 +52,6 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
       if (result.success) {
         setRequests(result.data);
       } else {
-        console.error(result.error);
         alert("Failed to fetch requests: " + result.error);
       }
     } catch (error) {
@@ -77,9 +76,6 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
       } else {
         alert("Failed to approve request: " + result.error);
       }
-    } catch (error) {
-      console.error("Error approving request:", error);
-      alert("Failed to approve request");
     } finally {
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
@@ -91,7 +87,6 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
 
   const handleReject = async (requestId: string) => {
     const reason = prompt("Enter rejection reason (optional):");
-
     setProcessingIds((prev) => new Set(prev).add(requestId));
     try {
       const result = await rejectMusicianRequestAPI(requestId, reason || "");
@@ -101,9 +96,6 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
       } else {
         alert("Failed to reject request: " + result.error);
       }
-    } catch (error) {
-      console.error("Error rejecting request:", error);
-      alert("Failed to reject request");
     } finally {
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
@@ -127,27 +119,36 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
     }
   };
 
-  if (loading) {
-    return <p className="text-center text-gray-600">Loading requests...</p>;
-  }
+  // Filter requests based on active tab
+  const filteredRequests = requests.filter((req) => req.status === activeTab);
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Musician Requests</h2>
-        <button
-          onClick={fetchRequests}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Refresh
-        </button>
+      {/* Tabs */}
+      <div className="flex gap-2 border-b pb-2">
+        {["pending", "approved", "rejected"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+              activeTab === tab
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {requests.length === 0 ? (
-        <p className="text-center text-gray-600 py-8">No requests found.</p>
+      {/* Content */}
+      {loading ? (
+        <p className="text-center text-gray-600">Loading requests...</p>
+      ) : filteredRequests.length === 0 ? (
+        <p className="text-center text-gray-600 py-8">No {activeTab} requests found.</p>
       ) : (
-        <div className="grid gap-4">
-          {requests.map((request) => (
+        <div className="grid lg:grid-cols-3 grid-cols-2 gap-4">
+          {filteredRequests.map((request) => (
             <div
               key={request._id}
               className="bg-white shadow-lg rounded-lg p-6 border border-gray-200"
@@ -162,15 +163,12 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                     height={64}
                   />
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {request.name}
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-800">{request.name}</h3>
                     <p className="text-gray-600">
                       {request.category} • {request.city}, {request.country}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Submitted:{" "}
-                      {new Date(request.createdAt).toLocaleDateString()}
+                      Submitted: {new Date(request.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -244,28 +242,26 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                 </div>
               </div>
 
-              {request.status === "pending" && (
+              {activeTab === "pending" && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleApprove(request._id)}
                     disabled={processingIds.has(request._id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400"
                   >
-                    {processingIds.has(request._id)
-                      ? "Approving..."
-                      : "Approve"}
+                    {processingIds.has(request._id) ? "Approving..." : "Approve"}
                   </button>
                   <button
                     onClick={() => handleReject(request._id)}
                     disabled={processingIds.has(request._id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-400"
                   >
                     {processingIds.has(request._id) ? "Rejecting..." : "Reject"}
                   </button>
                 </div>
               )}
 
-              {request.status !== "pending" && (
+              {activeTab !== "pending" && (
                 <div className="text-sm text-gray-500">
                   <p>
                     Reviewed:{" "}
@@ -275,8 +271,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                   </p>
                   {request.rejectionReason && (
                     <p className="text-red-600 mt-1">
-                      <strong>Rejection reason:</strong>{" "}
-                      {request.rejectionReason}
+                      <strong>Rejection reason:</strong> {request.rejectionReason}
                     </p>
                   )}
                 </div>

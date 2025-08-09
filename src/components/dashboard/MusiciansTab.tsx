@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchMusicians } from "@/lib/api/musicians";
+import { deleteMusicians, fetchMusicians } from "@/lib/api/musicians";
 import Image from "next/image";
 
 interface Musicians {
@@ -20,11 +20,11 @@ interface Musicians {
   lat: number;
   lng: number;
   category: string;
-  country:string
+  country: string;
   shortBio: string;
-  website:string
+  website: string;
   createdAt: string;
-  address:string;
+  address: string;
   updatedAt: string;
   __v: number;
 }
@@ -32,21 +32,43 @@ interface Musicians {
 export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
   const [musicians, setMusicians] = useState<Musicians[]>([]);
   const [loading, setLoading] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    fetchMusicians(baseUrl)
-      .then(setMusicians)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    loadMusicians();
   }, [baseUrl]);
+
+  async function loadMusicians() {
+    setLoading(true);
+    try {
+      const data = await fetchMusicians(baseUrl);
+      setMusicians(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+   async function handleDelete(id: string) {
+      if (!confirm("Delete this post?")) return;
+      setDeletingId(id);
+      try {
+        await deleteMusicians(baseUrl, id);
+        setMusicians(musicians.filter((p) => p._id !== id));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setDeletingId(null);
+      }
+    }
 
   return loading ? (
     <p>Loading musicians...</p>
   ) : (
-    <div className="grid lg:grid-cols-3 sm:grid-cols-2  gap-4">
+    <div className="grid lg:grid-cols-3 sm:grid-cols-2 gap-4">
       {musicians.length > 0 &&
-        musicians.map((m: Musicians) => (
+        musicians.map((m) => (
           <div
             key={m._id}
             className="bg-white shadow-lg rounded-lg p-6 border border-gray-200"
@@ -61,18 +83,18 @@ export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
                   height={64}
                 />
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {m.name}
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-800">{m.name}</h3>
                   <p className="text-gray-600">
                     {m.category} • {m.city}, {m.country}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Submitted:{" "}
-                    {new Date(m.createdAt).toLocaleDateString()}
+                    Submitted: {new Date(m.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
+
+              {/* Delete button */}
+             
             </div>
 
             <div className="mb-4">
@@ -140,9 +162,12 @@ export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
               </div>
             </div>
 
-          
-
-            
+             <button
+                onClick={() => handleDelete(m._id)}
+                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
           </div>
         ))}
     </div>
