@@ -6,6 +6,7 @@ import UsersTab from "@/components/dashboard/UsersTab";
 import PostsTab from "@/components/dashboard/PostsTab";
 import MusiciansTab from "@/components/dashboard/MusiciansTab";
 import AddMusicianTab from "@/components/dashboard/AddMusicians";
+import RequestsTab from "@/components/dashboard/RequestsTab";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 
@@ -13,7 +14,7 @@ export default function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "users" | "posts" | "musicians" | "add"
+    "users" | "posts" | "musicians" | "add" | "requests"
   >("users");
 
   const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL!;
@@ -46,6 +47,7 @@ export default function Dashboard() {
               baseUrl={BASE_URL}
             />
           )}
+          {activeTab === "requests" && <RequestsTab baseUrl={BASE_URL} />}
         </main>
       </div>
     </SidebarProvider>
