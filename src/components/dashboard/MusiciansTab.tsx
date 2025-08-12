@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { deleteMusicians, fetchMusicians } from "@/lib/api/musicians";
 import Image from "next/image";
+import MusicianDeleteButton from "../musician-com/MusicianDeleteButton";
 
 interface Musicians {
   socials: {
@@ -50,18 +51,18 @@ export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
     }
   }
 
-   async function handleDelete(id: string) {
-      if (!confirm("Delete this post?")) return;
-      setDeletingId(id);
-      try {
-        await deleteMusicians(baseUrl, id);
-        setMusicians(musicians.filter((p) => p._id !== id));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setDeletingId(null);
-      }
-    }
+  //  async function handleDelete(id: string) {
+  //     if (!confirm("Delete this post?")) return;
+  //     setDeletingId(id);
+  //     try {
+  //       await deleteMusicians(id);
+  //       setMusicians(musicians.filter((p) => p._id !== id));
+  //     } catch (err) {
+  //       console.error(err);
+  //     } finally {
+  //       setDeletingId(null);
+  //     }
+  //   }
 
   return loading ? (
     <p>Loading musicians...</p>
@@ -162,12 +163,7 @@ export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
               </div>
             </div>
 
-             <button
-                onClick={() => handleDelete(m._id)}
-                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
+             <MusicianDeleteButton id={m._id}/>
           </div>
         ))}
     </div>

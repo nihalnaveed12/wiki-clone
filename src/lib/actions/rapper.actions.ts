@@ -67,7 +67,7 @@ async function checkAdminOrOwnerAccess(rapperId: string): Promise<void> {
     // Agar owner hai → allow
     if (rapper.submittedBy === userId) {
         return;
-    }
+    } 
 
     // Agar dono nahi hai → deny
     throw new Error("Access denied: You are not allowed to perform this action");

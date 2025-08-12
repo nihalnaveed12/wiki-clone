@@ -36,14 +36,14 @@ export async function addMusician(data: FormData, baseUrl:string) {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 
-export async function deleteMusicians(baseUrl: string, id: string) {
+export async function deleteMusicians(id: string) {
   const res = await fetch(`${baseUrl}/api/rappers/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 
 export async function getMusicianByIdAPI(id:string) {
   const res = await fetch(`${baseUrl}/api/rappers/${id}`)

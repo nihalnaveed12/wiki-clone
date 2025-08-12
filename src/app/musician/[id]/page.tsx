@@ -1,6 +1,7 @@
 // app/musicians/[id]/page.tsx
 import Image from "next/image";
 import { getMusicianByIdAPI } from "@/lib/api/musicians";
+import MusicianDeleteButton from "@/components/musician-com/MusicianDeleteButton";
 
 interface PageProps {
   params: Promise<{
@@ -44,6 +45,8 @@ export default async function MusicianProfilePage({ params }: PageProps) {
   }
 
   const musician: Musician = res.data;
+
+  
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -146,7 +149,8 @@ export default async function MusicianProfilePage({ params }: PageProps) {
 
         <div className="">
           <button className="px-4 py-1 mr-4 rounded-[6px] text-white bg-blue-500 cursor-pointer hover:bg-blue-400">Edit</button>
-          <button className="px-4 py-1 rounded-[6px] text-white bg-red-500 cursor-pointer hover:bg-red-400">Delete</button>
+          {/* <button className="px-4 py-1 rounded-[6px] text-white bg-red-500 cursor-pointer hover:bg-red-400">Delete</button> */}
+          <MusicianDeleteButton id={musician._id}/>
         </div>
       </div>
     </div>
