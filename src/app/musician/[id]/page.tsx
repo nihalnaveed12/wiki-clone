@@ -1,13 +1,8 @@
-// app/musicians/[id]/page.tsx
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
+import Link from "next/link";
 import { getMusicianByIdAPI } from "@/lib/api/musicians";
 import MusicianDeleteButton from "@/components/musician-com/MusicianDeleteButton";
-
-interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
 
 interface Musician {
   socials: {
@@ -29,12 +24,17 @@ interface Musician {
   website: string;
   createdAt: string;
   address: string;
+  submittedBy: string; // Critical for ownership check
 }
 
-export default async function MusicianProfilePage({ params }: PageProps) {
-  // ✅ Server-side fetch (no useEffect needed)
-  const { id } = await params;
+export default async function MusicianProfilePage({ 
+  params 
+}: { 
+  params: { id: string } 
+}) {
+  const { id } = params;
   const res = await getMusicianByIdAPI(id);
+  const { userId } = await auth();
 
   if (!res.success) {
     return (
@@ -45,8 +45,7 @@ export default async function MusicianProfilePage({ params }: PageProps) {
   }
 
   const musician: Musician = res.data;
-
-  
+  const canEdit = userId && musician.submittedBy === userId;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -148,9 +147,15 @@ export default async function MusicianProfilePage({ params }: PageProps) {
         </div>
 
         <div className="">
-          <button className="px-4 py-1 mr-4 rounded-[6px] text-white bg-blue-500 cursor-pointer hover:bg-blue-400">Edit</button>
-          {/* <button className="px-4 py-1 rounded-[6px] text-white bg-red-500 cursor-pointer hover:bg-red-400">Delete</button> */}
-          <MusicianDeleteButton id={musician._id}/>
+          {canEdit && (
+            <Link
+              href={`/musician/${musician._id}/edit`}
+              className="px-4 py-1 mr-4 rounded-[6px] text-white bg-blue-500 cursor-pointer hover:bg-blue-400"
+            >
+              Edit
+            </Link>
+          )}
+          <MusicianDeleteButton id={musician._id} />
         </div>
       </div>
     </div>
