@@ -27,12 +27,14 @@ interface Musician {
   submittedBy: string; // Critical for ownership check
 }
 
-export default async function MusicianProfilePage({ 
-  params 
-}: { 
-  params: { id: string } 
-}) {
-  const { id } = params;
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function MusicianProfilePage({ params }: PageProps) {
+  const { id } = await params;
   const res = await getMusicianByIdAPI(id);
   const { userId } = await auth();
 

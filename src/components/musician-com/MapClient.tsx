@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { fetchMusicians } from "@/lib/fetchmusicians";
 import Link from "next/link";
-import { MapPin, Search } from "lucide-react";
+import { MapPin, Search, X, Filter, Sliders } from "lucide-react";
 
 // Fix Leaflet icons
 delete (L.Icon.Default.prototype as { getIconUrl?: () => string }).getIconUrl;
@@ -47,7 +47,29 @@ export default function MapClient() {
   const [search, setSearch] = useState("");
   const [musicians, setMusicians] = useState<Musician[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [filters, setFilters] = useState({
+    city: "",
+    country: "",
+    category: "",
+  });
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filters when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
+        setShowFilters(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const getMusicians = async () => {
@@ -63,148 +85,306 @@ export default function MapClient() {
     getMusicians();
   }, []);
 
-  // Filtered list based on search
+  // Get unique values for filter dropdowns
+  const uniqueValues = useMemo(() => {
+    const cities = new Set<string>();
+    const countries = new Set<string>();
+    const categories = new Set<string>();
+
+    musicians.forEach((musician) => {
+      if (musician.city) cities.add(musician.city);
+      if (musician.country) countries.add(musician.country);
+      if (musician.category) categories.add(musician.category);
+    });
+
+    return {
+      cities: Array.from(cities).sort(),
+      countries: Array.from(countries).sort(),
+      categories: Array.from(categories).sort(),
+    };
+  }, [musicians]);
+
+  // Filter musicians based on active filters
   const filteredMusicians = useMemo(() => {
-    if (!search.trim()) return [];
-    return musicians.filter((m) =>
-      m.city.toLowerCase().includes(search.trim().toLowerCase())
-    );
-  }, [search, musicians]);
+    if (!hasInteracted) return [];
+
+    return musicians.filter((musician) => {
+      const matchesCity =
+        !filters.city ||
+        musician.city?.toLowerCase().includes(filters.city.toLowerCase());
+      const matchesCountry =
+        !filters.country ||
+        musician.country?.toLowerCase().includes(filters.country.toLowerCase());
+      const matchesCategory =
+        !filters.category ||
+        musician.category
+          ?.toLowerCase()
+          .includes(filters.category.toLowerCase());
+      const matchesSearch =
+        !search ||
+        musician.name?.toLowerCase().includes(search.toLowerCase()) ||
+        musician.city?.toLowerCase().includes(search.toLowerCase()) ||
+        musician.category?.toLowerCase().includes(search.toLowerCase());
+
+      return matchesCity && matchesCountry && matchesCategory && matchesSearch;
+    });
+  }, [musicians, filters, search, hasInteracted]);
 
   // Map fly-to helper
   function FlyToLocation() {
     const map = useMap();
     useEffect(() => {
       if (filteredMusicians.length > 0) {
-        map.flyTo([filteredMusicians[0].lat, filteredMusicians[0].lng], 10);
+        const bounds = L.latLngBounds(
+          filteredMusicians.map((m) => [m.lat, m.lng])
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
       }
     }, [filteredMusicians, map]);
     return null;
   }
 
-  const handleSearchSubmit = () => {
-    setSearchSubmitted(true);
+  const handleFilterChange = (
+    type: "city" | "country" | "category",
+    value: string
+  ) => {
+    setFilters((prev) => ({
+      ...prev,
+      [type]: value,
+    }));
+
+    if (value && !activeFilters.includes(type)) {
+      setActiveFilters((prev) => [...prev, type]);
+    } else if (!value) {
+      setActiveFilters((prev) => prev.filter((f) => f !== type));
+    }
+
+    if (!hasInteracted) setHasInteracted(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const clearFilter = (type: "city" | "country" | "category") => {
+    setFilters((prev) => ({
+      ...prev,
+      [type]: "",
+    }));
+    setActiveFilters((prev) => prev.filter((f) => f !== type));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      city: "",
+      country: "",
+      category: "",
+    });
+    setActiveFilters([]);
+    setSearch("");
+    setHasInteracted(false);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setSearchSubmitted(false);
+    if (e.target.value && !hasInteracted) setHasInteracted(true);
   };
 
-  if (loading) return <p className="p-10 text-center text-2xl">Loading...</p>;
+  const handleSearchSubmit = () => {
+    if (search && !hasInteracted) setHasInteracted(true);
+  };
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-lg">Loading musicians...</p>
+        </div>
+      </div>
+    );
 
   if (!musicians.length)
-    return <p className="text-center mt-10">No musicians found.</p>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-xl text-gray-600">
+          No musicians found in the database.
+        </p>
+      </div>
+    );
 
   return (
-    <div className="text-black flex h-screen font-sans">
-      {/* Left Side - Search */}
-      <div className="absolute top-20 left-20 z-10 w-[25%] ">
-        {/* Search Box */}
-        <div className="flex items-center relative">
+    <div className="text-black flex h-screen font-sans relative">
+      {/* Search Bar */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md">
+        <div className="flex items-center bg-white rounded-full shadow-lg px-4 py-2">
+          <Search className="text-gray-400 mr-2" size={18} />
           <input
             type="text"
-            placeholder="Enter city name..."
+            placeholder="Search musicians by name, city or category..."
             value={search}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSearchSubmit();
-            }}
-            className={`${
-              search ? "rounded-t-lg" : "rounded-full"
-            } px-4 py-2 w-full border focus:outline-none bg-white`}
+            onChange={handleSearch}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+            className="flex-1 outline-none text-sm"
           />
-          <button className="absolute right-4" onClick={handleSearchSubmit}>
-            <Search size={20} color="gray" />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <Sliders className="text-gray-600" size={18} />
           </button>
         </div>
-
-        {/* Suggestions Mode */}
-        {search && !searchSubmitted && filteredMusicians.length > 0 && (
-          <div className="flex flex-col gap-3 bg-white p-4 rounded-b-2xl shadow">
-            {filteredMusicians.map((musician) => (
-              <div key={musician._id} className="flex items-center gap-2">
-                <MapPin size={16} />
-                <span className="font-medium">{musician.name}</span>
-                <span className="text-gray-600 text-sm">
-                  {musician.category} - {musician.city}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Full Result Mode */}
-        {searchSubmitted && filteredMusicians.length > 0 && (
-          <div className="grid gap-4 p-4 bg-white overflow-y-scroll h-screen">
-            {filteredMusicians.map((musician) => (
-              <Link
-                href={`/musician/${musician._id}`}
-                key={musician._id}
-                className="bg-white rounded-lg border shadow-lg p-4 flex gap-4"
-              >
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold">{musician.name}</h2>
-                  <p className="text-gray-600">
-                    {musician.category} - {musician.city}
-                  </p>
-                  <p className="text-sm mt-2">{musician.shortBio}</p>
-                  <div className="flex gap-3 flex-wrap  text-blue-500 text-sm">
-                    {musician.socials.instagram && (
-                      <Link
-                        className="hover:text-blue-500"
-                        href={musician.socials.instagram}
-                      >
-                        Instagram
-                      </Link>
-                    )}
-                    {musician.socials.spotify && (
-                      <Link
-                        className="hover:text-blue-500"
-                        href={musician.socials.spotify}
-                      >
-                        Spotify
-                      </Link>
-                    )}
-                    {musician.socials.soundcloud && (
-                      <Link
-                        className="hover:text-blue-500"
-                        href={musician.socials.soundcloud}
-                      >
-                        SoundCloud
-                      </Link>
-                    )}
-                    {musician.socials.youtube && (
-                      <Link
-                        className="hover:text-blue-500"
-                        href={musician.socials.youtube}
-                      >
-                        YouTube
-                      </Link>
-                    )}
-                  </div>
-                </div>
-                <img
-                  src={musician.image.url}
-                  alt={musician.name}
-                  className="w-24 h-24 object-cover  rounded-lg"
-                />
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {search && filteredMusicians.length === 0 && (
-          <p className="mt-2 text-sm text-gray-600">
-            No musicians found for this city.
-          </p>
-        )}
       </div>
 
-      {/* Right Side - Map */}
-      <div className="w-full relative z-0">
+      {/* Filter Dropdown */}
+      {showFilters && (
+        <div
+          ref={filterRef}
+          className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md bg-white rounded-lg shadow-xl p-4"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg">Filters</h3>
+            <button
+              onClick={clearAllFilters}
+              className="text-sm text-blue-500 hover:text-blue-700"
+            >
+              Clear all
+            </button>
+          </div>
+
+          {/* Active filters chips */}
+          {activeFilters.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {activeFilters.map((filter) => (
+                <div
+                  key={filter}
+                  className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-sm"
+                >
+                  <span className="capitalize">
+                    {filter}: {filters[filter as keyof typeof filters]}
+                  </span>
+                  <button
+                    onClick={() =>
+                      clearFilter(filter as "city" | "country" | "category")
+                    }
+                    className="ml-2 text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* City Filter */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-700">
+              City
+            </label>
+            <select
+              value={filters.city}
+              onChange={(e) => handleFilterChange("city", e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm"
+            >
+              <option value="">All Cities</option>
+              {uniqueValues.cities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Country Filter */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-700">
+              Country
+            </label>
+            <select
+              value={filters.country}
+              onChange={(e) => handleFilterChange("country", e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm"
+            >
+              <option value="">All Countries</option>
+              {uniqueValues.countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-gray-700">
+              Category
+            </label>
+            <select
+              value={filters.category}
+              onChange={(e) => handleFilterChange("category", e.target.value)}
+              className="w-full p-2 border rounded-lg text-sm"
+            >
+              <option value="">All Categories</option>
+              {uniqueValues.categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Results Panel - Only shows after interaction */}
+      {hasInteracted && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md bg-white rounded-lg shadow-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-medium">
+              {filteredMusicians.length}{" "}
+              {filteredMusicians.length === 1 ? "result" : "results"}
+            </h3>
+            <button
+              onClick={clearAllFilters}
+              className="text-sm text-blue-500 hover:text-blue-700"
+            >
+              Reset
+            </button>
+          </div>
+
+          <div className="overflow-y-auto max-h-[40vh] pr-2">
+            {filteredMusicians.length > 0 ? (
+              filteredMusicians.map((musician) => (
+                <Link
+                  href={`/musicians/${musician._id}`}
+                  key={musician._id}
+                  className="block mb-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex gap-3 items-center">
+                    <img
+                      src={musician.image.url}
+                      alt={musician.name}
+                      className="w-12 h-12 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{musician.name}</h3>
+                      <p className="text-xs text-gray-600">
+                        {musician.category} • {musician.city},{" "}
+                        {musician.country}
+                      </p>
+                    </div>
+                    <MapPin className="text-gray-400" size={16} />
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No musicians match your search/filters
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Map */}
+      <div className="w-full h-full z-0">
         <MapContainer
-          center={[31.5497, 74.3436]} // Lahore
+          center={[31.5497, 74.3436]}
           zoom={5}
           style={{ height: "100%", width: "100%" }}
         >
@@ -215,41 +395,34 @@ export default function MapClient() {
 
           <FlyToLocation />
 
-          {filteredMusicians.map((musician) => (
-            <Marker key={musician._id} position={[musician.lat, musician.lng]}>
-              <Popup>
-                <Link href={`/musicians/${musician._id}`}>
-                  <img
-                    src={musician.image.url || "/images/logo.jpg"}
-                    className="w-full"
-                    alt={musician.name}
-                  />
-                  <div className="flex flex-col pt-4">
-                    <h1 className="text-2xl text-zinc-800">{musician.name}</h1>
-                    <p className="text-zinc-600 text-[14px]">
-                      {musician.category} - {musician.city}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 text-zinc-600">
-                    <h2>{musician.shortBio}</h2>
-
-                    {musician.socials.instagram && (
-                      <Link href={musician.socials.instagram}>Instagram</Link>
-                    )}
-                    {musician.socials.spotify && (
-                      <Link href={musician.socials.spotify}>Spotify</Link>
-                    )}
-                    {musician.socials.soundcloud && (
-                      <Link href={musician.socials.soundcloud}>SoundCloud</Link>
-                    )}
-                    {musician.socials.youtube && (
-                      <Link href={musician.socials.youtube}>YouTube</Link>
-                    )}
-                  </div>
-                </Link>
-              </Popup>
-            </Marker>
-          ))}
+          {hasInteracted &&
+            filteredMusicians.map((musician) => (
+              <Marker
+                key={musician._id}
+                position={[musician.lat, musician.lng]}
+              >
+                <Popup className="min-w-[250px]">
+                  <Link href={`/musicians/${musician._id}`} className="block">
+                    <div className="flex gap-3">
+                      <img
+                        src={musician.image.url}
+                        alt={musician.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div>
+                        <h3 className="font-semibold">{musician.name}</h3>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {musician.category} • {musician.city}
+                        </p>
+                        <p className="text-xs line-clamp-2">
+                          {musician.shortBio}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </Popup>
+              </Marker>
+            ))}
         </MapContainer>
       </div>
     </div>
