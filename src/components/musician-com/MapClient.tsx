@@ -351,7 +351,7 @@ export default function MapClient() {
             {filteredMusicians.length > 0 ? (
               filteredMusicians.map((musician) => (
                 <Link
-                  href={`/musicians/${musician._id}`}
+                  href={`/musician/${musician._id}`}
                   key={musician._id}
                   className="block mb-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
