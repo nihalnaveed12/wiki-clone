@@ -402,7 +402,7 @@ export default function MapClient() {
                 position={[musician.lat, musician.lng]}
               >
                 <Popup className="min-w-[250px]">
-                  <Link href={`/musicians/${musician._id}`} className="block">
+                  <Link href={`/musician/${musician._id}`} className="block">
                     <div className="flex gap-3">
                       <img
                         src={musician.image.url}
