@@ -28,6 +28,21 @@ const nextConfig: NextConfig = {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
+  }, 
+   async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.urban-stash.shop',
+          },
+        ],
+        destination: 'https://urban-stash.shop/:path*',
+        permanent: true,
+      },
+    ]
   },
 
 };
