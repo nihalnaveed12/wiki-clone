@@ -20,6 +20,7 @@ interface Musicians {
   website: string
   createdAt: string;
   address: string;
+  audio:string;
   updatedAt: string;
   __v: number;
 }

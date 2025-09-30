@@ -148,194 +148,194 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold font-sans">Edit Article</h1>
-      </div>
+  <div className="max-w-7xl mx-auto px-4 py-12">
+  <div className="flex justify-between items-center mb-6">
+    <h1 className="text-3xl font-bold font-sans text-card-foreground">Edit Article</h1>
+  </div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">Title *</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-        </div>
+  <div className="space-y-6">
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Title *</label>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+    </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Tags</label>
-          <input
-            type="text"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-        </div>
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Tags</label>
+      <input
+        type="text"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+    </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Born</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Born Date"
-              value={bornDate}
-              onChange={(e) => setBornDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-              disabled={loading}
-            />
-            <input
-              type="text"
-              placeholder="Born Place/Description"
-              value={bornPlace}
-              onChange={(e) => setBornPlace(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Died</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Died Date"
-              value={diedDate}
-              onChange={(e) => setDiedDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-              disabled={loading}
-            />
-            <input
-              type="text"
-              placeholder="Died Place/Description"
-              value={diedPlace}
-              onChange={(e) => setDiedPlace(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md"
-              disabled={loading}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Occupation</label>
-          <input
-            type="text"
-            value={occupation}
-            onChange={(e) => setOccupation(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Spouses</label>
-          <input
-            type="text"
-            value={spouses}
-            onChange={(e) => setSpouses(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            YouTube Video URL (Optional)
-          </label>
-          <input
-            type="text"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Featured Image
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            disabled={loading}
-          />
-          {imagePreview && !removeImage && (
-            <div className="relative mt-4">
-              <Image
-                height={1000}
-                width={1000}
-                src={imagePreview}
-                alt="Preview"
-                className="max-w-md h-48 object-cover rounded-md border"
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
-                disabled={loading}
-              >
-                ×
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Content *</label>
-          <div className="border border-gray-300 rounded-md">
-            <ReactQuill
-              value={content}
-              onChange={setContent}
-              theme="snow"
-              style={{ height: 300 }}
-              readOnly={loading}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 pt-6">
-          <input
-            id="published"
-            type="checkbox"
-            checked={published}
-            onChange={(e) => setPublished(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            disabled={loading}
-          />
-          <label htmlFor="published" className="text-sm font-medium">
-            Published
-          </label>
-        </div>
-
-        <div className="flex gap-4 pt-6">
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`px-6 py-3 rounded-md text-white font-medium ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            } transition-colors`}
-          >
-            {loading ? "Updating..." : "Update Article"}
-          </button>
-
-          <button
-            onClick={() => router.back()}
-            disabled={loading}
-            className="px-6 py-3 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Born</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input
+          type="text"
+          placeholder="Born Date"
+          value={bornDate}
+          onChange={(e) => setBornDate(e.target.value)}
+          className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+          disabled={loading}
+        />
+        <input
+          type="text"
+          placeholder="Born Place/Description"
+          value={bornPlace}
+          onChange={(e) => setBornPlace(e.target.value)}
+          className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+          disabled={loading}
+        />
       </div>
     </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Died</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input
+          type="text"
+          placeholder="Died Date"
+          value={diedDate}
+          onChange={(e) => setDiedDate(e.target.value)}
+          className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+          disabled={loading}
+        />
+        <input
+          type="text"
+          placeholder="Died Place/Description"
+          value={diedPlace}
+          onChange={(e) => setDiedPlace(e.target.value)}
+          className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+          disabled={loading}
+        />
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Occupation</label>
+      <input
+        type="text"
+        value={occupation}
+        onChange={(e) => setOccupation(e.target.value)}
+        className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Spouses</label>
+      <input
+        type="text"
+        value={spouses}
+        onChange={(e) => setSpouses(e.target.value)}
+        className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">
+        YouTube Video URL (Optional)
+      </label>
+      <input
+        type="text"
+        value={youtubeUrl}
+        onChange={(e) => setYoutubeUrl(e.target.value)}
+        className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">
+        Featured Image
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="w-full px-3 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+        disabled={loading}
+      />
+      {imagePreview && !removeImage && (
+        <div className="relative mt-4">
+          <Image
+            height={1000}
+            width={1000}
+            src={imagePreview}
+            alt="Preview"
+            className="max-w-md h-48 object-cover rounded-md border border-border"
+          />
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full w-8 h-8 flex items-center justify-center hover:bg-destructive/90 transition-colors"
+            disabled={loading}
+          >
+            ×
+          </button>
+        </div>
+      )}
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-2 text-card-foreground">Content *</label>
+      <div className="border border-border rounded-md">
+        <ReactQuill
+          value={content}
+          onChange={setContent}
+          theme="snow"
+          style={{ height: 300 }}
+          readOnly={loading}
+        />
+      </div>
+    </div>
+
+    <div className="flex items-center gap-2 pt-6">
+      <input
+        id="published"
+        type="checkbox"
+        checked={published}
+        onChange={(e) => setPublished(e.target.checked)}
+        className="w-4 h-4 text-primary border-border rounded focus:ring-primary focus:ring-2"
+        disabled={loading}
+      />
+      <label htmlFor="published" className="text-sm font-medium text-card-foreground">
+        Published
+      </label>
+    </div>
+
+    <div className="flex gap-4 pt-6">
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className={`px-6 py-3 rounded-md text-primary-foreground font-medium transition-colors ${
+          loading
+            ? "bg-muted cursor-not-allowed"
+            : "bg-primary hover:bg-primary/90"
+        }`}
+      >
+        {loading ? "Updating..." : "Update Article"}
+      </button>
+
+      <button
+        onClick={() => router.back()}
+        disabled={loading}
+        className="px-6 py-3 rounded-md border border-border text-card-foreground font-medium hover:bg-accent transition-colors disabled:opacity-50"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
   );
 }

@@ -41,30 +41,38 @@ export default function UsersTab({ baseUrl, adminEmail }: { baseUrl: string; adm
   }
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">All Users</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {users.map((u: any) => (
-            <div key={u._id} className="border p-4 rounded-lg shadow bg-gray-50">
-              <Image src={u.photo} alt={u.firstName} width={64} height={64} className="rounded-full" />
-              <h3 className="font-semibold">{u.firstName} {u.lastName}</h3>
-              <p>{u.email}</p>
-              {u.email !== adminEmail && (
-                <button
-                  onClick={() => handleRoleChange(u._id, u.role === "user" ? "admin" : "user")}
-                  disabled={updatingId === u._id || (u.role === "user" && adminCount >= 3)}
-                  className="px-3 py-1 text-xs bg-blue-500 text-white rounded"
-                >
-                  {updatingId === u._id ? "Updating..." : u.role === "user" ? "Make Admin" : "Remove Admin"}
-                </button>
-              )}
-            </div>
-          ))}
+  <div>
+  <h2 className="text-xl font-semibold mb-4 text-card-foreground">All Users</h2>
+  {loading ? (
+    <p className="text-card-foreground">Loading...</p>
+  ) : (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {users.map((u: any) => (
+        <div key={u._id} className="border border-border p-4 rounded-lg shadow bg-card">
+          <Image 
+            src={u.photo} 
+            alt={u.firstName} 
+            width={64} 
+            height={64} 
+            className="rounded-full border border-border" 
+          />
+          <h3 className="font-semibold text-card-foreground mt-2">
+            {u.firstName} {u.lastName}
+          </h3>
+          <p className="text-muted-foreground">{u.email}</p>
+          {u.email !== adminEmail && (
+            <button
+              onClick={() => handleRoleChange(u._id, u.role === "user" ? "admin" : "user")}
+              disabled={updatingId === u._id || (u.role === "user" && adminCount >= 3)}
+              className="mt-2 px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+            >
+              {updatingId === u._id ? "Updating..." : u.role === "user" ? "Make Admin" : "Remove Admin"}
+            </button>
+          )}
         </div>
-      )}
+      ))}
     </div>
+  )}
+</div>
   );
 }

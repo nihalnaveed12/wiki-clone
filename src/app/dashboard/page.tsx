@@ -29,11 +29,11 @@ export default function Dashboard() {
     return <p className="text-red-500">Access denied</p>;
 
   return (
-    <SidebarProvider>
+    <SidebarProvider >
       <AppSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex-1 flex flex-col">
-        <header className="p-4 border-b">
-          <SidebarTrigger />
+        <header className="p-4   ">
+          <SidebarTrigger className="hover:bg-card cursor-pointer " />
         </header>
         <main className="p-4">
           {activeTab === "users" && (

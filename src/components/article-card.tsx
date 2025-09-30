@@ -93,125 +93,116 @@ export default function ArticleCard({ blog, onDelete }: ArticleCardProps) {
   const isAuthor = user?.id === blog?.author?.clerkId;
 
   return (
-    <article className="bg-[#f1fdff] border border-blue-200 p-3 ">
-      <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-[#d2f9ff]">
-        {blog.title}
-      </h3>
+  <article className="bg-card border border-border p-3 rounded-lg">
+  <h3 className="text-3xl px-3 mb-6 py-1 font-sans font-bold bg-accent rounded-md">
+    {blog.title}
+  </h3>
 
-      <div className="">
-        <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
-          {blog.image.url && (
-            <>
-              <Image
-                height={250}
-                width={250}
-                src={blog.image.url}
-                alt={blog.title}
-                style={{ border: "1px solid #ddd", padding: "1px" }}
-              />
-              <Link href={`/article/${blog.slug}`}>
-                <h1 className="text-xs mt-1">{blog.title}</h1>
-              </Link>
-            </>
-          )}
-        </div>
+  <div className="">
+    <div className="float-left mr-3 mb-2" style={{ width: "150px" }}>
+      {blog.image.url && (
+        <>
+          <Image
+            height={250}
+            width={250}
+            src={blog.image.url}
+            alt={blog.title}
+            className="border border-border p-1 rounded"
+          />
+          <Link href={`/article/${blog.slug}`}>
+            <h1 className="text-xs mt-1 text-card-foreground hover:text-primary transition-colors">
+              {blog.title}
+            </h1>
+          </Link>
+        </>
+      )}
+    </div>
 
-        {/* <p className="text-gray-600 text-sm ">
-          {truncateContent(blog.content)}
-        </p> */}
-
-        {/* <article className="">
-              <div
-                dangerouslySetInnerHTML={{ __html: blog.content }}
-                className="article-content"
-              />
-            </article> */}
-
-        <article className="flex flex-col">
-          <div className="relative max-h-[350px] overflow-hidden article-content">
-            <div
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-              className="prose max-w-none"
-            />
-            {/* Fade effect at bottom */}
-            <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#f1fdff] to-transparent" />
-          </div>
-
-          <span>
-            <Link
-              href={`/article/${blog.slug}`}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 inline-block"
-            >
-              Read More →
-            </Link>
-          </span>
-        </article>
+    <article className="flex flex-col">
+      <div className="relative max-h-[350px] overflow-hidden article-content">
+        <div
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+          className="prose max-w-none text-card-foreground"
+        />
+        {/* Fade effect at bottom - updated for theme */}
+        <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-card to-transparent" />
       </div>
 
-      <div className="flex flex-col gap-3 mt-5 items-end">
-        <div className=" flex items-center gap-2 ">
-          {blog?.author?.photo && (
-            <Image
-              src={blog.author.photo}
-              alt={`${blog.author.firstName} ${blog.author.lastName}`}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-          )}
-          <div>
-            <p className="text-sm font-medium text-gray-900">
-              {blog?.author?.firstName} {blog?.author?.lastName}
-            </p>
-            <p className="text-xs text-gray-500">
-              {formatDate(blog.createdAt)}
-            </p>
-          </div>
-          {!blog.published && (
-            <span className="ml-auto px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-              Draft
-            </span>
-          )}
-        </div>
-
-        {blog.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 ">
-            {blog.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-            {blog.tags.length > 3 && (
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                +{blog.tags.length - 3} more
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          {isAuthor && (
-            <div className="flex gap-2">
-              <Link
-                href={`/edit-article/${blog._id}`}
-                className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "..." : "Delete"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <span>
+        <Link
+          href={`/article/${blog.slug}`}
+          className="text-primary hover:text-primary/80 text-sm font-medium mt-2 inline-block transition-colors"
+        >
+          Read More →
+        </Link>
+      </span>
     </article>
+  </div>
+
+  <div className="flex flex-col gap-3 mt-5 items-end">
+    <div className="flex items-center gap-2">
+      {blog?.author?.photo && (
+        <Image
+          src={blog.author.photo}
+          alt={`${blog.author.firstName} ${blog.author.lastName}`}
+          width={32}
+          height={32}
+          className="rounded-full border border-border"
+        />
+      )}
+      <div>
+        <p className="text-sm font-medium text-card-foreground">
+          {blog?.author?.firstName} {blog?.author?.lastName}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {formatDate(blog.createdAt)}
+        </p>
+      </div>
+      {!blog.published && (
+        <span className="ml-auto px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full dark:bg-yellow-900 dark:text-yellow-200">
+          Draft
+        </span>
+      )}
+    </div>
+
+    {blog.tags.length > 0 && (
+      <div className="flex flex-wrap gap-2">
+        {blog.tags.slice(0, 3).map((tag, index) => (
+          <span
+            key={index}
+            className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-full"
+          >
+            {tag}
+          </span>
+        ))}
+        {blog.tags.length > 3 && (
+          <span className="px-2 py-1 text-xs bg-muted text-muted-foreground rounded-full">
+            +{blog.tags.length - 3} more
+          </span>
+        )}
+      </div>
+    )}
+
+    <div className="flex items-center justify-between w-full">
+      {isAuthor && (
+        <div className="flex gap-2">
+          <Link
+            href={`/edit-article/${blog._id}`}
+            className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="px-3 py-1 text-xs bg-destructive text-destructive-foreground rounded hover:bg-destructive/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "..." : "Delete"}
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+</article>
   );
 }

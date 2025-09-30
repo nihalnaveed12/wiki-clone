@@ -4,6 +4,7 @@ import "./globals.css";
 import WikipediaNavbar from "@/components/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
 import UserSync from "@/components/UserSync";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,21 +23,38 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          {/* 👇 inline script to prevent theme flicker */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  try {
+                    const theme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.classList.add(theme);
+                  } catch (_) {}
+                })();
+              `,
+            }}
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <UserSync />
-          <WikipediaNavbar />
-
-          {children}
+          <ThemeProvider>
+            <UserSync />
+            <WikipediaNavbar />
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
   );
 }
+

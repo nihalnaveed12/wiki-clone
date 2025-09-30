@@ -21,6 +21,7 @@ interface RapperParams {
         id: string;
         url: string;
     };
+    audio?: string; 
     shortBio: string;
     submittedBy: string;
 }
@@ -148,6 +149,7 @@ export async function createRapper(params: RapperParams) {
             },
             image: params.image,
             shortBio: params.shortBio,
+            audio: params.audio || '',
             submittedBy: params.submittedBy,
         });
 

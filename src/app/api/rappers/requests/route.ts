@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         const youtube = formData.get("youtube") as string;
         const spotify = formData.get("spotify") as string;
         const soundcloud = formData.get("soundcloud") as string;
+        const audio = formData.get("audio") as string;
 
         const requiredFields = [
             { field: "name", value: name },
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
                 spotify: spotify?.trim() || undefined,
                 soundcloud: soundcloud?.trim() || undefined,
             },
+            audio: audio?.trim() || undefined,
             submittedBy: userId
         });
 

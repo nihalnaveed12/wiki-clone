@@ -124,162 +124,162 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Tabs */}
-      <div className="flex gap-2 border-b pb-2">
-        {["pending", "approved", "rejected"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
-              activeTab === tab
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
+  {/* Tabs */}
+  <div className="flex gap-2 border-b border-border pb-2">
+    {["pending", "approved", "rejected"].map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setActiveTab(tab as any)}
+        className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+          activeTab === tab
+            ? "bg-primary text-primary-foreground"
+            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+        }`}
+      >
+        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+      </button>
+    ))}
+  </div>
 
-      {/* Content */}
-      {loading ? (
-        <p className="text-center text-gray-600">Loading requests...</p>
-      ) : filteredRequests.length === 0 ? (
-        <p className="text-center text-gray-600 py-8">No {activeTab} requests found.</p>
-      ) : (
-        <div className="grid lg:grid-cols-3 grid-cols-2 gap-4">
-          {filteredRequests.map((request) => (
-            <div
-              key={request._id}
-              className="bg-white shadow-lg rounded-lg p-6 border border-gray-200"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-4">
-                  <Image
-                    src={request.image.url}
-                    alt={request.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                    width={64}
-                    height={64}
-                  />
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800">{request.name}</h3>
-                    <p className="text-gray-600">
-                      {request.category} • {request.city}, {request.country}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Submitted: {new Date(request.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <span className={getStatusBadge(request.status)}>
-                  {request.status.toUpperCase()}
-                </span>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-gray-700 mb-2">
-                  <strong>Address:</strong> {request.address}
+  {/* Content */}
+  {loading ? (
+    <p className="text-center text-muted-foreground">Loading requests...</p>
+  ) : filteredRequests.length === 0 ? (
+    <p className="text-center text-muted-foreground py-8">No {activeTab} requests found.</p>
+  ) : (
+    <div className="grid lg:grid-cols-3 grid-cols-2 gap-4">
+      {filteredRequests.map((request) => (
+        <div
+          key={request._id}
+          className="bg-card shadow-lg rounded-lg p-6 border border-border"
+        >
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-4">
+              <Image
+                src={request.image.url}
+                alt={request.name}
+                className="w-16 h-16 rounded-full object-cover border border-border"
+                width={64}
+                height={64}
+              />
+              <div>
+                <h3 className="text-xl font-bold text-card-foreground">{request.name}</h3>
+                <p className="text-muted-foreground">
+                  {request.category} • {request.city}, {request.country}
                 </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Bio:</strong> {request.shortBio}
+                <p className="text-sm text-muted-foreground">
+                  Submitted: {new Date(request.createdAt).toLocaleDateString()}
                 </p>
-                {request.website && (
-                  <p className="text-gray-700 mb-2">
-                    <strong>Website:</strong>
-                    <a
-                      href={request.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline ml-1"
-                    >
-                      {request.website}
-                    </a>
-                  </p>
-                )}
-
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {request.socials.instagram && (
-                    <a
-                      href={request.socials.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-pink-600 hover:underline text-sm"
-                    >
-                      Instagram
-                    </a>
-                  )}
-                  {request.socials.youtube && (
-                    <a
-                      href={request.socials.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 hover:underline text-sm"
-                    >
-                      YouTube
-                    </a>
-                  )}
-                  {request.socials.spotify && (
-                    <a
-                      href={request.socials.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-green-600 hover:underline text-sm"
-                    >
-                      Spotify
-                    </a>
-                  )}
-                  {request.socials.soundcloud && (
-                    <a
-                      href={request.socials.soundcloud}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-orange-600 hover:underline text-sm"
-                    >
-                      SoundCloud
-                    </a>
-                  )}
-                </div>
               </div>
+            </div>
+            <span className={getStatusBadge(request.status)}>
+              {request.status.toUpperCase()}
+            </span>
+          </div>
 
-              {activeTab === "pending" && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleApprove(request._id)}
-                    disabled={processingIds.has(request._id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400"
-                  >
-                    {processingIds.has(request._id) ? "Approving..." : "Approve"}
-                  </button>
-                  <button
-                    onClick={() => handleReject(request._id)}
-                    disabled={processingIds.has(request._id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-400"
-                  >
-                    {processingIds.has(request._id) ? "Rejecting..." : "Reject"}
-                  </button>
-                </div>
+          <div className="mb-4">
+            <p className="text-card-foreground mb-2">
+              <strong>Address:</strong> {request.address}
+            </p>
+            <p className="text-card-foreground mb-2">
+              <strong>Bio:</strong> {request.shortBio}
+            </p>
+            {request.website && (
+              <p className="text-card-foreground mb-2">
+                <strong>Website:</strong>
+                <a
+                  href={request.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline ml-1 transition-colors"
+                >
+                  {request.website}
+                </a>
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              {request.socials.instagram && (
+                <a
+                  href={request.socials.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm transition-colors"
+                >
+                  Instagram
+                </a>
               )}
-
-              {activeTab !== "pending" && (
-                <div className="text-sm text-gray-500">
-                  <p>
-                    Reviewed:{" "}
-                    {request.reviewedAt
-                      ? new Date(request.reviewedAt).toLocaleString()
-                      : "N/A"}
-                  </p>
-                  {request.rejectionReason && (
-                    <p className="text-red-600 mt-1">
-                      <strong>Rejection reason:</strong> {request.rejectionReason}
-                    </p>
-                  )}
-                </div>
+              {request.socials.youtube && (
+                <a
+                  href={request.socials.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm transition-colors"
+                >
+                  YouTube
+                </a>
+              )}
+              {request.socials.spotify && (
+                <a
+                  href={request.socials.spotify}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm transition-colors"
+                >
+                  Spotify
+                </a>
+              )}
+              {request.socials.soundcloud && (
+                <a
+                  href={request.socials.soundcloud}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-sm transition-colors"
+                >
+                  SoundCloud
+                </a>
               )}
             </div>
-          ))}
+          </div>
+
+          {activeTab === "pending" && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleApprove(request._id)}
+                disabled={processingIds.has(request._id)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400 transition-colors"
+              >
+                {processingIds.has(request._id) ? "Approving..." : "Approve"}
+              </button>
+              <button
+                onClick={() => handleReject(request._id)}
+                disabled={processingIds.has(request._id)}
+                className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:bg-muted disabled:text-muted-foreground transition-colors"
+              >
+                {processingIds.has(request._id) ? "Rejecting..." : "Reject"}
+              </button>
+            </div>
+          )}
+
+          {activeTab !== "pending" && (
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Reviewed:{" "}
+                {request.reviewedAt
+                  ? new Date(request.reviewedAt).toLocaleString()
+                  : "N/A"}
+              </p>
+              {request.rejectionReason && (
+                <p className="text-destructive mt-1">
+                  <strong>Rejection reason:</strong> {request.rejectionReason}
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      ))}
     </div>
+  )}
+</div>
   );
 }

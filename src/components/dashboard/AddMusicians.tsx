@@ -32,5 +32,10 @@ export default function AddMusicianTab({
     }
   }
 
-  return <MusicianForm submitForm={handleSubmit} />;
+  return (
+    <div className="h-screen ">
+
+      <MusicianForm submitForm={handleSubmit} />
+    </div>
+  )
 }

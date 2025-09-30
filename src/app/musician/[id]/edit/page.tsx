@@ -101,142 +101,142 @@ export default function EditMusicianPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (loading) return <div className="text-center py-8 text-card-foreground">Loading...</div>;
 
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Category</label>
-            <input
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Country</label>
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-        </div>
-
+return (
+  <div className="max-w-4xl mx-auto p-6">
+    <h1 className="text-2xl font-bold mb-6 text-card-foreground">Edit Profile</h1>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-gray-700 mb-1">Address</label>
+          <label className="block text-card-foreground mb-1">Name</label>
           <input
             type="text"
-            name="address"
-            value={formData.address}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+            required
           />
         </div>
-
         <div>
-          <label className="block text-gray-700 mb-1">Bio</label>
-          <textarea
-            name="shortBio"
-            value={formData.shortBio}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 mb-1">Website</label>
+          <label className="block text-card-foreground mb-1">City</label>
           <input
-            type="url"
-            name="website"
-            value={formData.website}
+            type="text"
+            name="city"
+            value={formData.city}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
           />
         </div>
+        <div>
+          <label className="block text-card-foreground mb-1">Category</label>
+          <input
+            type="text"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block text-card-foreground mb-1">Country</label>
+          <input
+            type="text"
+            name="country"
+            value={formData.country}
+            onChange={handleChange}
+            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+          />
+        </div>
+      </div>
 
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold mb-2">Social Media</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 mb-1">Instagram</label>
-              <input
-                type="url"
-                name="instagram"
-                value={formData.socials.instagram}
-                onChange={handleSocialChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">YouTube</label>
-              <input
-                type="url"
-                name="youtube"
-                value={formData.socials.youtube}
-                onChange={handleSocialChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">Spotify</label>
-              <input
-                type="url"
-                name="spotify"
-                value={formData.socials.spotify}
-                onChange={handleSocialChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">SoundCloud</label>
-              <input
-                type="url"
-                name="soundcloud"
-                value={formData.socials.soundcloud}
-                onChange={handleSocialChange}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+      <div>
+        <label className="block text-card-foreground mb-1">Address</label>
+        <input
+          type="text"
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+        />
+      </div>
+
+      <div>
+        <label className="block text-card-foreground mb-1">Bio</label>
+        <textarea
+          name="shortBio"
+          value={formData.shortBio}
+          onChange={handleChange}
+          className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <label className="block text-card-foreground mb-1">Website</label>
+        <input
+          type="url"
+          name="website"
+          value={formData.website}
+          onChange={handleChange}
+          className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+        />
+      </div>
+
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold mb-2 text-card-foreground">Social Media</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-card-foreground mb-1">Instagram</label>
+            <input
+              type="url"
+              name="instagram"
+              value={formData.socials.instagram}
+              onChange={handleSocialChange}
+              className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-card-foreground mb-1">YouTube</label>
+            <input
+              type="url"
+              name="youtube"
+              value={formData.socials.youtube}
+              onChange={handleSocialChange}
+              className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-card-foreground mb-1">Spotify</label>
+            <input
+              type="url"
+              name="spotify"
+              value={formData.socials.spotify}
+              onChange={handleSocialChange}
+              className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-card-foreground mb-1">SoundCloud</label>
+            <input
+              type="url"
+              name="soundcloud"
+              value={formData.socials.soundcloud}
+              onChange={handleSocialChange}
+              className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+            />
           </div>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mt-6"
-        >
-          Save Changes
-        </button>
-      </form>
-    </div>
-  );
+      <button
+        type="submit"
+        className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors mt-6"
+      >
+        Save Changes
+      </button>
+    </form>
+  </div>
+);
 }

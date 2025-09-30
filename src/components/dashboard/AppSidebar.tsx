@@ -19,63 +19,63 @@ export function AppSidebar({
   setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }) {
   return (
-    <div className="">
-      <Sidebar className="top-16 absolute border-none bg-white ">
-        <SidebarContent className="bg-white ">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={activeTab === "users"}>
-                    <button onClick={() => setActiveTab("users")}>
-                      <Users />
-                      <span>Users</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={activeTab === "posts"}>
-                    <button onClick={() => setActiveTab("posts")}>
-                      <FileText />
-                      <span>Posts</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={activeTab === "musicians"}
-                  >
-                    <button onClick={() => setActiveTab("musicians")}>
-                      <Music />
-                      <span>Musicians</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={activeTab === "add"}>
-                    <button onClick={() => setActiveTab("add")}>
-                      <Plus />
-                      <span>Add Musician</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={activeTab === "requests"}
-                  >
-                    <button onClick={() => setActiveTab("requests")}>
-                      <Clock />
-                      <span>Requests</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </div>
+   <div className="">
+  <Sidebar className="fixed top-16 border-none bg-sidebar h-screen  ">
+    <SidebarContent className="bg-sidebar">
+      <SidebarGroup  >
+        <SidebarGroupContent   >
+          <SidebarMenu>
+            <SidebarMenuItem  >
+              <SidebarMenuButton asChild isActive={activeTab === "users"}>
+                <button className="cursor-pointer" onClick={() => setActiveTab("users")}>
+                  <Users />
+                  <span>Users</span>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={activeTab === "posts"}>
+                <button className="cursor-pointer" onClick={() => setActiveTab("posts")}>
+                  <FileText />
+                  <span>Posts</span>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={activeTab === "musicians"}
+              >
+                <button className="cursor-pointer" onClick={() => setActiveTab("musicians")}>
+                  <Music />
+                  <span>Musicians</span>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={activeTab === "add"}>
+                <button className="cursor-pointer" onClick={() => setActiveTab("add")}>
+                  <Plus />
+                  <span>Add Musician</span>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={activeTab === "requests"}
+              >
+                <button className="cursor-pointer" onClick={() => setActiveTab("requests")}>
+                  <Clock />
+                  <span>Requests</span>
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
+  </Sidebar>
+</div>
   );
 }

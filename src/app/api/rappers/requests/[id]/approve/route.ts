@@ -111,6 +111,7 @@ export async function POST(
             },
             image: musicianRequest.image,
             shortBio: musicianRequest.shortBio,
+            audio: musicianRequest.audio || '',
             submittedBy: musicianRequest.submittedBy,
         });
 

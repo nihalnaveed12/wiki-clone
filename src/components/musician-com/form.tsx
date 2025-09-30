@@ -25,9 +25,23 @@ const schema = z.object({
     .or(z.literal("")),
   youtube: z.string().url("Invalid YouTube URL").optional().or(z.literal("")),
   spotify: z.string().url("Invalid Spotify URL").optional().or(z.literal("")),
+
   soundcloud: z
     .string()
     .url("Invalid SoundCloud URL")
+    .optional()
+    .or(z.literal("")),
+
+  audio: z
+    .string()
+    .url("Invalid audio URL")
+    .refine(
+      (url) =>
+        url.endsWith(".mp3") || url.endsWith(".wav") || url.endsWith(".ogg"),
+      {
+        message: "Only .mp3, .wav, or .ogg files are allowed",
+      }
+    )
     .optional()
     .or(z.literal("")),
 });
@@ -126,6 +140,7 @@ export default function MusicianForm({ submitForm }: Props) {
     setIsSubmitting(true);
     try {
       await submitForm(data);
+      console.log("Form submitted:", data);
       reset();
       setImagePreview(null);
     } catch (error) {
@@ -136,48 +151,50 @@ export default function MusicianForm({ submitForm }: Props) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-lg">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">
+    <div className="max-w-4xl mx-auto p-8 my-10 bg-card rounded-xl shadow-lg border border-border">
+      <h1 className="text-3xl font-bold mb-8 text-card-foreground border-b border-border pb-4">
         Musician Registration
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-card-foreground mb-1">
               Name *
             </label>
             <input
               {...register("name")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               placeholder="Enter musician name"
             />
-            <p className="text-red-500 text-xs mt-1">{errors.name?.message}</p>
+            <p className="text-destructive text-xs mt-1">
+              {errors.name?.message}
+            </p>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-card-foreground mb-1">
               Category *
             </label>
             <input
               {...register("category")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               placeholder="e.g., Hip Hop, R&B, Pop"
             />
-            <p className="text-red-500 text-xs mt-1">
+            <p className="text-destructive text-xs mt-1">
               {errors.category?.message}
             </p>
           </div>
 
           {/* Country */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-card-foreground mb-1">
               Country *
             </label>
             <select
               {...register("country")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
             >
               <option value="">Select a country</option>
               {countries.map((country) => (
@@ -186,20 +203,20 @@ export default function MusicianForm({ submitForm }: Props) {
                 </option>
               ))}
             </select>
-            <p className="text-red-500 text-xs mt-1">
+            <p className="text-destructive text-xs mt-1">
               {errors.country?.message}
             </p>
           </div>
 
           {/* City */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-card-foreground mb-1">
               City *
             </label>
             <select
               {...register("city")}
               disabled={!countryWatch || cities.length === 0}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground"
             >
               <option value="">Select a city</option>
               {cities.map((city) => (
@@ -208,33 +225,37 @@ export default function MusicianForm({ submitForm }: Props) {
                 </option>
               ))}
             </select>
-            <p className="text-red-500 text-xs mt-1">{errors.city?.message}</p>
+            <p className="text-destructive text-xs mt-1">
+              {errors.city?.message}
+            </p>
           </div>
         </div>
 
         {/* Address */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-card-foreground mb-1">
             Full Address *
           </label>
           <input
             {...register("address")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
             placeholder="Enter complete address for accurate location"
           />
-          <p className="text-red-500 text-xs mt-1">{errors.address?.message}</p>
-          <p className="text-gray-500 text-xs mt-1">
+          <p className="text-destructive text-xs mt-1">
+            {errors.address?.message}
+          </p>
+          <p className="text-muted-foreground text-xs mt-1">
             This will be used to pinpoint the exact location on the map
           </p>
         </div>
 
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-card-foreground mb-1">
             Artist Image
           </label>
           <div className="mt-1 flex items-center gap-6">
-            <span className="h-24 w-24 rounded-full overflow-hidden bg-gray-100">
+            <span className="h-24 w-24 rounded-full overflow-hidden bg-muted border border-border">
               {imagePreview ? (
                 <Image
                   src={imagePreview}
@@ -245,7 +266,7 @@ export default function MusicianForm({ submitForm }: Props) {
                 />
               ) : (
                 <svg
-                  className="h-full w-full text-gray-300"
+                  className="h-full w-full text-muted-foreground"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -255,7 +276,7 @@ export default function MusicianForm({ submitForm }: Props) {
             </span>
             <label
               htmlFor="file-upload"
-              className="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="cursor-pointer bg-card py-2 px-4 border border-border rounded-md shadow-sm text-sm font-medium text-card-foreground hover:bg-accent transition-colors"
             >
               <span>Upload a file</span>
               <input
@@ -271,86 +292,102 @@ export default function MusicianForm({ submitForm }: Props) {
 
         {/* Bio */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-card-foreground mb-1">
             Short Bio *
           </label>
           <textarea
             {...register("bio")}
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
             placeholder="Tell us about the musician (max 500 characters)"
           />
-          <p className="text-red-500 text-xs mt-1">{errors.bio?.message}</p>
+          <p className="text-destructive text-xs mt-1">{errors.bio?.message}</p>
+        </div>
+
+        {/* Audio Preview Link */}
+        {/* Audio URL */}
+        <div>
+          <label className="block text-sm font-medium text-card-foreground mb-1">
+            Audio URL (only .mp3, .wav, .ogg)
+          </label>
+          <input
+            {...register("audio")}
+            placeholder="https://example.com/song.mp3"
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+          />
+          <p className="text-destructive text-xs mt-1">
+            {errors.audio?.message}
+          </p>
         </div>
 
         {/* Social Links */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">
+          <h3 className="text-lg font-medium text-card-foreground">
             Social Links & Website (Optional)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Website
               </label>
               <input
                 {...register("website")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://example.com"
               />
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.website?.message}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Instagram
               </label>
               <input
                 {...register("instagram")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://instagram.com/username"
               />
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.instagram?.message}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 YouTube
               </label>
               <input
                 {...register("youtube")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://youtube.com/channel/..."
               />
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.youtube?.message}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Spotify
               </label>
               <input
                 {...register("spotify")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://open.spotify.com/artist/..."
               />
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.spotify?.message}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 SoundCloud
               </label>
               <input
                 {...register("soundcloud")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://soundcloud.com/username"
               />
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.soundcloud?.message}
               </p>
             </div>
@@ -361,7 +398,7 @@ export default function MusicianForm({ submitForm }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? "Registering Musician..." : "Register Musician"}
           </button>

@@ -32,12 +32,12 @@ export default function MusicianDeleteButton({ id }: { id: string }) {
   }
 
   return (
-    <button
-      onClick={handleDelete}
-      disabled={loading}
-      className="px-4 py-1 rounded-[6px] text-white bg-red-500 hover:bg-red-400 disabled:opacity-50"
-    >
-      {loading ? "Deleting..." : "Delete"}
-    </button>
+   <button
+  onClick={handleDelete}
+  disabled={loading}
+  className="px-4 py-1 rounded-[6px] text-white cursor-pointer bg-destructive hover:bg-destructive/90 disabled:opacity-50 transition-colors"
+>
+  {loading ? "Deleting..." : "Delete"}
+</button>
   );
 }

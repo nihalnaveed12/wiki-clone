@@ -141,154 +141,154 @@ export default function ArticlesList() {
     setBlogs(blogs.filter((b) => b._id !== blogId));
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4">Loading articles...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="text-center text-red-600">
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+ if (loading) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Articles</h1>
-          {userRole === "admin" && (
-            <p className="text-sm text-green-600 mt-1">
-              ✓ Admin privileges active
-            </p>
-          )}
-        </div>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-card-foreground">Loading articles...</p>
+      </div>
+    </div>
+  );
+}
 
-        {user && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleFilterChange("all")}
-              className={`px-4 py-2 rounded-md ${
-                filter === "all"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              All Articles
-            </button>
-            <button
-              onClick={() => handleFilterChange("my-articles")}
-              className={`px-4 py-2 rounded-md ${
-                filter === "my-articles"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              My Articles
-            </button>
-          </div>
+if (error) {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="text-center text-destructive">
+        <p>{error}</p>
+      </div>
+    </div>
+  );
+}
+
+return (
+  <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="flex justify-between items-center mb-8">
+      <div>
+        <h1 className="text-3xl font-bold text-card-foreground">Articles</h1>
+        {userRole === "admin" && (
+          <p className="text-sm text-green-600 mt-1 dark:text-green-400">
+            ✓ Admin privileges active
+          </p>
         )}
       </div>
 
-      {blogs.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">
-            {filter === "my-articles"
-              ? "You haven't created any articles yet."
-              : "No articles found."}
-          </p>
-          {filter === "my-articles" && (
-            <Link
-              href="/add-article"
-              className="inline-block mt-4 px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Create Your First Article
-            </Link>
-          )}
+      {user && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleFilterChange("all")}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              filter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            }`}
+          >
+            All Articles
+          </button>
+          <button
+            onClick={() => handleFilterChange("my-articles")}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              filter === "my-articles"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            }`}
+          >
+            My Articles
+          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
-            {blogs.map((blog) => (
-              <ArticleCard
-                key={blog._id}
-                blog={blog}
-                onDelete={handleDelete}
-                currentUserId={user?.id}
-              />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {pagination && pagination.totalPages > 1 && (
-            <div className="flex justify-center items-center mt-12 space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!pagination.hasPrevPage}
-                className={`px-4 py-2 rounded-md ${
-                  pagination.hasPrevPage
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                Previous
-              </button>
-
-              <div className="flex space-x-1">
-                {Array.from(
-                  { length: pagination.totalPages },
-                  (_, i) => i + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 rounded-md ${
-                      page === pagination.currentPage
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!pagination.hasNextPage}
-                className={`px-4 py-2 rounded-md ${
-                  pagination.hasNextPage
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          )}
-
-          {/* Stats */}
-          {pagination && (
-            <div className="text-center mt-8 text-gray-600">
-              <p>
-                Showing {blogs.length} of {pagination.totalBlogs} articles
-                {pagination.totalPages > 1 &&
-                  ` (Page ${pagination.currentPage} of ${pagination.totalPages})`}
-              </p>
-            </div>
-          )}
-        </>
       )}
     </div>
-  );
+
+    {blogs.length === 0 ? (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">
+          {filter === "my-articles"
+            ? "You haven't created any articles yet."
+            : "No articles found."}
+        </p>
+        {filter === "my-articles" && (
+          <Link
+            href="/add-article"
+            className="inline-block mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Create Your First Article
+          </Link>
+        )}
+      </div>
+    ) : (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {blogs.map((blog) => (
+            <ArticleCard
+              key={blog._id}
+              blog={blog}
+              onDelete={handleDelete}
+              currentUserId={user?.id}
+            />
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center mt-12 space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPrevPage}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                pagination.hasPrevPage
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              }`}
+            >
+              Previous
+            </button>
+
+            <div className="flex space-x-1">
+              {Array.from(
+                { length: pagination.totalPages },
+                (_, i) => i + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-2 rounded-md transition-colors ${
+                    page === pagination.currentPage
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                pagination.hasNextPage
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Stats */}
+        {pagination && (
+          <div className="text-center mt-8 text-muted-foreground">
+            <p>
+              Showing {blogs.length} of {pagination.totalBlogs} articles
+              {pagination.totalPages > 1 &&
+                ` (Page ${pagination.currentPage} of ${pagination.totalPages})`}
+            </p>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+);
 }
