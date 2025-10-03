@@ -142,7 +142,7 @@ export default function WikipediaHero() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground py-6 md:py-12 px-4">
+    <div className="flex flex-col items-center justify-center bg-background text-foreground py-6 md:py-12 px-4">
       <div className="w-full max-w-7xl flex flex-col items-center">
         {/* 🎵 Musicians Section */}
         <div className="w-full">
