@@ -1,9 +1,9 @@
 import { getBlogBySlug } from "@/lib/actions/blog.actions";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-
 import Link from "next/link";
 import EditButton from "@/components/edit-button";
+
 interface PageProps {
   params: Promise<{
     slug: string;
@@ -36,13 +36,19 @@ interface Blog {
   diedPlace: string;
   occupation: string;
   spouses: string;
+  alsoKnownAs: string;
+  realName: string;
+  genres: string;
+  associatedActs: string;
+  labels: string;
   published: boolean;
   tags: string[];
   createdAt: string;
-  youtubeUrl?: string;
+  youtubeUrls?: string[];
   updatedAt: string;
 }
 
+// helper function to extract video ID
 function extractYouTubeId(url: string): string | null {
   const shortRegex = /youtu\.be\/([^?&]+)/;
   const longRegex = /v=([^?&]+)/;
@@ -73,6 +79,11 @@ export default async function ArticlePage({ params }: PageProps) {
     });
   };
 
+  // Left side ke liye 4 videos
+  const leftVideos = blog.youtubeUrls?.slice(0, 4) || [];
+  // Right side ke liye ek video (agar extra h to sirf pehla)
+  const rightVideo = blog.youtubeUrls && blog.youtubeUrls.length > 4 ? blog.youtubeUrls[4] : null;
+
   return (
     <div className="max-w-5xl mx-auto px-7 py-[92px]">
       <div className="flex justify-between sm:flex-row flex-col">
@@ -100,6 +111,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
 
         <div className="flex sm:flex-row flex-col-reverse gap-6 w-full">
+          {/* LEFT SIDE: Article Content */}
           <div className="sm:w-[90%]">
             <article className="prose prose-lg max-w-none">
               <div
@@ -107,9 +119,34 @@ export default async function ArticlePage({ params }: PageProps) {
                 className="article-content"
               />
             </article>
+
+            {/* 4 YouTube videos niche */}
+            {leftVideos.length > 0 && (
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                {leftVideos.map((url, index) => {
+                  const videoId = extractYouTubeId(url);
+                  return (
+                    videoId && (
+                      <iframe
+                        key={index}
+                        width="100%"
+                        height="315"
+                        src={`https://www.youtube.com/embed/${videoId}`}
+                        title={`YouTube video ${index + 1}`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="rounded-md border"
+                      />
+                    )
+                  );
+                })}
+              </div>
+            )}
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="border-2 p-1 h-fit flex-col flex gap-3 sm:w-[40%] ">
+            {/* Image */}
             {blog.image?.url && (
               <div className="p-4">
                 <div className="bg-orange-100 p-3">
@@ -123,79 +160,51 @@ export default async function ArticlePage({ params }: PageProps) {
               </div>
             )}
 
-            <div className="p-4">
-              {blog.youtubeUrl && (
-                <iframe
-                  width="100%"
-                  height="315"
-                  src={`https://www.youtube.com/embed/${extractYouTubeId(
-                    blog.youtubeUrl
-                  )}?mute=1&autoplay=1`}
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              )}
-            </div>
+            {/* Right side video (ek hi) */}
+            {rightVideo && (
+              <div className="p-4">
+                {extractYouTubeId(rightVideo) && (
+                  <iframe
+                    width="100%"
+                    height="215"
+                    src={`https://www.youtube.com/embed/${extractYouTubeId(rightVideo)}`}
+                    title="Extra YouTube video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-md border"
+                  />
+                )}
+              </div>
+            )}
 
+            {/* Author Info */}
             <div className="px-2 flex flex-col gap-3">
-              <div className="flex  sm:justify-between sm:gap-3 gap-10">
-                <h1 className="font-semibold font-sans">Born</h1>
-
-                <div className="text-sm">
-                  <h2>{blog.bornDate}</h2>
-
-                  <p>{blog.bornPlace}</p>
-                </div>
-              </div>
-
-              {blog.diedDate && blog.diedPlace ? (
-                <div className="flex  sm:justify-between sm:gap-3 gap-10">
-                  <h1 className="font-semibold font-sans">Died</h1>
-
-                  <div className="text-sm">
-                    <h2>{blog.diedDate}</h2>
-
-                    <p>{blog.diedPlace}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className=""></div>
+              <InfoRow label="Born" value={`${blog.bornDate || ""} ${blog.bornPlace || ""}`} />
+              {blog.diedDate && blog.diedPlace && (
+                <InfoRow label="Died" value={`${blog.diedDate} ${blog.diedPlace}`} />
               )}
-
-              <div className="flex  sm:justify-between sm:gap-3 gap-10">
-                <h1 className="font-semibold font-sans">Occupation</h1>
-
-                <div className="text-sm">
-                  <h2>{blog.occupation}</h2>
-                </div>
-              </div>
-              <div className="flex  sm:justify-between sm:gap-3 gap-10">
-                <h1 className="font-semibold font-sans">Spouses</h1>
-
-                <div className="text-sm">
-                  <h2>{blog.spouses}</h2>
-                </div>
-              </div>
+              <InfoRow label="Occupation" value={blog.occupation} />
+              <InfoRow label="Spouses" value={blog.spouses} />
+              <InfoRow label="Also Known As" value={blog.alsoKnownAs} />
+              <InfoRow label="Real Name" value={blog.realName} />
+              <InfoRow label="Genres" value={blog.genres} />
+              <InfoRow label="Associated Acts" value={blog.associatedActs} />
+              <InfoRow label="Labels" value={blog.labels} />
             </div>
-
-            {/* <div className="">
-              {blog?.tags?.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                  {blog?.tags?.map((tag: string, index: number) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div> */}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Reusable Row Component
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return (
+    <div className="flex sm:justify-between sm:gap-3 gap-10">
+      <h1 className="font-semibold font-sans">{label}</h1>
+      <div className="text-sm">{value}</div>
     </div>
   );
 }

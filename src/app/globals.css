@@ -196,3 +196,11 @@
 .input {
   @apply w-full border text-black px-3 py-2 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500
 }
+
+.ql-editor * {
+  background-color: transparent !important;
+}
+
+.article-content * {
+  background-color: transparent !important;
+}
