@@ -31,6 +31,8 @@ interface CreateBlogParams {
   diedPlace?: string;
   occupation?: string;
   spouses?: string;
+  origin: string;
+  sideSection: string;
 
   // updated: multiple urls
   youtubeUrls?: string[];
@@ -59,6 +61,8 @@ interface UpdateBlogParams {
   diedPlace?: string;
   occupation?: string;
   spouses?: string;
+  origin: string;
+  sideSection: string;
 
   youtubeUrls?: string[];
 
@@ -102,6 +106,8 @@ export async function createBlog(blogData: CreateBlogParams) {
       diedPlace: blogData.diedPlace || '',
       occupation: blogData.occupation || '',
       spouses: blogData.spouses || '',
+      origin: blogData.origin || " ",
+      sideSection: blogData.sideSection || " ",
       youtubeUrls: normalizeYoutubeUrls(blogData.youtubeUrls),
 
       alsoKnownAs: blogData.alsoKnownAs || '',
@@ -236,6 +242,8 @@ export async function updateBlog(updateData: UpdateBlogParams) {
     if (updateData.diedPlace !== undefined) updateFields.diedPlace = updateData.diedPlace;
     if (updateData.occupation !== undefined) updateFields.occupation = updateData.occupation;
     if (updateData.spouses !== undefined) updateFields.spouses = updateData.spouses;
+    if (updateData.origin !== undefined) updateFields.origin = updateData.origin;
+    if (updateData.sideSection !== undefined) updateFields.sideSection = updateData.sideSection;
 
     if (updateData.youtubeUrls !== undefined) {
       updateFields.youtubeUrls = normalizeYoutubeUrls(updateData.youtubeUrls);

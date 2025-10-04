@@ -25,6 +25,8 @@ export default function AddYourArticle() {
   const [diedPlace, setDiedPlace] = useState("");
   const [occupation, setOccupation] = useState("");
   const [spouses, setSpouses] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [sideSection, setSideSection] = useState("");
 
   // NEW fields
   const [alsoKnownAs, setAlsoKnownAs] = useState("");
@@ -111,6 +113,8 @@ export default function AddYourArticle() {
       formData.append("diedPlace", diedPlace);
       formData.append("occupation", occupation);
       formData.append("spouses", spouses);
+      formData.append("origin", origin);
+      formData.append("sideSection", sideSection);
 
       // new fields append
       formData.append("alsoKnownAs", alsoKnownAs);
@@ -150,6 +154,8 @@ export default function AddYourArticle() {
         setDiedPlace("");
         setOccupation("");
         setSpouses("");
+        setOrigin("");
+        setSideSection("");
         setAlsoKnownAs("");
         setRealName("");
         setGenres("");
@@ -316,7 +322,42 @@ export default function AddYourArticle() {
           />
         </div>
 
-          <div>
+        <div>
+          <label
+            htmlFor="origin"
+            className="block text-sm font-medium mb-2 text-card-foreground"
+          >
+            Origin
+          </label>
+          <input
+            id="origin"
+            type="text"
+            placeholder="e.g., Los Angeles, California, USA"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="sideSection"
+            className="block text-sm font-medium mb-2 text-card-foreground"
+          >
+            Side/Section
+          </label>
+          <input
+            id="sideSection"
+            type="text"
+            placeholder=" e.g., Left, Right, Center (Political views) "
+            value={sideSection}
+            onChange={(e) => setSideSection(e.target.value)}
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
             Also Known As
           </label>

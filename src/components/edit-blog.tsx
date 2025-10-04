@@ -40,6 +40,8 @@ interface Blog {
   diedPlace?: string;
   occupation?: string;
   spouses?: string;
+  origin?: string;
+  sideSection?: string;
   youtubeUrls?: string[];
 
   alsoKnownAs?: string;
@@ -70,6 +72,8 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
   const [diedPlace, setDiedPlace] = useState(blog.diedPlace || "");
   const [occupation, setOccupation] = useState(blog.occupation || "");
   const [spouses, setSpouses] = useState(blog.spouses || "");
+  const [origin, setOrigin] = useState(blog.origin || "");
+  const [sideSection, setSideSection] = useState(blog.sideSection || "");
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
     blog.youtubeUrls && blog.youtubeUrls.length > 0 ? blog.youtubeUrls : [""]
   );
@@ -156,6 +160,8 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
       formData.append("diedPlace", diedPlace);
       formData.append("occupation", occupation);
       formData.append("spouses", spouses);
+      formData.append("origin", origin);
+      formData.append("sideSection", sideSection);
 
       // NEW FIELDS
       formData.append("alsoKnownAs", alsoKnownAs);
@@ -299,6 +305,30 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
             type="text"
             value={spouses}
             onChange={(e) => setSpouses(e.target.value)}
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Origin
+          </label>
+          <input
+            type="text"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Side/Section
+          </label>
+          <input
+            type="text"
+            value={sideSection}
+            onChange={(e) => setSideSection(e.target.value)}
             className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />

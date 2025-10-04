@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
     const diedPlace = formData.get('diedPlace') as string;
     const occupation = formData.get('occupation') as string;
     const spouses = formData.get('spouses') as string;
+    const origin = formData.get('origin') as string;
+    const sideSection = formData.get('sideSection') as string;
 
     const alsoKnownAs = formData.get('alsoKnownAs') as string;
     const realName = formData.get('realName') as string;
@@ -69,6 +71,9 @@ export async function POST(request: NextRequest) {
       occupation: occupation || '',
       spouses: spouses || '',
       youtubeUrls,
+      origin: origin || ' ',
+      sideSection: sideSection || ' ',
+
 
       alsoKnownAs: alsoKnownAs || '',
       realName: realName || '',

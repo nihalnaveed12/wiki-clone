@@ -36,6 +36,8 @@ interface Blog {
   diedPlace: string;
   occupation: string;
   spouses: string;
+  origin: string;
+  sideSection: string;
   alsoKnownAs: string;
   realName: string;
   genres: string;
@@ -185,6 +187,8 @@ export default async function ArticlePage({ params }: PageProps) {
               )}
               <InfoRow label="Occupation" value={blog.occupation} />
               <InfoRow label="Spouses" value={blog.spouses} />
+              <InfoRow label="Origin" value={blog.origin} />
+              <InfoRow label="Side/Section" value={blog.sideSection} />
               <InfoRow label="Also Known As" value={blog.alsoKnownAs} />
               <InfoRow label="Real Name" value={blog.realName} />
               <InfoRow label="Genres" value={blog.genres} />

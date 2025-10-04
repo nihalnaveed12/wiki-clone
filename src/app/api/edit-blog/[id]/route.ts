@@ -83,6 +83,8 @@ export async function PUT(
     const diedPlace = formData.get("diedPlace") as string;
     const occupation = formData.get("occupation") as string;
     const spouses = formData.get("spouses") as string;
+    const origin = formData.get("origin") as string;
+    const sideSection = formData.get("sideSection") as string;
     const alsoKnownAs = formData.get("alsoKnownAs") as string;
     const realName = formData.get("realName") as string;
     const genres = formData.get("genres") as string;
@@ -130,6 +132,8 @@ export async function PUT(
       diedPlace: diedPlace || "",
       occupation: occupation || "",
       spouses: spouses || "",
+      origin: origin || "",
+      sideSection: sideSection || "",
       youtubeUrls: youtubeUrls.length ? youtubeUrls : [],
       alsoKnownAs: alsoKnownAs || "",
       realName: realName || "",

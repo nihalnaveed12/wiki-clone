@@ -1,6 +1,7 @@
 // /lib/models/blogs.ts
 import mongoose, { Document, Schema } from 'mongoose';
 
+
 export interface IBlog extends Document {
   title: string;
   content: string;
@@ -19,6 +20,8 @@ export interface IBlog extends Document {
   diedDate: string;
   diedPlace: string;
   occupation: string;
+  origin: string;
+  sideSection: string;
   spouses: string;
 
   // New YouTube urls (up to 5)
@@ -107,6 +110,16 @@ const BlogSchema = new Schema<IBlog>(
       trim: true,
     },
     spouses: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    origin: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    sideSection: {
       type: String,
       default: '',
       trim: true,
