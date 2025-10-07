@@ -41,7 +41,7 @@ interface Blog {
   alsoKnownAs: string;
   realName: string;
   genres: string;
-  associatedActs: string;
+  associatedActs: string[];
   labels: string;
   published: boolean;
   tags: string[];
@@ -84,10 +84,35 @@ export default async function ArticlePage({ params }: PageProps) {
   // Left side ke liye 4 videos
   const leftVideos = blog.youtubeUrls?.slice(0, 4) || [];
   // Right side ke liye ek video (agar extra h to sirf pehla)
-  const rightVideo = blog.youtubeUrls && blog.youtubeUrls.length > 4 ? blog.youtubeUrls[4] : null;
+  const rightVideo =
+    blog.youtubeUrls && blog.youtubeUrls.length > 4
+      ? blog.youtubeUrls[4]
+      : null;
 
   return (
     <div className="max-w-5xl mx-auto px-7 py-[92px]">
+      {leftVideos.length > 0 && (
+        <div className="mt-6 grid grid-cols-4 gap-4">
+          {leftVideos.map((url, index) => {
+            const videoId = extractYouTubeId(url);
+            return (
+              videoId && (
+                <iframe
+                  key={index}
+                  width="220"
+                  height="220"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title={`YouTube video ${index + 1}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="rounded-md border mb-10"
+                />
+              )
+            );
+          })}
+        </div>
+      )}
+
       <div className="flex justify-between sm:flex-row flex-col">
         <Link
           href="/articles-page"
@@ -121,29 +146,6 @@ export default async function ArticlePage({ params }: PageProps) {
                 className="article-content"
               />
             </article>
-
-            {/* 4 YouTube videos niche */}
-            {leftVideos.length > 0 && (
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                {leftVideos.map((url, index) => {
-                  const videoId = extractYouTubeId(url);
-                  return (
-                    videoId && (
-                      <iframe
-                        key={index}
-                        width="100%"
-                        height="315"
-                        src={`https://www.youtube.com/embed/${videoId}`}
-                        title={`YouTube video ${index + 1}`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="rounded-md border"
-                      />
-                    )
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           {/* RIGHT SIDE */}
@@ -169,7 +171,9 @@ export default async function ArticlePage({ params }: PageProps) {
                   <iframe
                     width="100%"
                     height="215"
-                    src={`https://www.youtube.com/embed/${extractYouTubeId(rightVideo)}`}
+                    src={`https://www.youtube.com/embed/${extractYouTubeId(
+                      rightVideo
+                    )}`}
                     title="Extra YouTube video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -181,9 +185,15 @@ export default async function ArticlePage({ params }: PageProps) {
 
             {/* Author Info */}
             <div className="px-2 flex flex-col gap-3">
-              <InfoRow label="Born" value={`${blog.bornDate || ""} ${blog.bornPlace || ""}`} />
+              <InfoRow
+                label="Born"
+                value={`${blog.bornDate || ""} ${blog.bornPlace || ""}`}
+              />
               {blog.diedDate && blog.diedPlace && (
-                <InfoRow label="Died" value={`${blog.diedDate} ${blog.diedPlace}`} />
+                <InfoRow
+                  label="Died"
+                  value={`${blog.diedDate} ${blog.diedPlace}`}
+                />
               )}
               <InfoRow label="Occupation" value={blog.occupation} />
               <InfoRow label="Spouses" value={blog.spouses} />
@@ -192,8 +202,17 @@ export default async function ArticlePage({ params }: PageProps) {
               <InfoRow label="Also Known As" value={blog.alsoKnownAs} />
               <InfoRow label="Real Name" value={blog.realName} />
               <InfoRow label="Genres" value={blog.genres} />
-              <InfoRow label="Associated Acts" value={blog.associatedActs} />
+
               <InfoRow label="Labels" value={blog.labels} />
+
+              <div className="">
+                {blog.associatedActs && blog.associatedActs.length > 0 && (
+                  <InfoRow
+                    label="Associated Acts"
+                    value={blog.associatedActs.join(", ")}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
