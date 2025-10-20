@@ -19,14 +19,22 @@ async function checkAdminAccess(): Promise<void> {
     }
 }
 
-async function getCoordinates(address: string, city: string, country: string) {
+
+
+async function getCoordinates(
+    address: string,
+    city: string,
+    country: string
+) {
     const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
     if (!apiKey) {
         throw new Error("OpenCage API key is not configured.");
     }
 
     const query = `${address}, ${city}, ${country}`.trim();
-    const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+        query
+    )}&key=${apiKey}&limit=1`;
 
     try {
         const res = await fetch(url);
@@ -41,12 +49,17 @@ async function getCoordinates(address: string, city: string, country: string) {
             return { lat: Number(lat), lng: Number(lng) };
         } else {
             const fallbackQuery = `${city}, ${country}`;
-            const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fallbackQuery)}&key=${apiKey}&limit=1`;
+            const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+                fallbackQuery
+            )}&key=${apiKey}&limit=1`;
 
             const fallbackRes = await fetch(fallbackUrl);
             const fallbackData = await fallbackRes.json();
 
-            if (fallbackData.results && fallbackData.results.length > 0) {
+            if (
+                fallbackData.results &&
+                fallbackData.results.length > 0
+            ) {
                 const { lat, lng } = fallbackData.results[0].geometry;
                 return { lat: Number(lat), lng: Number(lng) };
             }
@@ -55,7 +68,9 @@ async function getCoordinates(address: string, city: string, country: string) {
         throw new Error(`Could not find coordinates for: ${query}`);
     } catch (error) {
         console.error("Geocoding API Error:", error);
-        throw new Error(`Failed to fetch coordinates for "${query}". Please verify the address is correct.`);
+        throw new Error(
+            `Failed to fetch coordinates for "${query}". Please verify the address is correct.`
+        );
     }
 }
 
@@ -74,26 +89,27 @@ export async function POST(
 
         if (!musicianRequest) {
             return NextResponse.json(
-                { success: false, error: 'Request not found' },
+                { success: false, error: "Request not found" },
                 { status: 404 }
             );
         }
 
-        if (musicianRequest.status !== 'pending') {
+        if (musicianRequest.status !== "pending") {
             return NextResponse.json(
-                { success: false, error: 'Request has already been processed' },
+                {
+                    success: false,
+                    error: "Request has already been processed",
+                },
                 { status: 400 }
             );
         }
 
-        // Get coordinates for the address
         const { lat, lng } = await getCoordinates(
             musicianRequest.address,
             musicianRequest.city,
             musicianRequest.country
         );
 
-        // Create the rapper in the main collection
         const rapper = await Rapper.create({
             name: musicianRequest.name,
             city: musicianRequest.city,
@@ -101,23 +117,42 @@ export async function POST(
             lat,
             lng,
             category: musicianRequest.category,
-            website: musicianRequest.website || '',
+            website: musicianRequest.website || "",
             socials: {
-                instagram: musicianRequest.socials.instagram || '',
-                youtube: musicianRequest.socials.youtube || '',
-                spotify: musicianRequest.socials.spotify || '',
-                soundcloud: musicianRequest.socials.soundcloud || '',
-                twitter: '',
+                instagram: musicianRequest.socials.instagram || "",
+                youtube: musicianRequest.socials.youtube || "",
+                spotify: musicianRequest.socials.spotify || "",
+                soundcloud: musicianRequest.socials.soundcloud || "",
+                twitter: musicianRequest.socials.twitter || "",
             },
             image: musicianRequest.image,
             shortBio: musicianRequest.shortBio,
-            audio: musicianRequest.audio || '',
+            audio: musicianRequest.audio || "",
+            tags: musicianRequest.tags || [],
+            readMoreLink: musicianRequest.readMoreLink || "",
+            yearsActive: {
+                start: musicianRequest.yearsActive.start,
+                end: musicianRequest.yearsActive.end || null,
+            },
+            status: "active",
+            labelCrew: musicianRequest.labelCrew || "",
+            associatedActs: musicianRequest.associatedActs || [],
+            district: musicianRequest.district || "",
+            frequentProducers: musicianRequest.frequentProducers || [],
+            breakoutTrack: {
+                name: musicianRequest.breakoutTrack.name,
+                url: musicianRequest.breakoutTrack.url || "",
+            },
+            definingProject: {
+                name: musicianRequest.definingProject.name,
+                year: musicianRequest.definingProject.year || null,
+            },
+            fansOf: musicianRequest.fansOf || [],
             submittedBy: musicianRequest.submittedBy,
         });
 
-        // Update the request status
         await MusicianRequest.findByIdAndUpdate(requestId, {
-            status: 'approved',
+            status: "approved",
             reviewedBy: userId,
             reviewedAt: new Date(),
         });
@@ -125,16 +160,26 @@ export async function POST(
         return NextResponse.json({
             success: true,
             data: rapper,
-            message: 'Musician request approved and added successfully',
+            message: "Musician request approved and added successfully",
         });
     } catch (error) {
-        console.error('Error approving musician request:', error);
-        const statusCode = error instanceof Error &&
-            (error.message.includes("privileges") || error.message.includes("Admin")) ? 403 : 500;
+        console.error("Error approving musician request:", error);
+        const statusCode =
+            error instanceof Error &&
+            (error.message.includes("privileges") ||
+                error.message.includes("Admin"))
+                ? 403
+                : 500;
 
-        return NextResponse.json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to approve request',
-        }, { status: statusCode });
+        return NextResponse.json(
+            {
+                success: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to approve request",
+            },
+            { status: statusCode }
+        );
     }
 }

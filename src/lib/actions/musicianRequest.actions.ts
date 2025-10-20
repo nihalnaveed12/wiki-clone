@@ -1,3 +1,5 @@
+// @lib/actions/musicianRequest.actions.ts
+
 import dbConnect from "@/lib/database/mongodb";
 import MusicianRequest from "@/lib/database/model/MusicianRequest";
 import Rapper from "@/lib/database/model/Rappers";
@@ -16,13 +18,33 @@ interface MusicianRequestParams {
     youtube?: string;
     spotify?: string;
     soundcloud?: string;
+    twitter?: string;
   };
   image: {
     id: string;
     url: string;
   };
   shortBio: string;
-  audio?: string; // 🎶 new field
+  audio?: string;
+  tags: string[];
+  readMoreLink?: string;
+  yearsActive: {
+    start: number;
+    end?: number;
+  };
+  labelCrew?: string;
+  associatedActs: string[];
+  district?: string;
+  frequentProducers: string[];
+  breakoutTrack: {
+    name: string;
+    url?: string;
+  };
+  definingProject: {
+    name: string;
+    year?: number;
+  };
+  fansOf: string[];
   submittedBy?: string;
 }
 
@@ -91,7 +113,6 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
   try {
     await dbConnect();
 
-    // Check if a request with this name already exists and is pending
     const existingRequest = await MusicianRequest.findOne({
       name: params.name,
       status: "pending",
@@ -103,7 +124,6 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       );
     }
 
-    // Check if musician already exists in approved collection
     const existingRapper = await Rapper.findOne({ name: params.name });
     if (existingRapper) {
       throw new Error("A musician with this name already exists");
@@ -121,10 +141,30 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
         youtube: params.socials.youtube || "",
         spotify: params.socials.spotify || "",
         soundcloud: params.socials.soundcloud || "",
+        twitter: params.socials.twitter || "",
       },
       image: params.image,
       shortBio: params.shortBio,
-      audio: params.audio || "", // 🎵 add this
+      audio: params.audio || "",
+      tags: params.tags || [],
+      readMoreLink: params.readMoreLink || "",
+      yearsActive: {
+        start: params.yearsActive.start,
+        end: params.yearsActive.end || null,
+      },
+      labelCrew: params.labelCrew || "",
+      associatedActs: params.associatedActs || [],
+      district: params.district || "",
+      frequentProducers: params.frequentProducers || [],
+      breakoutTrack: {
+        name: params.breakoutTrack.name,
+        url: params.breakoutTrack.url || "",
+      },
+      definingProject: {
+        name: params.definingProject.name,
+        year: params.definingProject.year || null,
+      },
+      fansOf: params.fansOf || [],
       submittedBy: params.submittedBy,
       status: "pending",
     });
@@ -186,14 +226,12 @@ export async function approveMusicianRequest(_id: string) {
       throw new Error("Request has already been processed");
     }
 
-    // Get coordinates for the address
     const { lat, lng } = await getCoordinates(
       request.address,
       request.city,
       request.country
     );
 
-    // Create the rapper in the main collection
     const rapper = await Rapper.create({
       name: request.name,
       city: request.city,
@@ -207,14 +245,33 @@ export async function approveMusicianRequest(_id: string) {
         youtube: request.socials.youtube || "",
         spotify: request.socials.spotify || "",
         soundcloud: request.socials.soundcloud || "",
-        twitter: "",
+        twitter: request.socials.twitter || "",
       },
       image: request.image,
       shortBio: request.shortBio,
-      audio: request.audio || "", // 🎶 carry over audio link
+      audio: request.audio || "",
+      tags: request.tags || [],
+      readMoreLink: request.readMoreLink || "",
+      yearsActive: {
+        start: request.yearsActive.start,
+        end: request.yearsActive.end || null,
+      },
+      status: "active",
+      labelCrew: request.labelCrew || "",
+      associatedActs: request.associatedActs || [],
+      district: request.district || "",
+      frequentProducers: request.frequentProducers || [],
+      breakoutTrack: {
+        name: request.breakoutTrack.name,
+        url: request.breakoutTrack.url || "",
+      },
+      definingProject: {
+        name: request.definingProject.name,
+        year: request.definingProject.year || null,
+      },
+      fansOf: request.fansOf || [],
     });
 
-    // Update the request status
     await MusicianRequest.findByIdAndUpdate(_id, {
       status: "approved",
       reviewedBy: userId,

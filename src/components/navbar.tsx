@@ -116,7 +116,7 @@ export default function WikipediaNavbar() {
         <div className="flex items-center gap-6">
           <Link href="/" className="">
             <div className="md:text-2xl text-xl font-serif tracking-tight text-neutral-900 dark:text-neutral-100">
-              Urban-Stash
+              Deep Dives
             </div>
           </Link>
 
@@ -134,7 +134,7 @@ export default function WikipediaNavbar() {
                 href="/musicians-map"
                 className="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
               >
-                Find Musicians
+                Find Artists
               </Link>
             </li>
             <li>
@@ -142,7 +142,7 @@ export default function WikipediaNavbar() {
                 href="/musician-form"
                 className="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
               >
-                Musician Registration
+                Get Listed
               </Link>
             </li>
           </ul>

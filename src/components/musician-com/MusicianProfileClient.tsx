@@ -1,42 +1,87 @@
 "use client";
 
 import Image from "next/image";
+
 import Link from "next/link";
-import { MapPin, Globe, Pause, PlayIcon } from "lucide-react";
-import MusicianDeleteButton from "./MusicianDeleteButton";
+
+import { MapPin, Globe, Pause, PlayIcon, ExternalLink } from "lucide-react";
+
 import { useState, useRef } from "react";
 
 interface Musician {
   _id: string;
+
   name: string;
+
   city: string;
+
   country: string;
+
   category: string;
+
   shortBio: string;
+
   website: string;
+
   image: {
     id: string;
+
     url: string;
   };
+
   socials: {
     instagram: string;
+
     youtube: string;
+
     spotify: string;
+
     soundcloud: string;
   };
+
   address: string;
+
   createdAt: string;
+
   submittedBy: string;
-  audio?: string; // NEW FIELD
+
+  audio?: string;
+
+  tags?: string;
+
+  readMoreLink?: string;
+
+  yearsActiveStart: string;
+
+  yearsActiveEnd?: string;
+
+  labelCrew?: string;
+
+  associatedActs?: string;
+
+  district?: string;
+
+  frequentProducers?: string;
+
+  breakoutTrackName: string;
+
+  breakoutTrackUrl?: string;
+
+  definingProjectName: string;
+
+  definingProjectYear?: string;
+
+  fansOf?: string;
 }
 
 interface Props {
   musician: Musician;
+
   canEdit: boolean | string | null;
 }
 
 export default function MusicianProfileClient({ musician, canEdit }: Props) {
-  const [isHovering, setIsHovering] = useState(false);
+ const [isHovering, setIsHovering] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -61,121 +106,286 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     }
   };
 
+  const tagsArray = Array.isArray(musician.tags)
+    ? musician.tags
+    : typeof musician.tags === "string"
+    ? musician.tags.split(",").map((t) => t.trim())
+    : [];
+
+  const associatedActsArray = Array.isArray(musician.associatedActs)
+    ? musician.associatedActs
+    : typeof musician.associatedActs === "string"
+    ? musician.associatedActs.split(",").map((a) => a.trim())
+    : [];
+
+  const producersArray = Array.isArray(musician.frequentProducers)
+    ? musician.frequentProducers
+    : typeof musician.frequentProducers === "string"
+    ? musician.frequentProducers.split(",").map((p) => p.trim())
+    : [];
+
+  const fansOfArray = Array.isArray(musician.fansOf)
+    ? musician.fansOf
+    : typeof musician.fansOf === "string"
+    ? musician.fansOf.split(",").map((f) => f.trim())
+    : [];
+
   return (
-    <div className="bg-card text-card-foreground rounded-2xl shadow-2xl p-8 relative overflow-hidden border border-border">
-      {/* Action Buttons */}
-      <div className="absolute top-6 right-6 flex gap-3">
-        {canEdit && (
-          <Link
-            href={`/musician/${musician._id}/edit`}
-            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-semibold"
-          >
-            Edit
-          </Link>
-        )}
-        <MusicianDeleteButton id={musician._id} />
-      </div>
+    <div className="bg-black text-white min-h-screen">
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="space-y-8">
+          <div className="flex items-start justify-between">
+            <div className="flex gap-6">
+              <div
+                className="relative cursor-pointer flex-shrink-0"
+                onClick={handlePlayAudio}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+              >
+                <Image
+                  src={musician.image.url}
+                  alt={musician.name}
+                  width={140}
+                  height={140}
+                  className="rounded object-cover w-36 h-36"
+                />
 
-      {/* Profile Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-8">
-        <div
-          className="relative cursor-pointer"
-          onClick={handlePlayAudio}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <Image
-            src={musician.image.url}
-            alt={musician.name}
-            width={140}
-            height={140}
-            className="rounded-full object-cover w-36 h-36 border-4 border-border shadow-lg"
-          />
-          {isHovering && musician.audio && (
-            <span className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full text-white text-sm font-semibold">
-              {isPlaying ? <Pause /> : <PlayIcon />}
-            </span>
-          )}
-        </div>
+                {isHovering && musician.audio && (
+                  <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
+                    {isPlaying ? (
+                      <Pause className="w-8 h-8" />
+                    ) : (
+                      <PlayIcon className="w-8 h-8" />
+                    )}
+                  </span>
+                )}
+              </div>
 
-        <div>
-          <h1 className="text-4xl font-extrabold">{musician.name}</h1>
-          <p className="text-muted-foreground mt-1">
-            {musician.category} • {musician.city}, {musician.country}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Joined on {new Date(musician.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold mb-2">{musician.name}</h1>
 
-      {/* Bio & Address */}
-      <div className="mt-8 space-y-4">
-        <div className="flex items-center gap-2 text-card-foreground">
-          <MapPin className="w-4 h-4 text-muted-foreground" />
-          <span>{musician.address}</span>
-        </div>
-        <p className="text-card-foreground leading-relaxed">
-          {musician.shortBio}
-        </p>
-        {musician.website && (
-          <p className="flex items-center gap-2 text-primary hover:underline transition-colors">
-            <Globe className="w-4 h-4" />
-            <a
-              href={musician.website}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {musician.website}
-            </a>
-          </p>
-        )}
-      </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {tagsArray.map((tag, idx) => (
+                    <span key={idx} className="text-xs text-gray-400">
+                      {tag}
 
-      {/* Social Links */}
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-3">Socials</h2>
-        <div className="flex flex-wrap gap-3">
-          {musician.socials.instagram && (
-            <a
-              href={musician.socials.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm hover:bg-primary/90 transition-colors"
-            >
-              Instagram
-            </a>
+                      {idx < tagsArray.length - 1 && " •"}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
+                  <MapPin className="w-4 h-4" />
+
+                  <span>
+                    {musician.city}, {musician.country}
+                  </span>
+                </div>
+
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  {musician.shortBio}
+                </p>
+
+                {musician.readMoreLink && (
+                  <Link
+                    href={musician.readMoreLink}
+                    target="_blank"
+                    className="text-sm text-blue-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    [ Read the Full Deep Dive ]
+                  </Link>
+                )}
+
+                {musician.breakoutTrackName && musician.breakoutTrackUrl && (
+                  <div className="mt-4 text-sm text-gray-400">
+                    (Embedded YouTube player for his song "
+                    {musician.breakoutTrackName}")
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {canEdit && (
+                <Link
+                  href={`/musician/${musician._id}/edit`}
+                  className="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-700 transition-colors text-sm"
+                >
+                  Edit
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 pt-6">
+            <h2 className="text-lg font-semibold mb-4">At-a-Glance</h2>
+
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-[160px_1fr] gap-4">
+                <span className="text-gray-400">Years Active:</span>
+
+                <span>
+                  {musician.yearsActiveStart}
+
+                  {musician.yearsActiveEnd
+                    ? `-${musician.yearsActiveEnd}`
+                    : "-Present"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-[160px_1fr] gap-4">
+                <span className="text-gray-400">Status:</span>
+
+                <span>{musician.category}</span>
+              </div>
+
+              {musician.labelCrew && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Label / Crew:</span>
+
+                  <span>{musician.labelCrew}</span>
+                </div>
+              )}
+
+              {associatedActsArray.length > 0 && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Associated Acts:</span>
+
+                  <span>
+                    {associatedActsArray.map((act, idx) => (
+                      <span key={idx}>
+                        [ {act} ]{idx < associatedActsArray.length - 1 && " "}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
+
+              {musician.district && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">
+                    Neighborhood / District:
+                  </span>
+
+                  <span>{musician.district}</span>
+                </div>
+              )}
+
+              {producersArray.length > 0 && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Frequent Producer(s):</span>
+
+                  <span>{producersArray.join(", ")}</span>
+                </div>
+              )}
+
+              {musician.breakoutTrackName && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Breakout Track:</span>
+
+                  <span>
+                    {musician.breakoutTrackUrl ? (
+                      <Link
+                        href={musician.breakoutTrackUrl}
+                        target="_blank"
+                        className="text-blue-400 hover:underline"
+                      >
+                        "{musician.breakoutTrackName}"
+                      </Link>
+                    ) : (
+                      `"${musician.breakoutTrackName}"`
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {musician.definingProjectName && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Defining Project:</span>
+
+                  <span>
+                    {musician.definingProjectName}
+
+                    {musician.definingProjectYear &&
+                      ` (${musician.definingProjectYear})`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {musician.website && (
+              <div className="mt-6">
+                <Link
+                  href={musician.website}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-semibold rounded hover:bg-gray-200 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Export to Sheets
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {fansOfArray.length > 0 && (
+            <div className="border-t border-gray-800 pt-6">
+              <h2 className="text-lg font-semibold mb-4">For Fans Of</h2>
+
+              <div className="flex flex-wrap gap-2">
+                {fansOfArray.map((artist, idx) => (
+                  <span key={idx} className="text-sm">
+                    [ {artist} ]{idx < fansOfArray.length - 1 && " "}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
-          {musician.socials.youtube && (
-            <a
-              href={musician.socials.youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm hover:bg-primary/90 transition-colors"
-            >
-              YouTube
-            </a>
-          )}
-          {musician.socials.spotify && (
-            <a
-              href={musician.socials.spotify}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm hover:bg-primary/90 transition-colors"
-            >
-              Spotify
-            </a>
-          )}
-          {musician.socials.soundcloud && (
-            <a
-              href={musician.socials.soundcloud}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm hover:bg-primary/90 transition-colors"
-            >
-              SoundCloud
-            </a>
-          )}
+
+          <div className="border-t border-gray-800 pt-6">
+            <h2 className="text-lg font-semibold mb-4">Socials</h2>
+
+            <div className="flex flex-wrap gap-3">
+              {musician.socials.youtube && (
+                <Link
+                  href={musician.socials.youtube}
+                  target="_blank"
+                  className="px-4 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                >
+                  YouTube
+                </Link>
+              )}
+
+              {musician.socials.spotify && (
+                <Link
+                  href={musician.socials.spotify}
+                  target="_blank"
+                  className="px-4 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                >
+                  Spotify
+                </Link>
+              )}
+
+              {musician.socials.soundcloud && (
+                <Link
+                  href={musician.socials.soundcloud}
+                  target="_blank"
+                  className="px-4 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                >
+                  SoundCloud
+                </Link>
+              )}
+
+              {musician.socials.instagram && (
+                <Link
+                  href={musician.socials.instagram}
+                  target="_blank"
+                  className="px-4 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                >
+                  Instagram
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

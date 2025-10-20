@@ -1,14 +1,16 @@
+// @lib/actions/rapper.actions.ts
+
 import dbConnect from "@/lib/database/mongodb";
 import Rapper from "@/lib/database/model/Rappers";
 import User from "../database/model/User";
 import { auth } from "@clerk/nextjs/server";
 
-// Define the structure for the Rapper parameters
 interface RapperParams {
     name: string;
     city: string;
-    country: string;
     address: string;
+    lat: number;
+    lng: number;
     category: string;
     website?: string;
     socials: {
@@ -16,20 +18,41 @@ interface RapperParams {
         youtube?: string;
         spotify?: string;
         soundcloud?: string;
+        twitter?: string;
     };
     image: {
         id: string;
         url: string;
     };
-    audio?: string; 
+    audio?: string;
     shortBio: string;
+    tags: string[];
+    readMoreLink?: string;
+    yearsActive: {
+        start: number;
+        end?: number;
+    };
+    status: 'active' | 'inactive';
+    labelCrew?: string;
+    associatedActs: string[];
+    district?: string;
+    frequentProducers: string[];
+    breakoutTrack: {
+        name: string;
+        url?: string;
+    };
+    definingProject: {
+        name: string;
+        year?: number;
+    };
+    fansOf: string[];
     submittedBy: string;
 }
 
-interface UpdateRapperParams extends Omit<RapperParams, 'country'> {
+interface UpdateRapperParams extends Omit<RapperParams, 'lat' | 'lng'> {
     _id: string;
-    lat: number;
-    lng: number;
+    lat?: number;
+    lng?: number;
 }
 
 async function checkAdminAccess(): Promise<void> {
@@ -60,20 +83,16 @@ async function checkAdminOrOwnerAccess(rapperId: string): Promise<void> {
         throw new Error("Rapper not found");
     }
 
-    // Agar admin hai → allow
     if (user?.isAdmin && typeof user.isAdmin === "function" && user.isAdmin()) {
         return;
     }
 
-    // Agar owner hai → allow
     if (rapper.submittedBy === userId) {
         return;
-    } 
+    }
 
-    // Agar dono nahi hai → deny
     throw new Error("Access denied: You are not allowed to perform this action");
 }
-
 
 async function getCoordinates(address: string, city: string, country: string) {
     const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
@@ -81,7 +100,6 @@ async function getCoordinates(address: string, city: string, country: string) {
         throw new Error("OpenCage API key is not configured.");
     }
 
-    // Create a more specific query with full address
     const query = `${address}, ${city}, ${country}`.trim();
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
 
@@ -98,7 +116,6 @@ async function getCoordinates(address: string, city: string, country: string) {
             console.log(`Geocoded location: ${query} -> ${lat}, ${lng}`);
             return { lat: Number(lat), lng: Number(lng) };
         } else {
-            // Fallback: try with just city and country if full address doesn't work
             const fallbackQuery = `${city}, ${country}`;
             const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fallbackQuery)}&key=${apiKey}&limit=1`;
 
@@ -122,9 +139,6 @@ async function getCoordinates(address: string, city: string, country: string) {
 export async function createRapper(params: RapperParams) {
     try {
         await checkAdminAccess();
-
-        const { lat, lng } = await getCoordinates(params.address, params.city, params.country);
-
         await dbConnect();
 
         const existingRapper = await Rapper.findOne({ name: params.name });
@@ -136,8 +150,8 @@ export async function createRapper(params: RapperParams) {
             name: params.name,
             city: params.city,
             address: params.address,
-            lat,
-            lng,
+            lat: params.lat,
+            lng: params.lng,
             category: params.category,
             website: params.website || '',
             socials: {
@@ -145,11 +159,31 @@ export async function createRapper(params: RapperParams) {
                 youtube: params.socials.youtube || '',
                 spotify: params.socials.spotify || '',
                 soundcloud: params.socials.soundcloud || '',
-                twitter: '',
+                twitter: params.socials.twitter || '',
             },
             image: params.image,
             shortBio: params.shortBio,
             audio: params.audio || '',
+            tags: params.tags || [],
+            readMoreLink: params.readMoreLink || '',
+            yearsActive: {
+                start: params.yearsActive.start,
+                end: params.yearsActive.end || null,
+            },
+            status: params.status || 'active',
+            labelCrew: params.labelCrew || '',
+            associatedActs: params.associatedActs || [],
+            district: params.district || '',
+            frequentProducers: params.frequentProducers || [],
+            breakoutTrack: {
+                name: params.breakoutTrack.name,
+                url: params.breakoutTrack.url || '',
+            },
+            definingProject: {
+                name: params.definingProject.name,
+                year: params.definingProject.year || null,
+            },
+            fansOf: params.fansOf || [],
             submittedBy: params.submittedBy,
         });
 

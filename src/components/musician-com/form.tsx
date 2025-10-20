@@ -1,3 +1,5 @@
+// @components/form.tsx
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -8,7 +10,7 @@ import Image from "next/image";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  country: z.string().min(1, "Country is required"),
+  country: z.string().optional(),
   city: z.string().min(1, "City is required"),
   image: z.any().optional(),
   address: z.string().min(1, "Address is required"),
@@ -25,13 +27,12 @@ const schema = z.object({
     .or(z.literal("")),
   youtube: z.string().url("Invalid YouTube URL").optional().or(z.literal("")),
   spotify: z.string().url("Invalid Spotify URL").optional().or(z.literal("")),
-
   soundcloud: z
     .string()
     .url("Invalid SoundCloud URL")
     .optional()
     .or(z.literal("")),
-
+  twitter: z.string().url("Invalid Twitter URL").optional().or(z.literal("")),
   audio: z
     .string()
     .url("Invalid audio URL")
@@ -44,6 +45,32 @@ const schema = z.object({
     )
     .optional()
     .or(z.literal("")),
+
+  // New Fields
+  tags: z.string().optional().or(z.literal("")), // comma-separated
+  readMoreLink: z.string().url("Invalid URL").optional().or(z.literal("")),
+  yearsActiveStart: z
+    .string()
+    .min(1, "Years active start is required")
+    .regex(/^\d{4}$/, "Must be a valid year"),
+  yearsActiveEnd: z
+    .string()
+    .regex(/^\d{4}$/, "Must be a valid year")
+    .optional()
+    .or(z.literal("")),
+  labelCrew: z.string().optional().or(z.literal("")),
+  associatedActs: z.string().optional().or(z.literal("")), // comma-separated
+  district: z.string().optional().or(z.literal("")),
+  frequentProducers: z.string().optional().or(z.literal("")), // comma-separated
+  breakoutTrackName: z.string().min(1, "Breakout track name is required"),
+  breakoutTrackUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  definingProjectName: z.string().min(1, "Defining project name is required"),
+  definingProjectYear: z
+    .string()
+    .regex(/^\d{4}$/, "Must be a valid year")
+    .optional()
+    .or(z.literal("")),
+  fansOf: z.string().optional().or(z.literal("")), // comma-separated
 });
 
 export type FormData = z.infer<typeof schema>;
@@ -52,9 +79,28 @@ interface Props {
   submitForm: (data: FormData) => void | Promise<void>;
 }
 
+const allCountries = ["USA", "Pak", "India", "UK"];
+
+const allCities = [
+  "New York City, NY",
+  "Los Angeles, CA",
+  "Chicago, IL",
+  "Houston, TX",
+  "Phoenix, AZ",
+  "Philadelphia, PA",
+  "San Antonio, TX",
+  "San Diego, CA",
+  "Dallas, TX",
+  "San Jose, CA",
+  "Austin, TX",
+  "Jacksonville, FL",
+  "Fort Worth, TX",
+  "Columbus, OH",
+  "San Francisco, CA",
+];
+
 export default function MusicianForm({ submitForm }: Props) {
-  const [countries, setCountries] = useState<string[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>(allCities);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,70 +109,14 @@ export default function MusicianForm({ submitForm }: Props) {
     handleSubmit,
     watch,
     reset,
-    setValue,
+
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const countryWatch = watch("country");
   const imageWatch = watch("image");
 
-  interface CountryData {
-    country: string;
-    cities: string[];
-  }
-
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const res = await fetch(
-          "https://countriesnow.space/api/v0.1/countries"
-        );
-        const json = await res.json();
-        if (json.data) {
-          setCountries(json.data.map((c: CountryData) => c.country).sort());
-        }
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-    fetchCountries();
-  }, []);
-
-  useEffect(() => {
-    const fetchCities = async () => {
-      if (!countryWatch) {
-        setCities([]);
-        return;
-      }
-      // When country changes, reset the city field
-      setValue("city", "");
-
-      try {
-        const res = await fetch(
-          "https://countriesnow.space/api/v0.1/countries/cities",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ country: countryWatch }),
-          }
-        );
-        const json = await res.json();
-        if (json.data) {
-          setCities(json.data.sort());
-        } else {
-          setCities([]);
-        }
-      } catch (error) {
-        console.error("Error fetching cities:", error);
-        setCities([]);
-      }
-    };
-    fetchCities();
-  }, [countryWatch, setValue]);
-
-  // Create a preview URL when image changes
   useEffect(() => {
     if (imageWatch && imageWatch.length > 0) {
       const file = imageWatch[0];
@@ -156,78 +146,96 @@ export default function MusicianForm({ submitForm }: Props) {
         Musician Registration
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">
-              Name *
-            </label>
-            <input
-              {...register("name")}
-              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-              placeholder="Enter musician name"
-            />
-            <p className="text-destructive text-xs mt-1">
-              {errors.name?.message}
-            </p>
-          </div>
+        {/* Basic Information Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Basic Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Name *
+              </label>
+              <input
+                {...register("name")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="Enter musician name"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.name?.message}
+              </p>
+            </div>
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Category *
+              </label>
+              <input
+                {...register("category")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Hip Hop, R&B, Pop"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.category?.message}
+              </p>
+            </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">
-              Category *
-            </label>
-            <input
-              {...register("category")}
-              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-              placeholder="e.g., Hip Hop, R&B, Pop"
-            />
-            <p className="text-destructive text-xs mt-1">
-              {errors.category?.message}
-            </p>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Country *
+              </label>
+              <select
+                {...register("country")}
+                disabled={!allCountries.length}
+                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
+              >
+                <option value="">Select a city</option>
+                {allCountries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+              <p className="text-destructive text-xs mt-1">
+                {errors.city?.message}
+              </p>
+            </div>
 
-          {/* Country */}
-          <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">
-              Country *
-            </label>
-            <select
-              {...register("country")}
-              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-            >
-              <option value="">Select a country</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-            <p className="text-destructive text-xs mt-1">
-              {errors.country?.message}
-            </p>
-          </div>
-
-          {/* City */}
-          <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">
-              City *
-            </label>
-            <select
-              {...register("city")}
-              disabled={!countryWatch || cities.length === 0}
-              className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground"
-            >
-              <option value="">Select a city</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-            <p className="text-destructive text-xs mt-1">
-              {errors.city?.message}
-            </p>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                City *
+              </label>
+              <select
+                {...register("city")}
+                disabled={!cities.length}
+                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
+              >
+                <option value="">Select a city</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+              <p className="text-destructive text-xs mt-1">
+                {errors.city?.message}
+              </p>
+            </div>
+            {/* District */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                District
+              </label>
+              <input
+                {...register("district")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., The Crest Side"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.district?.message}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -304,27 +312,254 @@ export default function MusicianForm({ submitForm }: Props) {
           <p className="text-destructive text-xs mt-1">{errors.bio?.message}</p>
         </div>
 
-        {/* Audio Preview Link */}
-        {/* Audio URL */}
+        {/* Career Information Section */}
         <div>
-          <label className="block text-sm font-medium text-card-foreground mb-1">
-            Audio URL (only .mp3, .wav, .ogg)
-          </label>
-          <input
-            {...register("audio")}
-            placeholder="https://example.com/song.mp3"
-            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-          />
-          <p className="text-destructive text-xs mt-1">
-            {errors.audio?.message}
-          </p>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Career Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Years Active Start */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Years Active (Start) *
+              </label>
+              <input
+                {...register("yearsActiveStart")}
+                type="number"
+                placeholder="2021"
+                min="1900"
+                max={new Date().getFullYear()}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.yearsActiveStart?.message}
+              </p>
+            </div>
+
+            {/* Years Active End */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Years Active (End)
+              </label>
+              <input
+                {...register("yearsActiveEnd")}
+                type="number"
+                placeholder="Present"
+                min="1900"
+                max={new Date().getFullYear()}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Leave empty if still active
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.yearsActiveEnd?.message}
+              </p>
+            </div>
+
+            {/* Label/Crew */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Label/Crew
+              </label>
+              <input
+                {...register("labelCrew")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Independent / King Cutz"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.labelCrew?.message}
+              </p>
+            </div>
+
+            {/* Breakout Track Name */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Breakout Track Name *
+              </label>
+              <input
+                {...register("breakoutTrackName")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., First Day Out"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.breakoutTrackName?.message}
+              </p>
+            </div>
+
+            {/* Breakout Track URL */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Breakout Track URL
+              </label>
+              <input
+                {...register("breakoutTrackUrl")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.breakoutTrackUrl?.message}
+              </p>
+            </div>
+
+            {/* Defining Project Name */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Name *
+              </label>
+              <input
+                {...register("definingProjectName")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Crest Story Deluxe"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.definingProjectName?.message}
+              </p>
+            </div>
+
+            {/* Defining Project Year */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Year
+              </label>
+              <input
+                {...register("definingProjectYear")}
+                type="number"
+                placeholder="2022"
+                min="1900"
+                max={new Date().getFullYear()}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.definingProjectYear?.message}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Social Links */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-card-foreground">
+        {/* Tags and Lists Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Music & Influences
+          </h2>
+          <div className="space-y-6">
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Tags/Genres
+              </label>
+              <input
+                {...register("tags")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Hip-Hop, Trap, West Coast"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of genres/tags
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.tags?.message}
+              </p>
+            </div>
+
+            {/* Associated Acts */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Associated Acts
+              </label>
+              <input
+                {...register("associatedActs")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Bandlez Giddy, Artist Name"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of collaborators/associated artists
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.associatedActs?.message}
+              </p>
+            </div>
+
+            {/* Frequent Producers */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Frequent Producers
+              </label>
+              <input
+                {...register("frequentProducers")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., L-Phaze, Producer Name"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of producers they work with
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.frequentProducers?.message}
+              </p>
+            </div>
+
+            {/* Fans Of */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Fans Of (Influences)
+              </label>
+              <input
+                {...register("fansOf")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Tupac, Nas, Jay-Z"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of their musical influences
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.fansOf?.message}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Audio & Links Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Audio & Links
+          </h2>
+          <div className="space-y-6">
+            {/* Audio URL */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Audio URL (only .mp3, .wav, .ogg)
+              </label>
+              <input
+                {...register("audio")}
+                placeholder="https://example.com/song.mp3"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.audio?.message}
+              </p>
+            </div>
+
+            {/* Read More Link */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Read More Link
+              </label>
+              <input
+                {...register("readMoreLink")}
+                placeholder="https://example.com/bio"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.readMoreLink?.message}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Social Links & Website */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
             Social Links & Website (Optional)
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -391,6 +626,19 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.soundcloud?.message}
               </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Twitter/X
+              </label>
+              <input
+                {...register("twitter")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://twitter.com/username"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.twitter?.message}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -407,3 +655,26 @@ export default function MusicianForm({ submitForm }: Props) {
     </div>
   );
 }
+
+const Select = ({ label, options, error, ...props }: any) => (
+  <div>
+    {" "}
+    <label className="block text-sm font-medium text-card-foreground mb-1">
+      {label}
+    </label>{" "}
+    <select
+      {...props}
+      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-card-foreground focus:border-primary"
+    >
+      {" "}
+      <option value="">Select...</option>{" "}
+      {options.map((opt: string) => (
+        <option key={opt} value={opt}>
+          {" "}
+          {opt}{" "}
+        </option>
+      ))}{" "}
+    </select>{" "}
+    {error && <p className="text-destructive text-xs mt-1">{error}</p>}{" "}
+  </div>
+);

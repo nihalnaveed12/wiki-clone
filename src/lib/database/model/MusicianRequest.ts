@@ -1,3 +1,5 @@
+// @/lib/database/model/MusicianRequests.ts
+
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IMusicianRequest extends Document {
@@ -12,14 +14,34 @@ export interface IMusicianRequest extends Document {
         youtube?: string;
         spotify?: string;
         soundcloud?: string;
+        twitter?: string;
     };
     image: {
         id: string;
         url: string;
     };
     shortBio: string;
-    audio?: string;  // 🎵 New field for audio (URL or file reference)
+    audio?: string;
+    tags: string[];
+    readMoreLink?: string;
+    yearsActive: {
+        start: number;
+        end?: number;
+    };
     status: 'pending' | 'approved' | 'rejected';
+    labelCrew?: string;
+    associatedActs: string[];
+    district?: string;
+    frequentProducers: string[];
+    breakoutTrack: {
+        name: string;
+        url?: string;
+    };
+    definingProject: {
+        name: string;
+        year?: number;
+    };
+    fansOf: string[];
     submittedBy?: string;
     reviewedBy?: string;
     reviewedAt?: Date;
@@ -64,6 +86,7 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
             youtube: { type: String, default: '' },
             spotify: { type: String, default: '' },
             soundcloud: { type: String, default: '' },
+            twitter: { type: String, default: '' },
         },
         image: {
             id: { type: String, required: true },
@@ -75,14 +98,45 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
             trim: true,
             maxlength: 500,
         },
-        audio: {   // 🎶 new field
+        audio: {
             type: String,
             default: '',
+        },
+        tags: {
+            type: [String],
+            default: [],
+        },
+        readMoreLink: { type: String, default: '' },
+        yearsActive: {
+            start: { type: Number, required: true },
+            end: { type: Number, default: null },
         },
         status: {
             type: String,
             enum: ['pending', 'approved', 'rejected'],
             default: 'pending',
+        },
+        labelCrew: { type: String, default: '' },
+        associatedActs: {
+            type: [String],
+            default: [],
+        },
+        district: { type: String, default: '' },
+        frequentProducers: {
+            type: [String],
+            default: [],
+        },
+        breakoutTrack: {
+            name: { type: String, required: true },
+            url: { type: String, default: '' },
+        },
+        definingProject: {
+            name: { type: String, required: true },
+            year: { type: Number, default: null },
+        },
+        fansOf: {
+            type: [String],
+            default: [],
         },
         submittedBy: { type: String, default: '' },
         reviewedBy: { type: String, default: '' },

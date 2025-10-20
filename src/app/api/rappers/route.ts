@@ -1,3 +1,5 @@
+// app/api/rappers/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { createRapper, getAllRappers } from "@/lib/actions/rapper.actions";
 import { uploadToCloudinary } from "@/lib/cloudinary";
@@ -28,21 +30,41 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
+    // Basic Fields
     const name = formData.get("name") as string;
     const country = formData.get("country") as string;
     const city = formData.get("city") as string;
     const address = formData.get("address") as string;
-    const bio = formData.get("bio") as string; // Form sends 'bio'
+    const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const website = formData.get("website") as string;
     const imageFile = formData.get("image") as File;
 
+    // Socials
     const instagram = formData.get("instagram") as string;
     const youtube = formData.get("youtube") as string;
     const spotify = formData.get("spotify") as string;
-    const audio = formData.get("audio") as string;
     const soundcloud = formData.get("soundcloud") as string;
+    const twitter = formData.get("twitter") as string;
 
+    // New Fields
+    const audio = formData.get("audio") as string;
+    const tagsString = formData.get("tags") as string; // comma-separated or JSON array
+    const readMoreLink = formData.get("readMoreLink") as string;
+    const yearsActiveStart = formData.get("yearsActiveStart") as string;
+    const yearsActiveEnd = formData.get("yearsActiveEnd") as string;
+    const status = formData.get("status") as string;
+    const labelCrew = formData.get("labelCrew") as string;
+    const associatedActsString = formData.get("associatedActs") as string;
+    const district = formData.get("district") as string;
+    const frequentProducersString = formData.get("frequentProducers") as string;
+    const breakoutTrackName = formData.get("breakoutTrackName") as string;
+    const breakoutTrackUrl = formData.get("breakoutTrackUrl") as string;
+    const definingProjectName = formData.get("definingProjectName") as string;
+    const definingProjectYear = formData.get("definingProjectYear") as string;
+    const fansOfString = formData.get("fansOf") as string;
+
+    // Validate required fields
     const requiredFields = [
       { field: "name", value: name },
       { field: "country", value: country },
@@ -50,6 +72,9 @@ export async function POST(request: NextRequest) {
       { field: "address", value: address },
       { field: "category", value: category },
       { field: "bio", value: bio },
+      { field: "yearsActiveStart", value: yearsActiveStart },
+      { field: "breakoutTrackName", value: breakoutTrackName },
+      { field: "definingProjectName", value: definingProjectName },
     ];
 
     const missingFields = requiredFields
@@ -63,6 +88,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse array fields (comma-separated strings or JSON)
+    const parseTags = (tagsInput: string): string[] => {
+      if (!tagsInput) return [];
+      try {
+        return JSON.parse(tagsInput);
+      } catch {
+        return tagsInput.split(",").map((tag) => tag.trim()).filter(Boolean);
+      }
+    };
+
+    const tags = parseTags(tagsString);
+    const associatedActs = parseTags(associatedActsString);
+    const frequentProducers = parseTags(frequentProducersString);
+    const fansOf = parseTags(fansOfString);
+
+    // Handle image upload
     let imageData = { id: "", url: "" };
     if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
       try {
@@ -76,22 +117,101 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Get coordinates from address
+    const getCoordinates = async (
+      address: string,
+      city: string,
+      country: string
+    ) => {
+      const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
+      if (!apiKey) {
+        throw new Error("OpenCage API key is not configured.");
+      }
+
+      const query = `${address}, ${city}, ${country}`.trim();
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+        query
+      )}&key=${apiKey}&limit=1`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+          const { lat, lng } = data.results[0].geometry;
+          return { lat: Number(lat), lng: Number(lng) };
+        } else {
+          const fallbackQuery = `${city}, ${country}`;
+          const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+            fallbackQuery
+          )}&key=${apiKey}&limit=1`;
+
+          const fallbackRes = await fetch(fallbackUrl);
+          const fallbackData = await fallbackRes.json();
+
+          if (
+            fallbackData.results &&
+            fallbackData.results.length > 0
+          ) {
+            const { lat, lng } = fallbackData.results[0].geometry;
+            return { lat: Number(lat), lng: Number(lng) };
+          }
+        }
+
+        throw new Error(`Could not find coordinates for: ${query}`);
+      } catch (error) {
+        console.error("Geocoding API Error:", error);
+        throw new Error(
+          `Failed to fetch coordinates for "${query}". Please verify the address is correct.`
+        );
+      }
+    };
+
+    const { lat, lng } = await getCoordinates(address, city, country);
+
+    // Call createRapper with all fields
     const result = await createRapper({
       name: name.trim(),
-      country: country.trim(),
       city: city.trim(),
       address: address.trim(),
+      lat,
+      lng,
       category: category.trim(),
-      shortBio: bio.trim(),
       website: website?.trim() || undefined,
-      image: imageData,
-      audio: audio?.trim() || undefined,
       socials: {
         instagram: instagram?.trim() || undefined,
         youtube: youtube?.trim() || undefined,
         spotify: spotify?.trim() || undefined,
         soundcloud: soundcloud?.trim() || undefined,
+        twitter: twitter?.trim() || undefined,
       },
+      image: imageData,
+      shortBio: bio.trim(),
+      audio: audio?.trim() || undefined,
+      tags,
+      readMoreLink: readMoreLink?.trim() || undefined,
+      yearsActive: {
+        start: parseInt(yearsActiveStart, 10),
+        end: yearsActiveEnd ? parseInt(yearsActiveEnd, 10) : undefined,
+      },
+      status: (status || "active") as "active" | "inactive",
+      labelCrew: labelCrew?.trim() || undefined,
+      associatedActs,
+      district: district?.trim() || undefined,
+      frequentProducers,
+      breakoutTrack: {
+        name: breakoutTrackName.trim(),
+        url: breakoutTrackUrl?.trim() || undefined,
+      },
+      definingProject: {
+        name: definingProjectName.trim(),
+        year: definingProjectYear ? parseInt(definingProjectYear, 10) : undefined,
+      },
+      fansOf,
       submittedBy: userId,
     });
 
@@ -110,7 +230,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("API Error - POST /rappers:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }
