@@ -7,10 +7,10 @@ interface MusicianFormData {
   name: string;
   city: string;
   category: string;
-  country: string;
+  
   shortBio: string;
   website: string;
-  address: string;
+  
   district?: string;
   audio?: string;
   tags?: string;
@@ -31,7 +31,6 @@ interface MusicianFormData {
     youtube: string;
     spotify: string;
     soundcloud: string;
-    twitter?: string;
   };
 }
 
@@ -43,10 +42,10 @@ export default function EditMusicianPage() {
     name: "",
     city: "",
     category: "",
-    country: "",
+    
     shortBio: "",
     website: "",
-    address: "",
+    
     district: "",
     audio: "",
     tags: "",
@@ -67,7 +66,7 @@ export default function EditMusicianPage() {
       youtube: "",
       spotify: "",
       soundcloud: "",
-      twitter: "",
+      
     },
   });
   const [loading, setLoading] = useState(true);
@@ -89,10 +88,10 @@ export default function EditMusicianPage() {
           name: musician.name || "",
           city: musician.city || "",
           category: musician.category || "",
-          country: musician.country || "",
+         
           shortBio: musician.shortBio || "",
           website: musician.website || "",
-          address: musician.address || "",
+        
           district: musician.district || "",
           audio: musician.audio || "",
           tags: Array.isArray(musician.tags)
@@ -121,7 +120,7 @@ export default function EditMusicianPage() {
             youtube: musician.socials?.youtube || "",
             spotify: musician.socials?.spotify || "",
             soundcloud: musician.socials?.soundcloud || "",
-            twitter: musician.socials?.twitter || "",
+           
           },
         });
       } catch (error) {
@@ -158,7 +157,6 @@ export default function EditMusicianPage() {
         name: formData.name,
         city: formData.city,
         category: formData.category,
-        address: formData.address,
         shortBio: formData.shortBio,
         website: formData.website,
         district: formData.district,
@@ -288,18 +286,7 @@ export default function EditMusicianPage() {
         </div>
 
         {/* Address */}
-        <div>
-          <label className="block text-card-foreground mb-1 font-medium">
-            Address
-          </label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-          />
-        </div>
+        
 
         {/* Bio */}
         <div>
@@ -617,19 +604,7 @@ export default function EditMusicianPage() {
                 className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Twitter/X
-              </label>
-              <input
-                type="url"
-                name="twitter"
-                value={formData.socials.twitter}
-                onChange={handleSocialChange}
-                placeholder="https://twitter.com/username"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-            </div>
+        
           </div>
         </div>
 

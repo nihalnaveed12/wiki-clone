@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
 
     // Basic Fields
     const name = formData.get("name") as string;
-    const country = formData.get("country") as string;
+
     const city = formData.get("city") as string;
-    const address = formData.get("address") as string;
+
     const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const website = formData.get("website") as string;
@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const requiredFields = [
       { field: "name", value: name },
-      { field: "country", value: country },
+
       { field: "city", value: city },
-      { field: "address", value: address },
+
       { field: "category", value: category },
       { field: "bio", value: bio },
       { field: "yearsActiveStart", value: yearsActiveStart },
@@ -94,7 +94,10 @@ export async function POST(request: NextRequest) {
       try {
         return JSON.parse(tagsInput);
       } catch {
-        return tagsInput.split(",").map((tag) => tag.trim()).filter(Boolean);
+        return tagsInput
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
       }
     };
 
@@ -118,17 +121,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get coordinates from address
-    const getCoordinates = async (
-      address: string,
-      city: string,
-      country: string
-    ) => {
+    const getCoordinates = async (city: string) => {
       const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
       if (!apiKey) {
         throw new Error("OpenCage API key is not configured.");
       }
 
-      const query = `${address}, ${city}, ${country}`.trim();
+      const query = `${city}`.trim();
       const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
         query
       )}&key=${apiKey}&limit=1`;
@@ -145,7 +144,7 @@ export async function POST(request: NextRequest) {
           const { lat, lng } = data.results[0].geometry;
           return { lat: Number(lat), lng: Number(lng) };
         } else {
-          const fallbackQuery = `${city}, ${country}`;
+          const fallbackQuery = `${city}`;
           const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
             fallbackQuery
           )}&key=${apiKey}&limit=1`;
@@ -153,10 +152,7 @@ export async function POST(request: NextRequest) {
           const fallbackRes = await fetch(fallbackUrl);
           const fallbackData = await fallbackRes.json();
 
-          if (
-            fallbackData.results &&
-            fallbackData.results.length > 0
-          ) {
+          if (fallbackData.results && fallbackData.results.length > 0) {
             const { lat, lng } = fallbackData.results[0].geometry;
             return { lat: Number(lat), lng: Number(lng) };
           }
@@ -171,13 +167,13 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    const { lat, lng } = await getCoordinates(address, city, country);
+    const { lat, lng } = await getCoordinates(city);
 
     // Call createRapper with all fields
     const result = await createRapper({
       name: name.trim(),
       city: city.trim(),
-      address: address.trim(),
+
       lat,
       lng,
       category: category.trim(),
@@ -209,7 +205,9 @@ export async function POST(request: NextRequest) {
       },
       definingProject: {
         name: definingProjectName.trim(),
-        year: definingProjectYear ? parseInt(definingProjectYear, 10) : undefined,
+        year: definingProjectYear
+          ? parseInt(definingProjectYear, 10)
+          : undefined,
       },
       fansOf,
       submittedBy: userId,
@@ -230,7 +228,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("API Error - POST /rappers:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

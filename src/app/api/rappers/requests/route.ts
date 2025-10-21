@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
 
         // Basic Fields
         const name = formData.get("name") as string;
-        const country = formData.get("country") as string;
+       
         const city = formData.get("city") as string;
-        const address = formData.get("address") as string;
+        
         const bio = formData.get("bio") as string;
         const category = formData.get("category") as string;
         const website = formData.get("website") as string;
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         const youtube = formData.get("youtube") as string;
         const spotify = formData.get("spotify") as string;
         const soundcloud = formData.get("soundcloud") as string;
-        const twitter = formData.get("twitter") as string;
+        
 
         // New Fields
         const audio = formData.get("audio") as string;
@@ -121,9 +121,9 @@ export async function POST(request: NextRequest) {
         // Validate required fields
         const requiredFields = [
             { field: "name", value: name },
-            { field: "country", value: country },
+            
             { field: "city", value: city },
-            { field: "address", value: address },
+           
             { field: "category", value: category },
             { field: "bio", value: bio },
             { field: "yearsActiveStart", value: yearsActiveStart },
@@ -167,9 +167,9 @@ export async function POST(request: NextRequest) {
         // Call createMusicianRequest with all fields
         const result = await createMusicianRequest({
             name: name.trim(),
-            country: country.trim(),
+           
             city: city.trim(),
-            address: address.trim(),
+           
             category: category.trim(),
             shortBio: bio.trim(),
             website: website?.trim() || undefined,
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
                 youtube: youtube?.trim() || undefined,
                 spotify: spotify?.trim() || undefined,
                 soundcloud: soundcloud?.trim() || undefined,
-                twitter: twitter?.trim() || undefined,
+               
             },
             audio: audio?.trim() || undefined,
             tags,

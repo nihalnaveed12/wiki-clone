@@ -10,10 +10,8 @@ import Image from "next/image";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  country: z.string().optional(),
   city: z.string().min(1, "City is required"),
   image: z.any().optional(),
-  address: z.string().min(1, "Address is required"),
   bio: z
     .string()
     .min(1, "Bio is required")
@@ -79,25 +77,61 @@ interface Props {
   submitForm: (data: FormData) => void | Promise<void>;
 }
 
-const allCountries = ["USA", "Pak", "India", "UK"];
+
 
 const allCities = [
-  "New York City, NY",
-  "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Antonio, TX",
-  "San Diego, CA",
-  "Dallas, TX",
-  "San Jose, CA",
-  "Austin, TX",
-  "Jacksonville, FL",
-  "Fort Worth, TX",
-  "Columbus, OH",
-  "San Francisco, CA",
+  "Los Angeles",
+  "San Diego",
+  "San Jose",
+  "San Francisco",
+  "Fresno",
+  "Sacramento",
+  "Long Beach",
+  "Oakland",
+  "Bakersfield",
+  "Anaheim",
+  "Santa Ana",
+  "Riverside",
+  "Stockton",
+  "Irvine",
+  "Chula Vista",
+  "Fremont",
+  "San Bernardino",
+  "Modesto",
+  "Oxnard",
+  "Fontana",
+  "Moreno Valley",
+  "Huntington Beach",
+  "Glendale",
+  "Santa Clarita",
+  "Garden Grove",
+  "Santa Rosa",
+  "Oceanside",
+  "Rancho Cucamonga",
+  "Ontario",
+  "Elk Grove",
+  "Corona",
+  "Lancaster",
+  "Palmdale",
+  "Salinas",
+  "Hayward",
+  "Pomona",
+  "Sunnyvale",
+  "Escondido",
+  "Torrance",
+  "Pasadena",
+  "Orange",
+  "Fullerton",
+  "Thousand Oaks",
+  "Visalia",
+  "Simi Valley",
+  "Concord",
+  "Roseville",
+  "Santa Clara",
+  "Vallejo",
+  "Victorville"
 ];
+
 
 export default function MusicianForm({ submitForm }: Props) {
   const [cities, setCities] = useState<string[]>(allCities);
@@ -181,26 +215,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Country *
-              </label>
-              <select
-                {...register("country")}
-                disabled={!allCountries.length}
-                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
-              >
-                <option value="">Select a city</option>
-                {allCountries.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-              <p className="text-destructive text-xs mt-1">
-                {errors.city?.message}
-              </p>
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -239,23 +253,7 @@ export default function MusicianForm({ submitForm }: Props) {
           </div>
         </div>
 
-        {/* Address */}
-        <div>
-          <label className="block text-sm font-medium text-card-foreground mb-1">
-            Full Address *
-          </label>
-          <input
-            {...register("address")}
-            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-            placeholder="Enter complete address for accurate location"
-          />
-          <p className="text-destructive text-xs mt-1">
-            {errors.address?.message}
-          </p>
-          <p className="text-muted-foreground text-xs mt-1">
-            This will be used to pinpoint the exact location on the map
-          </p>
-        </div>
+        
 
         {/* Image Upload */}
         <div>

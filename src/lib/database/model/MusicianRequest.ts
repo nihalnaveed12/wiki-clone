@@ -5,8 +5,6 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IMusicianRequest extends Document {
     name: string;
     city: string;
-    country: string;
-    address: string;
     category: string;
     website?: string;
     socials: {
@@ -62,16 +60,7 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
             required: true,
             trim: true,
         },
-        country: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        address: {
-            type: String,
-            required: true,
-            trim: true,
-        },
+       
         category: {
             type: String,
             required: true,

@@ -15,11 +15,9 @@ interface Musicians {
   lat: number;
   lng: number;
   category: string;
-  country:string
   shortBio: string;
   website:string
   createdAt: string;
-  address:string;
   updatedAt: string;
   __v: number;
 }

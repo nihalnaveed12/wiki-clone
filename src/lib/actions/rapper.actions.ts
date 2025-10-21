@@ -8,7 +8,6 @@ import { auth } from "@clerk/nextjs/server";
 interface RapperParams {
     name: string;
     city: string;
-    address: string;
     lat: number;
     lng: number;
     category: string;
@@ -94,13 +93,13 @@ async function checkAdminOrOwnerAccess(rapperId: string): Promise<void> {
     throw new Error("Access denied: You are not allowed to perform this action");
 }
 
-async function getCoordinates(address: string, city: string, country: string) {
+async function getCoordinates(city: string) {
     const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
     if (!apiKey) {
         throw new Error("OpenCage API key is not configured.");
     }
 
-    const query = `${address}, ${city}, ${country}`.trim();
+    const query = `${city}`.trim();
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}&limit=1`;
 
     try {
@@ -116,7 +115,7 @@ async function getCoordinates(address: string, city: string, country: string) {
             console.log(`Geocoded location: ${query} -> ${lat}, ${lng}`);
             return { lat: Number(lat), lng: Number(lng) };
         } else {
-            const fallbackQuery = `${city}, ${country}`;
+            const fallbackQuery = `${city}`;
             const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(fallbackQuery)}&key=${apiKey}&limit=1`;
 
             const fallbackRes = await fetch(fallbackUrl);
@@ -149,7 +148,6 @@ export async function createRapper(params: RapperParams) {
         const rapper = await Rapper.create({
             name: params.name,
             city: params.city,
-            address: params.address,
             lat: params.lat,
             lng: params.lng,
             category: params.category,

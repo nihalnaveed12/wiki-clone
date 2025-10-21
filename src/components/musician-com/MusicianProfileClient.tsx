@@ -15,8 +15,6 @@ interface Musician {
 
   city: string;
 
-  country: string;
-
   category: string;
 
   shortBio: string;
@@ -38,8 +36,6 @@ interface Musician {
 
     soundcloud: string;
   };
-
-  address: string;
 
   createdAt: string;
 
@@ -63,13 +59,15 @@ interface Musician {
 
   frequentProducers?: string;
 
-  breakoutTrackName: string;
+  breakoutTrack: {
+    name: string;
+    url?: string;
+  };
 
-  breakoutTrackUrl?: string;
-
-  definingProjectName: string;
-
-  definingProjectYear?: string;
+  definingProject: {
+    name: string;
+    year?: string;
+  };
 
   fansOf?: string;
 }
@@ -81,7 +79,7 @@ interface Props {
 }
 
 export default function MusicianProfileClient({ musician, canEdit }: Props) {
- const [isHovering, setIsHovering] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -101,7 +99,9 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
       audioRef.current.currentTime = 0; // reset position (optional)
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch((err) => console.error("Audio play error:", err));
+      audioRef.current
+        .play()
+        .catch((err) => console.error("Audio play error:", err));
       setIsPlaying(true);
     }
   };
@@ -129,6 +129,8 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     : typeof musician.fansOf === "string"
     ? musician.fansOf.split(",").map((f) => f.trim())
     : [];
+
+
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -177,9 +179,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
                   <MapPin className="w-4 h-4" />
 
-                  <span>
-                    {musician.city}, {musician.country}
-                  </span>
+                  <span>{musician.city}, California</span>
                 </div>
 
                 <p className="text-gray-300 leading-relaxed mb-4">
@@ -196,10 +196,10 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   </Link>
                 )}
 
-                {musician.breakoutTrackName && musician.breakoutTrackUrl && (
+                {musician.breakoutTrack.name && musician.breakoutTrack.url && (
                   <div className="mt-4 text-sm text-gray-400">
                     (Embedded YouTube player for his song "
-                    {musician.breakoutTrackName}")
+                    {`${musician.breakoutTrack.name})`}
                   </div>
                 )}
               </div>
@@ -279,35 +279,35 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 </div>
               )}
 
-              {musician.breakoutTrackName && (
+              {musician.breakoutTrack && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Breakout Track:</span>
 
                   <span>
-                    {musician.breakoutTrackUrl ? (
+                    {musician.breakoutTrack.url ? (
                       <Link
-                        href={musician.breakoutTrackUrl}
+                        href={musician.breakoutTrack.url}
                         target="_blank"
                         className="text-blue-400 hover:underline"
                       >
-                        "{musician.breakoutTrackName}"
+                        "{musician.breakoutTrack.name}"
                       </Link>
                     ) : (
-                      `"${musician.breakoutTrackName}"`
+                      `"${musician.breakoutTrack.name}"`
                     )}
                   </span>
                 </div>
               )}
 
-              {musician.definingProjectName && (
+              {musician.definingProject && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Defining Project:</span>
 
                   <span>
-                    {musician.definingProjectName}
+                    {musician.definingProject.name}
 
-                    {musician.definingProjectYear &&
-                      ` (${musician.definingProjectYear})`}
+                    {musician.definingProject.year &&
+                      ` (${musician.definingProject.year})`}
                   </span>
                 </div>
               )}

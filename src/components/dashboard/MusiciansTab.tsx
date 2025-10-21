@@ -21,11 +21,11 @@ interface Musicians {
   lat: number;
   lng: number;
   category: string;
-  country: string;
+  
   shortBio: string;
   website: string;
   createdAt: string;
-  address: string;
+  
   updatedAt: string;
   __v: number;
 }
@@ -86,7 +86,7 @@ return loading ? (
               <div>
                 <h3 className="text-xl font-bold text-card-foreground">{m.name}</h3>
                 <p className="text-muted-foreground">
-                  {m.category} • {m.city}, {m.country}
+                  {m.category} • {m.city}, 
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Submitted: {new Date(m.createdAt).toLocaleDateString()}
@@ -96,9 +96,6 @@ return loading ? (
           </div>
 
           <div className="mb-4">
-            <p className="text-card-foreground mb-2">
-              <strong>Address:</strong> {m.address}
-            </p>
             <p className="text-card-foreground mb-2">
               <strong>Bio:</strong> {m.shortBio}
             </p>

@@ -9,8 +9,6 @@ import { auth } from "@clerk/nextjs/server";
 interface MusicianRequestParams {
   name: string;
   city: string;
-  country: string;
-  address: string;
   category: string;
   website?: string;
   socials: {
@@ -62,13 +60,13 @@ async function checkAdminAccess(): Promise<void> {
   }
 }
 
-async function getCoordinates(address: string, city: string, country: string) {
+async function getCoordinates(city: string) {
   const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
   if (!apiKey) {
     throw new Error("OpenCage API key is not configured.");
   }
 
-  const query = `${address}, ${city}, ${country}`.trim();
+  const query = `${city}`.trim();
   const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
     query
   )}&key=${apiKey}&limit=1`;
@@ -85,7 +83,7 @@ async function getCoordinates(address: string, city: string, country: string) {
       const { lat, lng } = data.results[0].geometry;
       return { lat: Number(lat), lng: Number(lng) };
     } else {
-      const fallbackQuery = `${city}, ${country}`;
+      const fallbackQuery = `${city}`;
       const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
         fallbackQuery
       )}&key=${apiKey}&limit=1`;
@@ -132,8 +130,6 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
     const request = await MusicianRequest.create({
       name: params.name,
       city: params.city,
-      country: params.country,
-      address: params.address,
       category: params.category,
       website: params.website || "",
       socials: {
@@ -226,16 +222,11 @@ export async function approveMusicianRequest(_id: string) {
       throw new Error("Request has already been processed");
     }
 
-    const { lat, lng } = await getCoordinates(
-      request.address,
-      request.city,
-      request.country
-    );
+    const { lat, lng } = await getCoordinates(request.city);
 
     const rapper = await Rapper.create({
       name: request.name,
       city: request.city,
-      address: request.address,
       lat,
       lng,
       category: request.category,
