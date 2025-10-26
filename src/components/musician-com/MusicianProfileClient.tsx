@@ -20,6 +20,7 @@ interface Musician {
   shortBio: string;
 
   website: string;
+  artistStatus?: string;
 
   image: {
     id: string;
@@ -47,9 +48,10 @@ interface Musician {
 
   readMoreLink?: string;
 
-  yearsActiveStart: string;
-
-  yearsActiveEnd?: string;
+  yearsActive: {
+    end?: string;
+    start?: string;
+  };
 
   labelCrew?: string;
 
@@ -60,12 +62,12 @@ interface Musician {
   frequentProducers?: string;
 
   breakoutTrack: {
-    name: string;
+    name?: string;
     url?: string;
   };
 
   definingProject: {
-    name: string;
+    name?: string;
     year?: string;
   };
 
@@ -130,7 +132,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     ? musician.fansOf.split(",").map((f) => f.trim())
     : [];
 
-
+  console.log("MusicianProfileClient rendered with musician:", musician);
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -225,16 +227,16 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 <span className="text-gray-400">Years Active:</span>
 
                 <span>
-                  {musician.yearsActiveStart}
+                  {musician.yearsActive.start}
 
-                  {musician.yearsActiveEnd
-                    ? `-${musician.yearsActiveEnd}`
-                    : "-Present"}
+                  {musician.yearsActive.end
+                    ? `-${musician.yearsActive.end}`
+                    : "-"}
                 </span>
               </div>
 
               <div className="grid grid-cols-[160px_1fr] gap-4">
-                <span className="text-gray-400">Status:</span>
+                <span className="text-gray-400">Category:</span>
 
                 <span>{musician.category}</span>
               </div>
@@ -244,6 +246,14 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   <span className="text-gray-400">Label / Crew:</span>
 
                   <span>{musician.labelCrew}</span>
+                </div>
+              )}
+
+              {musician.artistStatus && (
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <span className="text-gray-400">Artist Status:</span>
+
+                  <span>{musician.artistStatus}</span>
                 </div>
               )}
 

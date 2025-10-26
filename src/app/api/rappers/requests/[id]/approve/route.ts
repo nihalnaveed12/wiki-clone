@@ -105,6 +105,7 @@ export async function POST(
       lng,
       category: musicianRequest.category,
       website: musicianRequest.website || "",
+      artistStatus: musicianRequest.artistStatus || "",
       socials: {
         instagram: musicianRequest.socials.instagram || "",
         youtube: musicianRequest.socials.youtube || "",
@@ -117,7 +118,7 @@ export async function POST(
       tags: musicianRequest.tags || [],
       readMoreLink: musicianRequest.readMoreLink || "",
       yearsActive: {
-        start: musicianRequest.yearsActive.start,
+        start: musicianRequest.yearsActive.start || null,
         end: musicianRequest.yearsActive.end || null,
       },
       status: "active",
@@ -126,11 +127,11 @@ export async function POST(
       district: musicianRequest.district || "",
       frequentProducers: musicianRequest.frequentProducers || [],
       breakoutTrack: {
-        name: musicianRequest.breakoutTrack.name,
+        name: musicianRequest.breakoutTrack.name || "",
         url: musicianRequest.breakoutTrack.url || "",
       },
       definingProject: {
-        name: musicianRequest.definingProject.name,
+        name: musicianRequest.definingProject.name || null,
         year: musicianRequest.definingProject.year || null,
       },
       fansOf: musicianRequest.fansOf || [],

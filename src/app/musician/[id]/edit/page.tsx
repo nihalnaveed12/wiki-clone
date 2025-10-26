@@ -7,10 +7,11 @@ interface MusicianFormData {
   name: string;
   city: string;
   category: string;
-  
+
   shortBio: string;
+  artistStatus?: string;
   website: string;
-  
+
   district?: string;
   audio?: string;
   tags?: string;
@@ -42,10 +43,11 @@ export default function EditMusicianPage() {
     name: "",
     city: "",
     category: "",
-    
+
     shortBio: "",
     website: "",
-    
+    artistStatus: "",
+
     district: "",
     audio: "",
     tags: "",
@@ -66,7 +68,6 @@ export default function EditMusicianPage() {
       youtube: "",
       spotify: "",
       soundcloud: "",
-      
     },
   });
   const [loading, setLoading] = useState(true);
@@ -88,10 +89,11 @@ export default function EditMusicianPage() {
           name: musician.name || "",
           city: musician.city || "",
           category: musician.category || "",
-         
+
           shortBio: musician.shortBio || "",
           website: musician.website || "",
-        
+          artistStatus: musician.artistStatus || "",
+
           district: musician.district || "",
           audio: musician.audio || "",
           tags: Array.isArray(musician.tags)
@@ -120,7 +122,6 @@ export default function EditMusicianPage() {
             youtube: musician.socials?.youtube || "",
             spotify: musician.socials?.spotify || "",
             soundcloud: musician.socials?.soundcloud || "",
-           
           },
         });
       } catch (error) {
@@ -147,6 +148,13 @@ export default function EditMusicianPage() {
       ...prev,
       socials: { ...prev.socials, [name]: value },
     }));
+  };
+
+  const handleartistStatusChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const { value } = e.target;
+    setFormData((prev) => ({ ...prev, artistStatus: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -269,6 +277,26 @@ export default function EditMusicianPage() {
                 className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
+
+            <div className="">
+              <label className="block text-card-foreground mb-1 font-medium">
+                Artist Status
+              </label>
+
+              <select
+                name="artistStatus"
+                value={formData.artistStatus}
+                onChange={handleartistStatusChange}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              >
+                <option value="">Select a Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Incarcerated">Incarcerated</option>
+                <option value="Deceased">Deceased</option>
+              </select>
+            </div>
+
             <div>
               <label className="block text-card-foreground mb-1 font-medium">
                 District
@@ -286,7 +314,6 @@ export default function EditMusicianPage() {
         </div>
 
         {/* Address */}
-        
 
         {/* Bio */}
         <div>
@@ -604,7 +631,6 @@ export default function EditMusicianPage() {
                 className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
-        
           </div>
         </div>
 

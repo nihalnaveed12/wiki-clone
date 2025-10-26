@@ -11,6 +11,7 @@ import Image from "next/image";
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   city: z.string().min(1, "City is required"),
+  artistStatus: z.string().optional().or(z.literal("")),
   image: z.any().optional(),
   bio: z
     .string()
@@ -49,8 +50,9 @@ const schema = z.object({
   readMoreLink: z.string().url("Invalid URL").optional().or(z.literal("")),
   yearsActiveStart: z
     .string()
-    .min(1, "Years active start is required")
-    .regex(/^\d{4}$/, "Must be a valid year"),
+    .regex(/^\d{4}$/, "Must be a valid year")
+    .optional()
+    .or(z.literal("")),
   yearsActiveEnd: z
     .string()
     .regex(/^\d{4}$/, "Must be a valid year")
@@ -60,9 +62,9 @@ const schema = z.object({
   associatedActs: z.string().optional().or(z.literal("")), // comma-separated
   district: z.string().optional().or(z.literal("")),
   frequentProducers: z.string().optional().or(z.literal("")), // comma-separated
-  breakoutTrackName: z.string().min(1, "Breakout track name is required"),
+  breakoutTrackName: z.string().optional().or(z.literal("")),
   breakoutTrackUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  definingProjectName: z.string().min(1, "Defining project name is required"),
+  definingProjectName: z.string().optional().or(z.literal("")),
   definingProjectYear: z
     .string()
     .regex(/^\d{4}$/, "Must be a valid year")
@@ -76,8 +78,6 @@ export type FormData = z.infer<typeof schema>;
 interface Props {
   submitForm: (data: FormData) => void | Promise<void>;
 }
-
-
 
 const allCities = [
   "Alameda",
@@ -183,9 +183,10 @@ const allCities = [
   "Santa Rosa",
   "Sebastopol",
   "Sonoma",
-  "Windsor"
+  "Windsor",
 ];
 
+const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
 
 export default function MusicianForm({ submitForm }: Props) {
   const [cities, setCities] = useState<string[]>(allCities);
@@ -269,7 +270,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 City *
@@ -290,6 +290,26 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.city?.message}
               </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Status
+              </label>
+              <select
+                {...register("artistStatus")}
+                disabled={!status.length}
+                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
+              >
+                <option value="">Select a Status</option>
+                {status.map((stat) => (
+                  <option key={stat} value={stat}>
+                    {stat}
+                  </option>
+                ))}
+              </select>
+              <p className="text-destructive text-xs mt-1">
+                {errors.artistStatus?.message}
+              </p>
+            </div>
             {/* District */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -306,8 +326,6 @@ export default function MusicianForm({ submitForm }: Props) {
             </div>
           </div>
         </div>
-
-        
 
         {/* Image Upload */}
         <div>
@@ -593,7 +611,7 @@ export default function MusicianForm({ submitForm }: Props) {
             {/* Read More Link */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
-                Read More Link
+                Deep Dives
               </label>
               <input
                 {...register("readMoreLink")}

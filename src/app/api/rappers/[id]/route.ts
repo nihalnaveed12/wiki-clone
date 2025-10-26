@@ -79,6 +79,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       if (formData.has("category"))
         updateData.category = formData.get("category");
       if (formData.has("website")) updateData.website = formData.get("website");
+      if (formData.has("artistStatus")) updateData.artistStatus = formData.get("artistStatus");
       if (formData.has("shortBio"))
         updateData.shortBio = formData.get("shortBio");
       if (formData.has("bio")) updateData.shortBio = formData.get("bio"); // Fallback for 'bio'

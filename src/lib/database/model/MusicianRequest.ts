@@ -6,6 +6,7 @@ export interface IMusicianRequest extends Document {
     name: string;
     city: string;
     category: string;
+    artistStatus?: string
     website?: string;
     socials: {
         instagram?: string;
@@ -23,23 +24,23 @@ export interface IMusicianRequest extends Document {
     tags: string[];
     readMoreLink?: string;
     yearsActive: {
-        start: number;
+        start?: number;
         end?: number;
     };
     status: 'pending' | 'approved' | 'rejected';
     labelCrew?: string;
-    associatedActs: string[];
+    associatedActs?: string[];
     district?: string;
     frequentProducers: string[];
     breakoutTrack: {
-        name: string;
+        name?: string;
         url?: string;
     };
     definingProject: {
-        name: string;
+        name?: string;
         year?: number;
     };
-    fansOf: string[];
+    fansOf?: string[];
     submittedBy?: string;
     reviewedBy?: string;
     reviewedAt?: Date;
@@ -64,6 +65,10 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
         category: {
             type: String,
             required: true,
+            trim: true,
+        },
+        artistStatus: {
+            type: String,
             trim: true,
         },
         website: {
@@ -97,7 +102,7 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
         },
         readMoreLink: { type: String, default: '' },
         yearsActive: {
-            start: { type: Number, required: true },
+            start: { type: Number, default: null },
             end: { type: Number, default: null },
         },
         status: {
@@ -116,11 +121,11 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
             default: [],
         },
         breakoutTrack: {
-            name: { type: String, required: true },
+            name: { type: String, default: '' },
             url: { type: String, default: '' },
         },
         definingProject: {
-            name: { type: String, required: true },
+            name: { type: String, default: '' },
             year: { type: Number, default: null },
         },
         fansOf: {

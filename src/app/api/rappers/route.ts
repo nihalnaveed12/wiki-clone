@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const website = formData.get("website") as string;
+    const artistStatus = formData.get("artistStatus") as string;
     const imageFile = formData.get("image") as File;
 
     // Socials
@@ -72,9 +73,7 @@ export async function POST(request: NextRequest) {
 
       { field: "category", value: category },
       { field: "bio", value: bio },
-      { field: "yearsActiveStart", value: yearsActiveStart },
-      { field: "breakoutTrackName", value: breakoutTrackName },
-      { field: "definingProjectName", value: definingProjectName },
+     
     ];
 
     const missingFields = requiredFields
@@ -177,6 +176,7 @@ export async function POST(request: NextRequest) {
       lat,
       lng,
       category: category.trim(),
+      artistStatus: artistStatus?.trim() || undefined,
       website: website?.trim() || undefined,
       socials: {
         instagram: instagram?.trim() || undefined,
@@ -191,25 +191,25 @@ export async function POST(request: NextRequest) {
       tags,
       readMoreLink: readMoreLink?.trim() || undefined,
       yearsActive: {
-        start: parseInt(yearsActiveStart, 10),
+        start: yearsActiveStart ? parseInt(yearsActiveStart, 10): undefined,
         end: yearsActiveEnd ? parseInt(yearsActiveEnd, 10) : undefined,
       },
       status: (status || "active") as "active" | "inactive",
       labelCrew: labelCrew?.trim() || undefined,
-      associatedActs,
+      associatedActs: associatedActs || undefined,
       district: district?.trim() || undefined,
       frequentProducers,
       breakoutTrack: {
-        name: breakoutTrackName.trim(),
+        name: breakoutTrackName?.trim() || undefined,
         url: breakoutTrackUrl?.trim() || undefined,
       },
       definingProject: {
-        name: definingProjectName.trim(),
+        name: definingProjectName ? definingProjectName.trim() : undefined,
         year: definingProjectYear
           ? parseInt(definingProjectYear, 10)
           : undefined,
       },
-      fansOf,
+      fansOf: fansOf || undefined,
       submittedBy: userId,
     });
 

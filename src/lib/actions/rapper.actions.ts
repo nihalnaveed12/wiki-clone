@@ -11,6 +11,7 @@ interface RapperParams {
     lat: number;
     lng: number;
     category: string;
+    artistStatus?: string;
     website?: string;
     socials: {
         instagram?: string;
@@ -28,23 +29,23 @@ interface RapperParams {
     tags: string[];
     readMoreLink?: string;
     yearsActive: {
-        start: number;
+        start?: number;
         end?: number;
     };
     status: 'active' | 'inactive';
     labelCrew?: string;
-    associatedActs: string[];
+    associatedActs?: string[];
     district?: string;
     frequentProducers: string[];
     breakoutTrack: {
-        name: string;
+        name?: string;
         url?: string;
     };
     definingProject: {
-        name: string;
+        name?: string;
         year?: number;
     };
-    fansOf: string[];
+    fansOf?: string[];
     submittedBy: string;
 }
 
@@ -151,6 +152,7 @@ export async function createRapper(params: RapperParams) {
             lat: params.lat,
             lng: params.lng,
             category: params.category,
+            artistStatus: params.artistStatus || '',
             website: params.website || '',
             socials: {
                 instagram: params.socials.instagram || '',
@@ -165,7 +167,7 @@ export async function createRapper(params: RapperParams) {
             tags: params.tags || [],
             readMoreLink: params.readMoreLink || '',
             yearsActive: {
-                start: params.yearsActive.start,
+                start: params.yearsActive.start || null,
                 end: params.yearsActive.end || null,
             },
             status: params.status || 'active',
@@ -174,11 +176,11 @@ export async function createRapper(params: RapperParams) {
             district: params.district || '',
             frequentProducers: params.frequentProducers || [],
             breakoutTrack: {
-                name: params.breakoutTrack.name,
+                name: params.breakoutTrack.name || "",
                 url: params.breakoutTrack.url || '',
             },
             definingProject: {
-                name: params.definingProject.name,
+                name: params.definingProject.name || null,
                 year: params.definingProject.year || null,
             },
             fansOf: params.fansOf || [],

@@ -2,14 +2,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 export default function MusicianDeleteButton({ id }: { id: string }) {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function handleDelete() {
-    
     if (!confirm("Are you sure you want to delete your profile?")) return;
 
     setLoading(true);
@@ -22,7 +20,7 @@ export default function MusicianDeleteButton({ id }: { id: string }) {
       }
 
       alert("Profile deleted successfully");
-      router.push("/"); // redirect to home after delete
+      window.location.reload();
     } catch (error) {
       console.error(error);
       alert("Something went wrong");
@@ -32,12 +30,12 @@ export default function MusicianDeleteButton({ id }: { id: string }) {
   }
 
   return (
-   <button
-  onClick={handleDelete}
-  disabled={loading}
-  className="px-4 py-1 rounded-[6px] text-white cursor-pointer bg-destructive hover:bg-destructive/90 disabled:opacity-50 transition-colors"
->
-  {loading ? "Deleting..." : "Delete"}
-</button>
+    <button
+      onClick={handleDelete}
+      disabled={loading}
+      className="px-4 py-1 rounded-[6px] text-white cursor-pointer bg-destructive hover:bg-destructive/90 disabled:opacity-50 transition-colors"
+    >
+      {loading ? "Deleting..." : "Delete"}
+    </button>
   );
 }

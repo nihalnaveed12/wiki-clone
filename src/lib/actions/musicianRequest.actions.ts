@@ -10,6 +10,7 @@ interface MusicianRequestParams {
   name: string;
   city: string;
   category: string;
+  artistStatus?: string;
   website?: string;
   socials: {
     instagram?: string;
@@ -27,22 +28,22 @@ interface MusicianRequestParams {
   tags: string[];
   readMoreLink?: string;
   yearsActive: {
-    start: number;
+    start?: number;
     end?: number;
   };
   labelCrew?: string;
-  associatedActs: string[];
+  associatedActs?: string[];
   district?: string;
   frequentProducers: string[];
   breakoutTrack: {
-    name: string;
+    name?: string;
     url?: string;
   };
   definingProject: {
-    name: string;
+    name?: string;
     year?: number;
   };
-  fansOf: string[];
+  fansOf?: string[];
   submittedBy?: string;
 }
 
@@ -131,6 +132,7 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       name: params.name,
       city: params.city,
       category: params.category,
+      artistStatus: params.artistStatus || '',
       website: params.website || "",
       socials: {
         instagram: params.socials.instagram || "",
@@ -145,7 +147,7 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       tags: params.tags || [],
       readMoreLink: params.readMoreLink || "",
       yearsActive: {
-        start: params.yearsActive.start,
+        start: params.yearsActive.start || null,
         end: params.yearsActive.end || null,
       },
       labelCrew: params.labelCrew || "",
@@ -153,11 +155,11 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       district: params.district || "",
       frequentProducers: params.frequentProducers || [],
       breakoutTrack: {
-        name: params.breakoutTrack.name,
+        name: params.breakoutTrack.name || "",
         url: params.breakoutTrack.url || "",
       },
       definingProject: {
-        name: params.definingProject.name,
+        name: params.definingProject.name || null,
         year: params.definingProject.year || null,
       },
       fansOf: params.fansOf || [],
@@ -231,6 +233,7 @@ export async function approveMusicianRequest(_id: string) {
       lng,
       category: request.category,
       website: request.website || "",
+      artistStatus: request.artistStatus || "",
       socials: {
         instagram: request.socials.instagram || "",
         youtube: request.socials.youtube || "",
@@ -244,7 +247,7 @@ export async function approveMusicianRequest(_id: string) {
       tags: request.tags || [],
       readMoreLink: request.readMoreLink || "",
       yearsActive: {
-        start: request.yearsActive.start,
+        start: request.yearsActive.start || null,
         end: request.yearsActive.end || null,
       },
       status: "active",
@@ -253,11 +256,11 @@ export async function approveMusicianRequest(_id: string) {
       district: request.district || "",
       frequentProducers: request.frequentProducers || [],
       breakoutTrack: {
-        name: request.breakoutTrack.name,
+        name: request.breakoutTrack.name || "",
         url: request.breakoutTrack.url || "",
       },
       definingProject: {
-        name: request.definingProject.name,
+        name: request.definingProject.name || null,
         year: request.definingProject.year || null,
       },
       fansOf: request.fansOf || [],

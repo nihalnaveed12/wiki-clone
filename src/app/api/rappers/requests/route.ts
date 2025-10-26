@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
         
         const bio = formData.get("bio") as string;
         const category = formData.get("category") as string;
+        const artistStatus = formData.get("artistStatus") as string;
         const website = formData.get("website") as string;
         const imageFile = formData.get("image") as File;
 
@@ -126,9 +127,7 @@ export async function POST(request: NextRequest) {
            
             { field: "category", value: category },
             { field: "bio", value: bio },
-            { field: "yearsActiveStart", value: yearsActiveStart },
-            { field: "breakoutTrackName", value: breakoutTrackName },
-            { field: "definingProjectName", value: definingProjectName },
+           
         ];
 
         const missingFields = requiredFields
@@ -171,6 +170,7 @@ export async function POST(request: NextRequest) {
             city: city.trim(),
            
             category: category.trim(),
+            artistStatus: artistStatus?.trim() || undefined,
             shortBio: bio.trim(),
             website: website?.trim() || undefined,
             image: imageData,
@@ -185,21 +185,21 @@ export async function POST(request: NextRequest) {
             tags,
             readMoreLink: readMoreLink?.trim() || undefined,
             yearsActive: {
-                start: parseInt(yearsActiveStart, 10),
+                start:yearsActiveStart ? parseInt(yearsActiveStart, 10) : undefined,
                 end: yearsActiveEnd
                     ? parseInt(yearsActiveEnd, 10)
                     : undefined,
             },
             labelCrew: labelCrew?.trim() || undefined,
-            associatedActs,
+            associatedActs: associatedActs|| undefined,
             district: district?.trim() || undefined,
             frequentProducers,
             breakoutTrack: {
-                name: breakoutTrackName.trim(),
+                name: breakoutTrackName?.trim() || undefined,
                 url: breakoutTrackUrl?.trim() || undefined,
             },
             definingProject: {
-                name: definingProjectName.trim(),
+                name: definingProjectName?.trim() || undefined,
                 year: definingProjectYear
                     ? parseInt(definingProjectYear, 10)
                     : undefined,

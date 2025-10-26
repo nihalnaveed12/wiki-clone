@@ -6,6 +6,7 @@ export interface IRapper extends Document {
     lat: number;
     lng: number;
     category: string;
+    artistStatus?: string
     website?: string;
     socials: {
         instagram?: string;
@@ -23,23 +24,23 @@ export interface IRapper extends Document {
     tags: string[]; // Genres/Tags
     readMoreLink?: string;
     yearsActive: {
-        start: number;
+        start?: number;
         end?: number; // null if still active
     };
     status: 'active' | 'inactive';
     labelCrew?: string;
-    associatedActs: string[]; // Array of act names
+    associatedActs?: string[]; // Array of act names
     district?: string;
     frequentProducers: string[]; // Array of producer names
     breakoutTrack: {
-        name: string;
+        name?: string;
         url?: string;
     };
     definingProject: {
-        name: string;
+        name?: string;
         year?: number;
     };
-    fansOf: string[]; // Array of artists they're fans of
+    fansOf?: string[]; // Array of artists they're fans of
     submittedBy: string;
     createdAt: Date;
     updatedAt: Date;
@@ -52,6 +53,7 @@ const RapperSchema = new Schema<IRapper>(
         lat: { type: Number, required: true },
         lng: { type: Number, required: true },
         category: { type: String, required: true, trim: true },
+        artistStatus: { type: String, trim: true },
         website: { type: String, default: '' },
         socials: {
             instagram: { type: String, default: '' },
@@ -72,7 +74,7 @@ const RapperSchema = new Schema<IRapper>(
         },
         readMoreLink: { type: String, default: '' },
         yearsActive: {
-            start: { type: Number, required: true },
+            start: { type: Number, default: null },
             end: { type: Number, default: null },
         },
         status: {
@@ -91,11 +93,11 @@ const RapperSchema = new Schema<IRapper>(
             default: [],
         },
         breakoutTrack: {
-            name: { type: String, required: true },
+            name: { type: String, default: '' },
             url: { type: String, default: '' },
         },
         definingProject: {
-            name: { type: String, required: true },
+            name: { type: String, default: null},
             year: { type: Number, default: null },
         },
         fansOf: {
