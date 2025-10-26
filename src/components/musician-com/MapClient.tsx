@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { fetchMusicians } from "@/lib/fetchmusicians";
 import Link from "next/link";
-import { MapPin, Search, X, Sliders } from "lucide-react";
+import { MapPin, Search, X, Sliders, AlertCircle } from "lucide-react";
 
 // Fix Leaflet icons
 delete (L.Icon.Default.prototype as { getIconUrl?: () => string }).getIconUrl;
@@ -43,6 +43,24 @@ interface Musician {
   __v: number;
 }
 
+// California bounds
+const CALIFORNIA_BOUNDS = {
+  north: 42.0095,
+  south: 32.5295,
+  west: -124.4820,
+  east: -114.1312,
+};
+
+// Helper function to check if coordinates are in California
+const isInCalifornia = (lat: number, lng: number): boolean => {
+  return (
+    lat >= CALIFORNIA_BOUNDS.south &&
+    lat <= CALIFORNIA_BOUNDS.north &&
+    lng >= CALIFORNIA_BOUNDS.west &&
+    lng <= CALIFORNIA_BOUNDS.east
+  );
+};
+
 export default function MapClient() {
   const [search, setSearch] = useState("");
   const [musicians, setMusicians] = useState<Musician[]>([]);
@@ -55,6 +73,7 @@ export default function MapClient() {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [locationError, setLocationError] = useState("");
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Close filters when clicking outside
@@ -75,7 +94,11 @@ export default function MapClient() {
     const getMusicians = async () => {
       try {
         const data = await fetchMusicians();
-        setMusicians(data || []);
+        // Filter to only include California musicians
+        const californiaMusicians = (data || []).filter((musician) =>
+          isInCalifornia(musician.lat, musician.lng)
+        );
+        setMusicians(californiaMusicians);
       } catch (err) {
         console.error("Error fetching musicians:", err);
       } finally {
@@ -85,7 +108,7 @@ export default function MapClient() {
     getMusicians();
   }, []);
 
-  // Get unique values for filter dropdowns
+  // Get unique values for filter dropdowns (California only)
   const uniqueValues = useMemo(() => {
     const cities = new Set<string>();
     const countries = new Set<string>();
@@ -108,7 +131,7 @@ export default function MapClient() {
   const filteredMusicians = useMemo(() => {
     if (!hasInteracted) return [];
 
-    return musicians.filter((musician) => {
+    const results = musicians.filter((musician) => {
       const matchesCity =
         !filters.city ||
         musician.city?.toLowerCase().includes(filters.city.toLowerCase());
@@ -128,9 +151,33 @@ export default function MapClient() {
 
       return matchesCity && matchesCountry && matchesCategory && matchesSearch;
     });
+
+    // Check if search attempted to find non-California locations
+    if (hasInteracted && results.length === 0 && search) {
+      // Check if search term might be a non-California location
+      const searchLower = search.toLowerCase();
+      const nonCALocations = [
+        "new york",
+        "texas",
+        "florida",
+        "washington",
+        "oregon",
+        "nevada",
+        "arizona",
+      ];
+      if (nonCALocations.some((loc) => searchLower.includes(loc))) {
+        setLocationError("Only California locations are available on this map.");
+      } else {
+        setLocationError("");
+      }
+    } else {
+      setLocationError("");
+    }
+
+    return results;
   }, [musicians, filters, search, hasInteracted]);
 
-  // Map fly-to helper
+  // Map fly-to helper with California bounds restriction
   function FlyToLocation() {
     const map = useMap();
     useEffect(() => {
@@ -138,7 +185,20 @@ export default function MapClient() {
         const valid = filteredMusicians.filter((m) => m.lat && m.lng);
         if (valid.length > 0) {
           const bounds = L.latLngBounds(valid.map((m) => [m.lat, m.lng]));
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+          
+          // Ensure bounds are within California
+          const constrainedBounds = L.latLngBounds(
+            [
+              Math.max(bounds.getSouth(), CALIFORNIA_BOUNDS.south),
+              Math.max(bounds.getWest(), CALIFORNIA_BOUNDS.west)
+            ],
+            [
+              Math.min(bounds.getNorth(), CALIFORNIA_BOUNDS.north),
+              Math.min(bounds.getEast(), CALIFORNIA_BOUNDS.east)
+            ]
+          );
+          
+          map.fitBounds(constrainedBounds, { padding: [50, 50], maxZoom: 12 });
         }
       }
     }, [filteredMusicians, map]);
@@ -180,6 +240,7 @@ export default function MapClient() {
     setActiveFilters([]);
     setSearch("");
     setHasInteracted(false);
+    setLocationError("");
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +258,7 @@ export default function MapClient() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-lg text-card-foreground">
-            Loading musicians...
+            Loading California musicians...
           </p>
         </div>
       </div>
@@ -207,7 +268,7 @@ export default function MapClient() {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-xl text-muted-foreground">
-          No musicians found in the database.
+          No musicians found in California.
         </p>
       </div>
     );
@@ -220,7 +281,7 @@ export default function MapClient() {
           <Search className="text-muted-foreground mr-2" size={18} />
           <input
             type="text"
-            placeholder="Search musicians by name, city or category..."
+            placeholder="Search California musicians by name, city or category..."
             value={search}
             onChange={handleSearch}
             onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
@@ -235,6 +296,22 @@ export default function MapClient() {
         </div>
       </div>
 
+      {/* Location Error Alert */}
+      {locationError && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-20 w-[90%] max-w-md">
+          <div className="bg-destructive/10 border border-destructive rounded-lg p-3 flex items-center gap-2">
+            <AlertCircle className="text-destructive" size={18} />
+            <p className="text-sm text-destructive">{locationError}</p>
+            <button
+              onClick={() => setLocationError("")}
+              className="ml-auto text-destructive"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filter Dropdown */}
       {showFilters && (
         <div
@@ -243,7 +320,7 @@ export default function MapClient() {
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-lg text-card-foreground">
-              Filters
+              Filters (California Only)
             </h3>
             <button
               onClick={clearAllFilters}
@@ -287,7 +364,7 @@ export default function MapClient() {
               onChange={(e) => handleFilterChange("city", e.target.value)}
               className="w-full p-2 border border-border rounded-lg text-sm bg-background text-card-foreground"
             >
-              <option value="">All Cities</option>
+              <option value="">All California Cities</option>
               {uniqueValues.cities.map((city) => (
                 <option key={city} value={city}>
                   {city}
@@ -342,7 +419,7 @@ export default function MapClient() {
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-medium text-card-foreground">
               {filteredMusicians.length}{" "}
-              {filteredMusicians.length === 1 ? "result" : "results"}
+              {filteredMusicians.length === 1 ? "result" : "results"} in California
             </h3>
             <button
               onClick={clearAllFilters}
@@ -380,7 +457,9 @@ export default function MapClient() {
               ))
             ) : (
               <div className="text-center py-4 text-muted-foreground">
-                No musicians match your search/filters
+                {locationError
+                  ? "Try searching for California cities like Los Angeles, San Francisco, or San Diego"
+                  : "No musicians match your search/filters in California"}
               </div>
             )}
           </div>
@@ -390,14 +469,15 @@ export default function MapClient() {
       {/* Map */}
       <div className="w-full h-full z-0">
         <MapContainer
-          center={[37.7749, -122.4194]} // San Francisco
-          zoom={9}
+          center={[36.7783, -119.4179]} // California center
+          zoom={6}
           style={{ height: "100%", width: "100%" }}
           maxBounds={[
-            [36.5, -124.5], // Southwest corner
-            [39.0, -120.0], // Northeast corner
+            [CALIFORNIA_BOUNDS.south - 0.5, CALIFORNIA_BOUNDS.west - 0.5],
+            [CALIFORNIA_BOUNDS.north + 0.5, CALIFORNIA_BOUNDS.east + 0.5],
           ]}
-          maxBoundsViscosity={1.0} // lock within bounds
+          maxBoundsViscosity={1.0}
+          minZoom={6}
         >
           <TileLayer
             attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'

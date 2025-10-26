@@ -230,7 +230,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   {musician.yearsActive.start}
 
                   {musician.yearsActive.end
-                    ? `-${musician.yearsActive.end}`
+                    ? ` - ${musician.yearsActive.end}`
                     : "-"}
                 </span>
               </div>
