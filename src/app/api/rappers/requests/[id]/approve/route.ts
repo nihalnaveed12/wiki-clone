@@ -7,9 +7,7 @@ import User from "@/lib/database/model/User";
 
 async function checkAdminAccess(): Promise<void> {
   const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized: Please sign in");
-  }
+  if (!userId) throw new Error("Unauthorized: Please sign in");
 
   await dbConnect();
   const user = await User.findOne({ clerkId: userId });
@@ -21,39 +19,21 @@ async function checkAdminAccess(): Promise<void> {
 
 async function getCoordinates(city: string) {
   const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
-  if (!apiKey) {
-    throw new Error("OpenCage API key is not configured.");
-  }
+  if (!apiKey) throw new Error("OpenCage API key is not configured.");
 
-  const query = ` ${city}`.trim();
+  const query = city.trim();
   const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
     query
   )}&key=${apiKey}&limit=1`;
 
   try {
     const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
 
-    if (data.results && data.results.length > 0) {
+    if (data.results?.length > 0) {
       const { lat, lng } = data.results[0].geometry;
       return { lat: Number(lat), lng: Number(lng) };
-    } else {
-      const fallbackQuery = `${city}`;
-      const fallbackUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
-        fallbackQuery
-      )}&key=${apiKey}&limit=1`;
-
-      const fallbackRes = await fetch(fallbackUrl);
-      const fallbackData = await fallbackRes.json();
-
-      if (fallbackData.results && fallbackData.results.length > 0) {
-        const { lat, lng } = fallbackData.results[0].geometry;
-        return { lat: Number(lat), lng: Number(lng) };
-      }
     }
 
     throw new Error(`Could not find coordinates for: ${query}`);
@@ -77,7 +57,6 @@ export async function POST(
     const { id: requestId } = await params;
 
     const musicianRequest = await MusicianRequest.findById(requestId);
-
     if (!musicianRequest) {
       return NextResponse.json(
         { success: false, error: "Request not found" },
@@ -87,10 +66,7 @@ export async function POST(
 
     if (musicianRequest.status !== "pending") {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Request has already been processed",
-        },
+        { success: false, error: "Request has already been processed" },
         { status: 400 }
       );
     }
@@ -100,7 +76,6 @@ export async function POST(
     const rapper = await Rapper.create({
       name: musicianRequest.name,
       city: musicianRequest.city,
-
       lat,
       lng,
       category: musicianRequest.category,
@@ -123,18 +98,28 @@ export async function POST(
       },
       status: "active",
       labelCrew: musicianRequest.labelCrew || "",
+      labelCrewLink: musicianRequest.labelCrewLink || "",
       associatedActs: musicianRequest.associatedActs || [],
+      associatedActsLinks: musicianRequest.associatedActsLinks || [],
       district: musicianRequest.district || "",
+      districtLink: musicianRequest.districtLink || "",
       frequentProducers: musicianRequest.frequentProducers || [],
+      frequentProducersLink: musicianRequest.frequentProducersLink || [],
       breakoutTrack: {
         name: musicianRequest.breakoutTrack.name || "",
         url: musicianRequest.breakoutTrack.url || "",
       },
       definingProject: {
-        name: musicianRequest.definingProject.name || null,
+        name: musicianRequest.definingProject.name || "",
+        link: musicianRequest.definingProject.link || "",
         year: musicianRequest.definingProject.year || null,
       },
       fansOf: musicianRequest.fansOf || [],
+      fansOfLink: musicianRequest.fansOfLink || [],
+      // ✅ New Video Fields (flattened, not nested)
+      videoEmbed: musicianRequest.videoEmbed || "",
+      videoWidth: musicianRequest.videoWidth || 560,
+      videoHeight: musicianRequest.videoHeight || 315,
       submittedBy: musicianRequest.submittedBy,
     });
 

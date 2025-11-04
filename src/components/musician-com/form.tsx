@@ -5,7 +5,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 const schema = z.object({
@@ -59,9 +59,21 @@ const schema = z.object({
     .optional()
     .or(z.literal("")),
   labelCrew: z.string().optional().or(z.literal("")),
+  labelCrewLink: z.string().url("Invalid URL").optional().or(z.literal("")),
   associatedActs: z.string().optional().or(z.literal("")), // comma-separated
+  associatedActsLinks: z
+    .string()
+    .url("Invalid Url")
+    .optional()
+    .or(z.literal("")), // comma-separated
   district: z.string().optional().or(z.literal("")),
+  districtLink: z.string().url("Invalid URL").optional().or(z.literal("")),
   frequentProducers: z.string().optional().or(z.literal("")), // comma-separated
+  frequentProducersLink: z
+    .string()
+    .url("Invalid Url")
+    .optional()
+    .or(z.literal("")), // comma-separated
   breakoutTrackName: z.string().optional().or(z.literal("")),
   breakoutTrackUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   definingProjectName: z.string().optional().or(z.literal("")),
@@ -70,7 +82,24 @@ const schema = z.object({
     .regex(/^\d{4}$/, "Must be a valid year")
     .optional()
     .or(z.literal("")),
+  definingProjectLink: z
+    .string()
+    .url("Invalid URL")
+    .optional()
+    .or(z.literal("")),
   fansOf: z.string().optional().or(z.literal("")), // comma-separated
+  fansOfLink: z.string().url("Invalid Url").optional().or(z.literal("")), // comma-separated
+  videoEmbed: z.string().url("Invalid video URL").optional().or(z.literal("")),
+  videoWidth: z
+    .string()
+    .regex(/^\d+$/, "Width must be a number")
+    .optional()
+    .or(z.literal("")),
+  videoHeight: z
+    .string()
+    .regex(/^\d+$/, "Height must be a number")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type FormData = z.infer<typeof schema>;
@@ -188,6 +217,32 @@ const allCities = [
 
 const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
 
+function toYouTubeEmbed(url?: string | null) {
+  if (!url) return "";
+  try {
+    // accept many formats: watch?v=, youtu.be/, embed/
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    if (hostname.includes("youtu.be")) {
+      const id = u.pathname.slice(1);
+      return `https://www.youtube.com/embed/${id}`;
+    }
+    if (hostname.includes("youtube.com")) {
+      // try /watch?v=ID
+      const v = u.searchParams.get("v");
+      if (v) return `https://www.youtube.com/embed/${v}`;
+      // maybe already embed path
+      const pathParts = u.pathname.split("/");
+      const maybeId = pathParts[pathParts.length - 1];
+      if (maybeId) return `https://www.youtube.com/embed/${maybeId}`;
+    }
+    // fallback: return original (it might already be embed url)
+    return url;
+  } catch {
+    return url || "";
+  }
+}
+
 export default function MusicianForm({ submitForm }: Props) {
   const [cities, setCities] = useState<string[]>(allCities);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -198,13 +253,21 @@ export default function MusicianForm({ submitForm }: Props) {
     handleSubmit,
     watch,
     reset,
-
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      videoEmbed: "",
+      videoWidth: "560",
+      videoHeight: "315",
+    } as Partial<FormData>,
   });
 
   const imageWatch = watch("image");
+  const videoEmbedWatch = watch("videoEmbed");
+  const videoWidthWatch = watch("videoWidth");
+  const videoHeightWatch = watch("videoHeight");
 
   useEffect(() => {
     if (imageWatch && imageWatch.length > 0) {
@@ -215,11 +278,41 @@ export default function MusicianForm({ submitForm }: Props) {
     }
   }, [imageWatch]);
 
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (previewRef.current && videoWidthWatch && videoHeightWatch) {
+      previewRef.current.style.width = `${videoWidthWatch}px`;
+      previewRef.current.style.height = `${videoHeightWatch}px`;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoWidthWatch, videoHeightWatch]);
+
+  const onPreviewMouseUp = () => {
+    // when user finishes resizing the preview div (resize: both),
+    // read its size and write back to form fields
+    const el = previewRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
+
+    setValue("videoWidth", String(width));
+    setValue("videoHeight", String(height));
+  };
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await submitForm(data);
-      console.log("Form submitted:", data);
+      // ensure video defaults are set if empty
+      const prepared = {
+        ...data,
+        videoEmbed: data.videoEmbed?.trim() || "",
+        videoWidth: data.videoWidth?.toString() || "560",
+        videoHeight: data.videoHeight?.toString() || "315",
+      } as FormData;
+
+      await submitForm(prepared);
+      console.log("Form submitted:", prepared);
       reset();
       setImagePreview(null);
     } catch (error) {
@@ -322,6 +415,21 @@ export default function MusicianForm({ submitForm }: Props) {
               />
               <p className="text-destructive text-xs mt-1">
                 {errors.district?.message}
+              </p>
+            </div>
+
+            {/* District Link */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                District Link
+              </label>
+              <input
+                {...register("districtLink")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.districtLink?.message}
               </p>
             </div>
           </div>
@@ -442,6 +550,21 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
+            {/* Label/Crew Link */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Label/Crew Link
+              </label>
+              <input
+                {...register("labelCrewLink")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.labelCrewLink?.message}
+              </p>
+            </div>
+
             {/* Breakout Track Name */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -504,6 +627,21 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.definingProjectYear?.message}
               </p>
             </div>
+
+            {/* Defining Project Link */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Link
+              </label>
+              <input
+                {...register("definingProjectLink")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.definingProjectLink?.message}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -549,6 +687,24 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
+            {/* Associated Acts Links */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Associated Acts Links
+              </label>
+              <input
+                {...register("associatedActsLinks")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://artistlink.com, https://artist2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of URLs for associated acts
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.associatedActsLinks?.message}
+              </p>
+            </div>
+
             {/* Frequent Producers */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -567,6 +723,24 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
+            {/* Frequent Producers Links */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Frequent Producers Links
+              </label>
+              <input
+                {...register("frequentProducersLink")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://producerlink.com, https://producer2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of URLs for frequent producers
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.frequentProducersLink?.message}
+              </p>
+            </div>
+
             {/* Fans Of */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
@@ -582,6 +756,24 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
               <p className="text-destructive text-xs mt-1">
                 {errors.fansOf?.message}
+              </p>
+            </div>
+
+            {/* Fans Of Links */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Fans Of Links
+              </label>
+              <input
+                {...register("fansOfLink")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://influencelink.com, https://influence2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of URLs for their influences
+              </p>
+              <p className="text-destructive text-xs mt-1">
+                {errors.fansOfLink?.message}
               </p>
             </div>
           </div>
@@ -623,6 +815,83 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-card-foreground mb-1">
+            YouTube Video (optional) — paste watch or embed URL
+          </label>
+          <input
+            {...register("videoEmbed")}
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+            placeholder="https://youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/embed/VIDEO_ID"
+          />
+          <p className="text-destructive text-xs mt-1">
+            {errors.videoEmbed?.message}
+          </p>
+
+          {/* Live Preview + resizable container */}
+          {videoEmbedWatch ? (
+            <div className="mt-4">
+              <div
+                ref={previewRef}
+                onMouseUp={onPreviewMouseUp}
+                style={{
+                  resize: "both",
+                  overflow: "auto",
+                  width: `${videoWidthWatch || "560"}px`,
+                  height: `${videoHeightWatch || "315"}px`,
+                  border: "1px solid rgba(148,163,184,0.35)",
+                  borderRadius: 6,
+                }}
+              >
+                <iframe
+                  title="video preview"
+                  src={toYouTubeEmbed(videoEmbedWatch)}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, display: "block" }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
+                <label className="text-sm text-card-foreground">
+                  Width (px)
+                  <input
+                    {...register("videoWidth")}
+                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
+                    placeholder="560"
+                  />
+                  <p className="text-destructive text-xs mt-1">
+                    {errors.videoWidth?.message}
+                  </p>
+                </label>
+
+                <label className="text-sm text-card-foreground">
+                  Height (px)
+                  <input
+                    {...register("videoHeight")}
+                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
+                    placeholder="315"
+                  />
+                  <p className="text-destructive text-xs mt-1">
+                    {errors.videoHeight?.message}
+                  </p>
+                </label>
+
+                <div className="md:col-span-2 text-sm text-muted-foreground">
+                  You can drag the preview corner to resize — the width/height
+                  fields will update when you release the mouse.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-xs mt-2">
+              Paste a YouTube URL above to preview and set size.
+            </p>
+          )}
         </div>
 
         {/* Social Links & Website */}

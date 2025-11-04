@@ -6,7 +6,7 @@ export interface IRapper extends Document {
     lat: number;
     lng: number;
     category: string;
-    artistStatus?: string
+    artistStatus?: string;
     website?: string;
     socials: {
         instagram?: string;
@@ -21,17 +21,21 @@ export interface IRapper extends Document {
     };
     shortBio: string;
     audio?: string;
-    tags: string[]; // Genres/Tags
+    tags: string[];
     readMoreLink?: string;
     yearsActive: {
         start?: number;
-        end?: number; // null if still active
+        end?: number;
     };
     status: 'active' | 'inactive';
     labelCrew?: string;
-    associatedActs?: string[]; // Array of act names
+    labelCrewLink?: string;
+    associatedActs?: string[];
+    associatedActsLinks?: string[];
     district?: string;
-    frequentProducers: string[]; // Array of producer names
+    districtLink?: string;
+    frequentProducers: string[];
+    frequentProducersLink: string[];
     breakoutTrack: {
         name?: string;
         url?: string;
@@ -39,11 +43,18 @@ export interface IRapper extends Document {
     definingProject: {
         name?: string;
         year?: number;
+        link?: string;
     };
-    fansOf?: string[]; // Array of artists they're fans of
+    fansOf?: string[];
+    fansOfLink?: string[];
     submittedBy: string;
     createdAt: Date;
     updatedAt: Date;
+
+    // New fields for YouTube embed
+    videoEmbed?: string;
+    videoWidth?: number;
+    videoHeight?: number;
 }
 
 const RapperSchema = new Schema<IRapper>(
@@ -68,10 +79,7 @@ const RapperSchema = new Schema<IRapper>(
         },
         shortBio: { type: String, required: true, trim: true, maxlength: 500 },
         audio: { type: String, default: '' },
-        tags: {
-            type: [String],
-            default: [],
-        },
+        tags: { type: [String], default: [] },
         readMoreLink: { type: String, default: '' },
         yearsActive: {
             start: { type: Number, default: null },
@@ -83,32 +91,35 @@ const RapperSchema = new Schema<IRapper>(
             default: 'active',
         },
         labelCrew: { type: String, default: '' },
-        associatedActs: {
-            type: [String],
-            default: [],
-        },
+        labelCrewLink: { type: String, default: '' },
+        associatedActs: { type: [String], default: [] },
+        associatedActsLinks: { type: [String], default: [] },
         district: { type: String, default: '' },
-        frequentProducers: {
-            type: [String],
-            default: [],
-        },
+        districtLink: { type: String, default: '' },
+        frequentProducers: { type: [String], default: [] },
+        frequentProducersLink: { type: [String], default: [] },
         breakoutTrack: {
             name: { type: String, default: '' },
             url: { type: String, default: '' },
         },
         definingProject: {
-            name: { type: String, default: null},
+            name: { type: String, default: '' },
             year: { type: Number, default: null },
+            link: { type: String, default: '' },
         },
-        fansOf: {
-            type: [String],
-            default: [],
-        },
+        fansOf: { type: [String], default: [] },
+        fansOfLink: { type: [String], default: [] },
         submittedBy: { type: String, default: '' },
+
+        // NEW FIELDS
+        videoEmbed: { type: String, default: '' },
+        videoWidth: { type: Number, default: 560 },
+        videoHeight: { type: Number, default: 315 },
     },
     { timestamps: true }
 );
 
-const Rapper = mongoose.models.Rapper || mongoose.model<IRapper>('Rapper', RapperSchema);
+const Rapper =
+    mongoose.models.Rapper || mongoose.model<IRapper>('Rapper', RapperSchema);
 
 export default Rapper;

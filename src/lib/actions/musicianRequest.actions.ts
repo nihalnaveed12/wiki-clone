@@ -32,9 +32,17 @@ interface MusicianRequestParams {
     end?: number;
   };
   labelCrew?: string;
+  labelCrewLink?: string;
   associatedActs?: string[];
+  associatedActsLinks?: string[];
   district?: string;
+  districtLink?: string;
   frequentProducers: string[];
+  frequentProducersLink: string[];
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
+
   breakoutTrack: {
     name?: string;
     url?: string;
@@ -42,8 +50,10 @@ interface MusicianRequestParams {
   definingProject: {
     name?: string;
     year?: number;
+    link?: string;
   };
   fansOf?: string[];
+  fansOfLink?: string[];
   submittedBy?: string;
 }
 
@@ -132,7 +142,7 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       name: params.name,
       city: params.city,
       category: params.category,
-      artistStatus: params.artistStatus || '',
+      artistStatus: params.artistStatus || "",
       website: params.website || "",
       socials: {
         instagram: params.socials.instagram || "",
@@ -151,18 +161,28 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
         end: params.yearsActive.end || null,
       },
       labelCrew: params.labelCrew || "",
+      labelCrewLink: params.labelCrewLink || "",
       associatedActs: params.associatedActs || [],
+      associatedActsLinks: params.associatedActsLinks || [],
       district: params.district || "",
+      districtLink: params.districtLink || "",
       frequentProducers: params.frequentProducers || [],
+      frequentProducersLink: params.frequentProducersLink || [],
+      videoEmbed: params.videoEmbed || "",
+      videoWidth: params.videoWidth || null,
+      videoHeight: params.videoHeight || null,
+
       breakoutTrack: {
         name: params.breakoutTrack.name || "",
         url: params.breakoutTrack.url || "",
       },
       definingProject: {
-        name: params.definingProject.name || null,
+        name: params.definingProject.name || "",
+        link: params.definingProject.link || "",
         year: params.definingProject.year || null,
       },
       fansOf: params.fansOf || [],
+      fansOfLink: params.fansOfLink || [],
       submittedBy: params.submittedBy,
       status: "pending",
     });
@@ -252,18 +272,29 @@ export async function approveMusicianRequest(_id: string) {
       },
       status: "active",
       labelCrew: request.labelCrew || "",
+      labelCrewLink: request.labelCrewLink || "",
       associatedActs: request.associatedActs || [],
+      associatedActsLink: request.associatedActsLink || [],
+
       district: request.district || "",
+      districtLink: request.districtLink || "",
       frequentProducers: request.frequentProducers || [],
+      frequentProducersLink: request.frequentProducersLink || [],
+      videoEmbed: request.videoEmbed || "",
+      videoWidth: request.videoWidth || null,
+      videoHeight: request.videoHeight || null,
+
       breakoutTrack: {
         name: request.breakoutTrack.name || "",
         url: request.breakoutTrack.url || "",
       },
       definingProject: {
-        name: request.definingProject.name || null,
+        name: request.definingProject.name || "",
+        link: request.definingProject.link || "",
         year: request.definingProject.year || null,
       },
       fansOf: request.fansOf || [],
+      fansOfLink: request.fansOfLink || [],
     });
 
     await MusicianRequest.findByIdAndUpdate(_id, {

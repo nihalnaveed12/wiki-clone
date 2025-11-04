@@ -54,12 +54,16 @@ interface Musician {
   };
 
   labelCrew?: string;
+  labelCrewLink?: string;
 
   associatedActs?: string;
+  associatedActsLinks?: string;
 
   district?: string;
+  districtLink?: string;
 
   frequentProducers?: string;
+  frequentProducersLink?: string;
 
   breakoutTrack: {
     name?: string;
@@ -69,9 +73,14 @@ interface Musician {
   definingProject: {
     name?: string;
     year?: string;
+    link?: string;
   };
 
   fansOf?: string;
+  fansOfLink?: string;
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
 }
 
 interface Props {
@@ -120,16 +129,34 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     ? musician.associatedActs.split(",").map((a) => a.trim())
     : [];
 
+  const associatedActsLinksArray = Array.isArray(musician.associatedActsLinks)
+    ? musician.associatedActsLinks
+    : typeof musician.associatedActsLinks === "string"
+    ? musician.associatedActsLinks.split(",").map((l) => l.trim())
+    : [];
+
   const producersArray = Array.isArray(musician.frequentProducers)
     ? musician.frequentProducers
     : typeof musician.frequentProducers === "string"
     ? musician.frequentProducers.split(",").map((p) => p.trim())
     : [];
 
+  const producersLinksArray = Array.isArray(musician.frequentProducersLink)
+    ? musician.frequentProducersLink
+    : typeof musician.frequentProducersLink === "string"
+    ? musician.frequentProducersLink.split(",").map((l) => l.trim())
+    : [];
+
   const fansOfArray = Array.isArray(musician.fansOf)
     ? musician.fansOf
     : typeof musician.fansOf === "string"
     ? musician.fansOf.split(",").map((f) => f.trim())
+    : [];
+
+  const fansOfLinksArray = Array.isArray(musician.fansOfLink)
+    ? musician.fansOfLink
+    : typeof musician.fansOfLink === "string"
+    ? musician.fansOfLink.split(",").map((l) => l.trim())
     : [];
 
   console.log("MusicianProfileClient rendered with musician:", musician);
@@ -140,29 +167,61 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
         <div className="space-y-8">
           <div className="flex items-start justify-between">
             <div className="flex gap-6">
-              <div
-                className="relative cursor-pointer flex-shrink-0"
-                onClick={handlePlayAudio}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-              >
-                <Image
-                  src={musician.image.url}
-                  alt={musician.name}
-                  width={140}
-                  height={140}
-                  className="rounded object-cover w-36 h-36"
-                />
+              <div className="flex flex-col gap-4">
+                <div
+                  className="relative cursor-pointer flex-shrink-0"
+                  onClick={handlePlayAudio}
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                >
+                  <Image
+                    src={musician.image.url}
+                    alt={musician.name}
+                    width={140}
+                    height={140}
+                    className="rounded object-cover w-36 h-36"
+                  />
 
-                {isHovering && musician.audio && (
-                  <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
-                    {isPlaying ? (
-                      <Pause className="w-8 h-8" />
-                    ) : (
-                      <PlayIcon className="w-8 h-8" />
-                    )}
-                  </span>
-                )}
+                  {isHovering && musician.audio && (
+                    <span className="absolute inset-0 bg-black/60 flex items-center justify-center text-white">
+                      {isPlaying ? (
+                        <Pause className="w-8 h-8" />
+                      ) : (
+                        <PlayIcon className="w-8 h-8" />
+                      )}
+                    </span>
+                  )}
+                </div>
+
+                <div className="">
+                  {musician.videoEmbed && (
+                    <div className="mt-6">
+                      <div
+                        className="relative border border-gray-700 rounded-lg resize overflow-hidden bg-black"
+                        style={{
+                          width: musician.videoWidth || 400,
+                          height: musician.videoHeight || 300,
+                          minWidth: 100,
+                          minHeight: 100,
+                          resize: "both", // enables manual resizing
+                        }}
+                      >
+                        <iframe
+                          src={
+                            musician.videoEmbed.includes("youtube.com/embed/")
+                              ? musician.videoEmbed
+                              : musician.videoEmbed.replace(
+                                  /(youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/,
+                                  "www.youtube.com/embed/$2"
+                                )
+                          }
+                          className="absolute top-0 left-0 w-full h-full rounded-lg"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex-1">
@@ -241,11 +300,17 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 <span>{musician.category}</span>
               </div>
 
-              {musician.labelCrew && (
+              {musician.labelCrew && musician.labelCrewLink && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Label / Crew:</span>
 
-                  <span>{musician.labelCrew}</span>
+                  <Link
+                    href={musician.labelCrewLink ? musician.labelCrewLink : "#"}
+                    target="_blank"
+                    className="text-blue-400 hover:underline"
+                  >
+                    {musician.labelCrew}
+                  </Link>
                 </div>
               )}
 
@@ -261,13 +326,18 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Associated Acts:</span>
 
-                  <span>
-                    {associatedActsArray.map((act, idx) => (
-                      <span key={idx}>
-                        [ {act} ]{idx < associatedActsArray.length - 1 && " "}
-                      </span>
-                    ))}
-                  </span>
+                  <Link
+                    href={
+                      associatedActsLinksArray.length ===
+                      associatedActsArray.length
+                        ? associatedActsLinksArray[0]
+                        : "#"
+                    }
+                    target="_blank"
+                    className="text-blue-400 hover:underline"
+                  >
+                    {associatedActsArray.join(", ")}
+                  </Link>
                 </div>
               )}
 
@@ -277,7 +347,13 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                     Neighborhood / District:
                   </span>
 
-                  <span>{musician.district}</span>
+                  <Link
+                    href={musician.districtLink ? musician.districtLink : "#"}
+                    target="_blank"
+                    className="text-blue-400 hover:underline"
+                  >
+                    {musician.district}
+                  </Link>
                 </div>
               )}
 
@@ -285,7 +361,17 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Frequent Producer(s):</span>
 
-                  <span>{producersArray.join(", ")}</span>
+                  <Link
+                    href={
+                      producersLinksArray.length === producersArray.length
+                        ? producersLinksArray[0]
+                        : "#"
+                    }
+                    target="_blank"
+                    className="text-blue-400 hover:underline"
+                  >
+                    {producersArray.join(", ")}
+                  </Link>
                 </div>
               )}
 
@@ -314,7 +400,17 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   <span className="text-gray-400">Defining Project:</span>
 
                   <span>
-                    {musician.definingProject.name}
+                    {musician.definingProject.link ? (
+                      <Link
+                        href={musician.definingProject.link}
+                        target="_blank"
+                        className="text-blue-400 hover:underline"
+                      >
+                        {musician.definingProject.name}
+                      </Link>
+                    ) : (
+                      musician.definingProject.name
+                    )}
 
                     {musician.definingProject.year &&
                       ` (${musician.definingProject.year})`}
@@ -343,9 +439,18 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
               <div className="flex flex-wrap gap-2">
                 {fansOfArray.map((artist, idx) => (
-                  <span key={idx} className="text-sm">
-                    [ {artist} ]{idx < fansOfArray.length - 1 && " "}
-                  </span>
+                  <Link
+                    key={idx}
+                    href={
+                      fansOfLinksArray.length === fansOfArray.length
+                        ? fansOfLinksArray[idx]
+                        : "#"
+                    }
+                    target="_blank"
+                    className="px-4 py-2 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+                  >
+                    {artist}
+                  </Link>
                 ))}
               </div>
             </div>
