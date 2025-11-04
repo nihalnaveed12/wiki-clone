@@ -34,19 +34,12 @@ const schema = z.object({
   twitter: z.string().url("Invalid Twitter URL").optional().or(z.literal("")),
   audio: z
     .string()
-    .url("Invalid audio URL")
-    .refine(
-      (url) =>
-        url.endsWith(".mp3") || url.endsWith(".wav") || url.endsWith(".ogg"),
-      {
-        message: "Only .mp3, .wav, or .ogg files are allowed",
-      }
-    )
+    .url("Invalid URL")
     .optional()
     .or(z.literal("")),
 
   // New Fields
-  tags: z.string().optional().or(z.literal("")), // comma-separated
+  tags: z.string().optional().or(z.literal("")),
   readMoreLink: z.string().url("Invalid URL").optional().or(z.literal("")),
   yearsActiveStart: z
     .string()
@@ -60,20 +53,20 @@ const schema = z.object({
     .or(z.literal("")),
   labelCrew: z.string().optional().or(z.literal("")),
   labelCrewLink: z.string().url("Invalid URL").optional().or(z.literal("")),
-  associatedActs: z.string().optional().or(z.literal("")), // comma-separated
+  associatedActs: z.string().optional().or(z.literal("")),
   associatedActsLinks: z
     .string()
     .url("Invalid Url")
     .optional()
-    .or(z.literal("")), // comma-separated
+    .or(z.literal("")),
   district: z.string().optional().or(z.literal("")),
   districtLink: z.string().url("Invalid URL").optional().or(z.literal("")),
-  frequentProducers: z.string().optional().or(z.literal("")), // comma-separated
+  frequentProducers: z.string().optional().or(z.literal("")),
   frequentProducersLink: z
     .string()
     .url("Invalid Url")
     .optional()
-    .or(z.literal("")), // comma-separated
+    .or(z.literal("")),
   breakoutTrackName: z.string().optional().or(z.literal("")),
   breakoutTrackUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   definingProjectName: z.string().optional().or(z.literal("")),
@@ -87,8 +80,8 @@ const schema = z.object({
     .url("Invalid URL")
     .optional()
     .or(z.literal("")),
-  fansOf: z.string().optional().or(z.literal("")), // comma-separated
-  fansOfLink: z.string().url("Invalid Url").optional().or(z.literal("")), // comma-separated
+  fansOf: z.string().optional().or(z.literal("")),
+  fansOfLink: z.string().url("Invalid Url").optional().or(z.literal("")),
   videoEmbed: z.string().url("Invalid video URL").optional().or(z.literal("")),
   videoWidth: z
     .string()
@@ -220,7 +213,6 @@ const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
 function toYouTubeEmbed(url?: string | null) {
   if (!url) return "";
   try {
-    // accept many formats: watch?v=, youtu.be/, embed/
     const u = new URL(url);
     const hostname = u.hostname.replace("www.", "");
     if (hostname.includes("youtu.be")) {
@@ -228,18 +220,54 @@ function toYouTubeEmbed(url?: string | null) {
       return `https://www.youtube.com/embed/${id}`;
     }
     if (hostname.includes("youtube.com")) {
-      // try /watch?v=ID
       const v = u.searchParams.get("v");
       if (v) return `https://www.youtube.com/embed/${v}`;
-      // maybe already embed path
       const pathParts = u.pathname.split("/");
       const maybeId = pathParts[pathParts.length - 1];
       if (maybeId) return `https://www.youtube.com/embed/${maybeId}`;
     }
-    // fallback: return original (it might already be embed url)
     return url;
   } catch {
     return url || "";
+  }
+}
+
+// Extract YouTube video ID from URL
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    
+    if (hostname.includes("youtu.be")) {
+      return u.pathname.slice(1).split("?")[0];
+    }
+    
+    if (hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      
+      const pathParts = u.pathname.split("/");
+      if (pathParts.includes("embed") || pathParts.includes("v")) {
+        return pathParts[pathParts.length - 1];
+      }
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Check if URL is a YouTube link
+function isYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    return hostname.includes("youtube.com") || hostname.includes("youtu.be");
+  } catch {
+    return false;
   }
 }
 
@@ -247,6 +275,7 @@ export default function MusicianForm({ submitForm }: Props) {
   const [cities, setCities] = useState<string[]>(allCities);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [audioType, setAudioType] = useState<"youtube" | "direct" | null>(null);
 
   const {
     register,
@@ -268,6 +297,7 @@ export default function MusicianForm({ submitForm }: Props) {
   const videoEmbedWatch = watch("videoEmbed");
   const videoWidthWatch = watch("videoWidth");
   const videoHeightWatch = watch("videoHeight");
+  const audioWatch = watch("audio");
 
   useEffect(() => {
     if (imageWatch && imageWatch.length > 0) {
@@ -278,18 +308,28 @@ export default function MusicianForm({ submitForm }: Props) {
     }
   }, [imageWatch]);
 
+  // Detect audio type
+  useEffect(() => {
+    if (audioWatch) {
+      if (isYouTubeUrl(audioWatch)) {
+        setAudioType("youtube");
+      } else {
+        setAudioType("direct");
+      }
+    } else {
+      setAudioType(null);
+    }
+  }, [audioWatch]);
+
   const previewRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (previewRef.current && videoWidthWatch && videoHeightWatch) {
       previewRef.current.style.width = `${videoWidthWatch}px`;
       previewRef.current.style.height = `${videoHeightWatch}px`;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoWidthWatch, videoHeightWatch]);
 
   const onPreviewMouseUp = () => {
-    // when user finishes resizing the preview div (resize: both),
-    // read its size and write back to form fields
     const el = previewRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -303,7 +343,6 @@ export default function MusicianForm({ submitForm }: Props) {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      // ensure video defaults are set if empty
       const prepared = {
         ...data,
         videoEmbed: data.videoEmbed?.trim() || "",
@@ -315,6 +354,7 @@ export default function MusicianForm({ submitForm }: Props) {
       console.log("Form submitted:", prepared);
       reset();
       setImagePreview(null);
+      setAudioType(null);
     } catch (error) {
       console.error("Form submission error:", error);
     } finally {
@@ -334,7 +374,6 @@ export default function MusicianForm({ submitForm }: Props) {
             Basic Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Name *
@@ -348,7 +387,6 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.name?.message}
               </p>
             </div>
-            {/* Category */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Category *
@@ -403,7 +441,6 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.artistStatus?.message}
               </p>
             </div>
-            {/* District */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 District
@@ -418,7 +455,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* District Link */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 District Link
@@ -496,7 +532,6 @@ export default function MusicianForm({ submitForm }: Props) {
             Career Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Years Active Start */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Years Active (Start) *
@@ -514,7 +549,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Years Active End */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Years Active (End)
@@ -535,7 +569,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Label/Crew */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Label/Crew
@@ -550,7 +583,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Label/Crew Link */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Label/Crew Link
@@ -565,7 +597,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Breakout Track Name */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Breakout Track Name *
@@ -580,7 +611,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Breakout Track URL */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Breakout Track URL
@@ -595,7 +625,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Defining Project Name */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Defining Project Name *
@@ -610,7 +639,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Defining Project Year */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Defining Project Year
@@ -628,7 +656,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Defining Project Link */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Defining Project Link
@@ -651,7 +678,6 @@ export default function MusicianForm({ submitForm }: Props) {
             Music & Influences
           </h2>
           <div className="space-y-6">
-            {/* Tags */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Tags/Genres
@@ -669,7 +695,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Associated Acts */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Associated Acts
@@ -687,7 +712,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Associated Acts Links */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Associated Acts Links
@@ -705,7 +729,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Frequent Producers */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Frequent Producers
@@ -723,7 +746,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Frequent Producers Links */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Frequent Producers Links
@@ -741,7 +763,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Fans Of */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Fans Of (Influences)
@@ -759,7 +780,6 @@ export default function MusicianForm({ submitForm }: Props) {
               </p>
             </div>
 
-            {/* Fans Of Links */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Fans Of Links
@@ -785,19 +805,54 @@ export default function MusicianForm({ submitForm }: Props) {
             Audio & Links
           </h2>
           <div className="space-y-6">
-            {/* Audio URL */}
+            {/* Audio URL - Now accepts YouTube or Direct Links */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
-                Audio URL (only .mp3, .wav, .ogg)
+                Audio URL (YouTube or Direct MP3/WAV/OGG)
               </label>
               <input
                 {...register("audio")}
-                placeholder="https://example.com/song.mp3"
+                placeholder="https://youtube.com/watch?v=... or https://example.com/song.mp3"
                 className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
+              <p className="text-muted-foreground text-xs mt-1">
+                {audioType === "youtube" 
+                  ? "✓ YouTube link detected - will be converted to audio for playback"
+                  : audioType === "direct"
+                  ? "✓ Direct audio link detected"
+                  : "Paste a YouTube URL or direct audio file link (.mp3, .wav, .ogg)"}
+              </p>
               <p className="text-destructive text-xs mt-1">
                 {errors.audio?.message}
               </p>
+              
+              {/* Audio Preview */}
+              {audioWatch && audioType === "youtube" && (
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-sm text-card-foreground mb-2">
+                    <strong>Preview:</strong> YouTube audio detected
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Video ID: {extractYouTubeId(audioWatch)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Note: On the musician profile, this will play as audio using YouTube's audio player.
+                  </p>
+                </div>
+              )}
+              
+              {audioWatch && audioType === "direct" && (
+                <div className="mt-3">
+                  <audio 
+                    controls 
+                    src={audioWatch}
+                    className="w-full"
+                    style={{ maxHeight: "40px" }}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
             </div>
 
             {/* Read More Link */}
@@ -994,26 +1049,3 @@ export default function MusicianForm({ submitForm }: Props) {
     </div>
   );
 }
-
-const Select = ({ label, options, error, ...props }: any) => (
-  <div>
-    {" "}
-    <label className="block text-sm font-medium text-card-foreground mb-1">
-      {label}
-    </label>{" "}
-    <select
-      {...props}
-      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-card-foreground focus:border-primary"
-    >
-      {" "}
-      <option value="">Select...</option>{" "}
-      {options.map((opt: string) => (
-        <option key={opt} value={opt}>
-          {" "}
-          {opt}{" "}
-        </option>
-      ))}{" "}
-    </select>{" "}
-    {error && <p className="text-destructive text-xs mt-1">{error}</p>}{" "}
-  </div>
-);

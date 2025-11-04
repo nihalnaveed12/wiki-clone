@@ -1,81 +1,54 @@
 "use client";
 
 import Image from "next/image";
-
 import Link from "next/link";
-
 import { MapPin, Globe, Pause, PlayIcon, ExternalLink } from "lucide-react";
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface Musician {
   _id: string;
-
   name: string;
-
   city: string;
-
   category: string;
-
   shortBio: string;
-
   website: string;
   artistStatus?: string;
-
   image: {
     id: string;
-
     url: string;
   };
-
   socials: {
     instagram: string;
-
     youtube: string;
-
     spotify: string;
-
     soundcloud: string;
   };
-
   createdAt: string;
-
   submittedBy: string;
-
   audio?: string;
-
   tags?: string;
-
   readMoreLink?: string;
-
   yearsActive: {
     end?: string;
     start?: string;
   };
-
   labelCrew?: string;
   labelCrewLink?: string;
-
   associatedActs?: string;
   associatedActsLinks?: string;
-
   district?: string;
   districtLink?: string;
-
   frequentProducers?: string;
   frequentProducersLink?: string;
-
   breakoutTrack: {
     name?: string;
     url?: string;
   };
-
   definingProject: {
     name?: string;
     year?: string;
     link?: string;
   };
-
   fansOf?: string;
   fansOfLink?: string;
   videoEmbed?: string;
@@ -85,14 +58,93 @@ interface Musician {
 
 interface Props {
   musician: Musician;
-
   canEdit: boolean | string | null;
+}
+
+// Helper function to check if URL is YouTube
+function isYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    return hostname.includes("youtube.com") || hostname.includes("youtu.be");
+  } catch {
+    return false;
+  }
+}
+
+// Helper function to extract YouTube video ID
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    
+    if (hostname.includes("youtu.be")) {
+      return u.pathname.slice(1).split("?")[0];
+    }
+    
+    if (hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      
+      const pathParts = u.pathname.split("/");
+      if (pathParts.includes("embed") || pathParts.includes("v")) {
+        return pathParts[pathParts.length - 1];
+      }
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export default function MusicianProfileClient({ musician, canEdit }: Props) {
   const [isHovering, setIsHovering] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isYouTubeAudio, setIsYouTubeAudio] = useState(false);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const youtubePlayerRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Check if audio is YouTube on mount
+  useEffect(() => {
+    if (musician.audio) {
+      const isYT = isYouTubeUrl(musician.audio);
+      setIsYouTubeAudio(isYT);
+      
+      if (isYT) {
+        const videoId = extractYouTubeId(musician.audio);
+        setYoutubeVideoId(videoId);
+      }
+    }
+  }, [musician.audio]);
+
+  // Setup YouTube player messaging
+  useEffect(() => {
+    if (isYouTubeAudio && youtubePlayerRef.current) {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== "https://www.youtube.com") return;
+        
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "onStateChange") {
+            // -1: unstarted, 0: ended, 1: playing, 2: paused
+            if (data.info === 0) {
+              setIsPlaying(false);
+            }
+          }
+        } catch (e) {
+          // Not a YouTube message
+        }
+      };
+
+      window.addEventListener("message", handleMessage);
+      return () => window.removeEventListener("message", handleMessage);
+    }
+  }, [isYouTubeAudio]);
 
   const handlePlayAudio = () => {
     if (!musician.audio) {
@@ -100,14 +152,37 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
       return;
     }
 
+    // Handle YouTube Audio
+    if (isYouTubeAudio && youtubePlayerRef.current) {
+      const iframe = youtubePlayerRef.current;
+      
+      if (isPlaying) {
+        // Pause YouTube video
+        iframe.contentWindow?.postMessage(
+          JSON.stringify({ event: "command", func: "pauseVideo", args: "" }),
+          "*"
+        );
+        setIsPlaying(false);
+      } else {
+        // Play YouTube video
+        iframe.contentWindow?.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: "" }),
+          "*"
+        );
+        setIsPlaying(true);
+      }
+      return;
+    }
+
+    // Handle Direct Audio (MP3, WAV, OGG)
     if (!audioRef.current) {
       audioRef.current = new Audio(musician.audio);
-      audioRef.current.addEventListener("ended", () => setIsPlaying(false)); // reset on end
+      audioRef.current.addEventListener("ended", () => setIsPlaying(false));
     }
 
     if (isPlaying) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0; // reset position (optional)
+      audioRef.current.currentTime = 0;
       setIsPlaying(false);
     } else {
       audioRef.current
@@ -163,6 +238,16 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
   return (
     <div className="bg-black text-white min-h-screen">
+      {/* Hidden YouTube iframe for audio playback */}
+      {isYouTubeAudio && youtubeVideoId && (
+        <iframe
+          ref={youtubePlayerRef}
+          src={`https://www.youtube.com/embed/${youtubeVideoId}?enablejsapi=1&controls=0`}
+          style={{ display: "none" }}
+          allow="autoplay"
+        />
+      )}
+
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="space-y-8">
           <div className="flex items-start justify-between">
@@ -203,7 +288,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                           height: musician.videoHeight || 300,
                           minWidth: 100,
                           minHeight: 100,
-                          resize: "both", // enables manual resizing
+                          resize: "both",
                         }}
                       >
                         <iframe
@@ -231,7 +316,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   {tagsArray.map((tag, idx) => (
                     <span key={idx} className="text-xs text-gray-400">
                       {tag}
-
                       {idx < tagsArray.length - 1 && " •"}
                     </span>
                   ))}
@@ -239,7 +323,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
                 <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
                   <MapPin className="w-4 h-4" />
-
                   <span>{musician.city}, California</span>
                 </div>
 
@@ -284,10 +367,8 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-[160px_1fr] gap-4">
                 <span className="text-gray-400">Years Active:</span>
-
                 <span>
                   {musician.yearsActive.start}
-
                   {musician.yearsActive.end
                     ? ` - ${musician.yearsActive.end}`
                     : "-"}
@@ -296,14 +377,12 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
               <div className="grid grid-cols-[160px_1fr] gap-4">
                 <span className="text-gray-400">Category:</span>
-
                 <span>{musician.category}</span>
               </div>
 
               {musician.labelCrew && musician.labelCrewLink && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Label / Crew:</span>
-
                   <Link
                     href={musician.labelCrewLink ? musician.labelCrewLink : "#"}
                     target="_blank"
@@ -317,7 +396,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {musician.artistStatus && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Artist Status:</span>
-
                   <span>{musician.artistStatus}</span>
                 </div>
               )}
@@ -325,7 +403,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {associatedActsArray.length > 0 && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Associated Acts:</span>
-
                   <Link
                     href={
                       associatedActsLinksArray.length ===
@@ -346,7 +423,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   <span className="text-gray-400">
                     Neighborhood / District:
                   </span>
-
                   <Link
                     href={musician.districtLink ? musician.districtLink : "#"}
                     target="_blank"
@@ -360,7 +436,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {producersArray.length > 0 && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Frequent Producer(s):</span>
-
                   <Link
                     href={
                       producersLinksArray.length === producersArray.length
@@ -378,7 +453,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {musician.breakoutTrack && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Breakout Track:</span>
-
                   <span>
                     {musician.breakoutTrack.url ? (
                       <Link
@@ -398,7 +472,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {musician.definingProject && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Defining Project:</span>
-
                   <span>
                     {musician.definingProject.link ? (
                       <Link
@@ -411,7 +484,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                     ) : (
                       musician.definingProject.name
                     )}
-
                     {musician.definingProject.year &&
                       ` (${musician.definingProject.year})`}
                   </span>
@@ -436,7 +508,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
           {fansOfArray.length > 0 && (
             <div className="border-t border-gray-800 pt-6">
               <h2 className="text-lg font-semibold mb-4">For Fans Of</h2>
-
               <div className="flex flex-wrap gap-2">
                 {fansOfArray.map((artist, idx) => (
                   <Link
@@ -458,7 +529,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
           <div className="border-t border-gray-800 pt-6">
             <h2 className="text-lg font-semibold mb-4">Socials</h2>
-
             <div className="flex flex-wrap gap-3">
               {musician.socials.youtube && (
                 <Link
@@ -469,7 +539,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   YouTube
                 </Link>
               )}
-
               {musician.socials.spotify && (
                 <Link
                   href={musician.socials.spotify}
@@ -479,7 +548,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   Spotify
                 </Link>
               )}
-
               {musician.socials.soundcloud && (
                 <Link
                   href={musician.socials.soundcloud}
@@ -489,7 +557,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                   SoundCloud
                 </Link>
               )}
-
               {musician.socials.instagram && (
                 <Link
                   href={musician.socials.instagram}
