@@ -1,25 +1,52 @@
-interface Musicians {
+ export interface Musicians {
+  _id: string;
+  name: string;
+  city: string;
+  category: string;
+  shortBio: string;
+  website: string;
+  artistStatus?: string;
+  image: {
+    id: string;
+    url: string;
+  };
   socials: {
     instagram: string;
     youtube: string;
     spotify: string;
     soundcloud: string;
   };
-  image: {
-    id: string;
-    url: string;
-  };
-  _id: string;
-  name: string;
-  city: string;
-  lat: number;
-  lng: number;
-  category: string;
-  shortBio: string;
-  website:string
   createdAt: string;
-  updatedAt: string;
-  __v: number;
+  submittedBy: string;
+  audio?: string;
+  tags?: string;
+  readMoreLink?: string;
+  yearsActive: {
+    end?: string;
+    start?: string;
+  };
+  labelCrew?: string;
+  labelCrewLink?: string;
+  associatedActs?: string;
+  associatedActsLinks?: string;
+  district?: string;
+  districtLink?: string;
+  frequentProducers?: string;
+  frequentProducersLink?: string;
+  breakoutTrack: {
+    name?: string;
+    url?: string;
+  };
+  definingProject: {
+    name?: string;
+    year?: string;
+    link?: string;
+  };
+  fansOf?: string;
+  fansOfLink?: string;
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
 }
 export async function fetchMusicians(baseUrl: string):Promise<Musicians[]>  {
   const res = await fetch(`${baseUrl}/api/rappers`);

@@ -62,7 +62,7 @@ interface Props {
 }
 
 // Helper function to check if URL is YouTube
-function isYouTubeUrl(url: string): boolean {
+export function isYouTubeUrl(url: string): boolean {
   if (!url) return false;
   try {
     const u = new URL(url);
@@ -74,26 +74,26 @@ function isYouTubeUrl(url: string): boolean {
 }
 
 // Helper function to extract YouTube video ID
-function extractYouTubeId(url: string): string | null {
+export function extractYouTubeId(url: string): string | null {
   if (!url) return null;
   try {
     const u = new URL(url);
     const hostname = u.hostname.replace("www.", "");
-    
+
     if (hostname.includes("youtu.be")) {
       return u.pathname.slice(1).split("?")[0];
     }
-    
+
     if (hostname.includes("youtube.com")) {
       const v = u.searchParams.get("v");
       if (v) return v;
-      
+
       const pathParts = u.pathname.split("/");
       if (pathParts.includes("embed") || pathParts.includes("v")) {
         return pathParts[pathParts.length - 1];
       }
     }
-    
+
     return null;
   } catch {
     return null;
@@ -105,7 +105,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isYouTubeAudio, setIsYouTubeAudio] = useState(false);
   const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const youtubePlayerRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -114,7 +114,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     if (musician.audio) {
       const isYT = isYouTubeUrl(musician.audio);
       setIsYouTubeAudio(isYT);
-      
+
       if (isYT) {
         const videoId = extractYouTubeId(musician.audio);
         setYoutubeVideoId(videoId);
@@ -127,7 +127,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     if (isYouTubeAudio && youtubePlayerRef.current) {
       const handleMessage = (event: MessageEvent) => {
         if (event.origin !== "https://www.youtube.com") return;
-        
+
         try {
           const data = JSON.parse(event.data);
           if (data.event === "onStateChange") {
@@ -155,7 +155,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     // Handle YouTube Audio
     if (isYouTubeAudio && youtubePlayerRef.current) {
       const iframe = youtubePlayerRef.current;
-      
+
       if (isPlaying) {
         // Pause YouTube video
         iframe.contentWindow?.postMessage(
@@ -254,7 +254,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
             <div className="flex gap-6">
               <div className="flex flex-col gap-4">
                 <div
-                  className="relative cursor-pointer flex-shrink-0"
+                  className="relative cursor-pointer w-36 h-36"
                   onClick={handlePlayAudio}
                   onMouseEnter={() => setIsHovering(true)}
                   onMouseLeave={() => setIsHovering(false)}
@@ -264,7 +264,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                     alt={musician.name}
                     width={140}
                     height={140}
-                    className="rounded object-cover w-36 h-36"
+                    className="rounded relative object-cover w-36 h-36"
                   />
 
                   {isHovering && musician.audio && (
@@ -413,7 +413,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                     target="_blank"
                     className="text-blue-400 hover:underline"
                   >
-                    {associatedActsArray.join(", ")}
+                    {associatedActsArray.join(" ")}
                   </Link>
                 </div>
               )}
@@ -445,7 +445,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                     target="_blank"
                     className="text-blue-400 hover:underline"
                   >
-                    {producersArray.join(", ")}
+                    {producersArray.join(" ")}
                   </Link>
                 </div>
               )}
