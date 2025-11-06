@@ -251,7 +251,8 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="space-y-8">
           <div className="flex items-start justify-between">
-            <div className="flex gap-6">
+            <div className="flex gap-12">
+
               <div className="flex flex-col gap-4">
                 <div
                   className="relative cursor-pointer w-36 h-36"

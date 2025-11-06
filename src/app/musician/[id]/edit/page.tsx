@@ -2,17 +2,17 @@
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface MusicianFormData {
   name: string;
   city: string;
   category: string;
-
   shortBio: string;
   artistStatus?: string;
   website: string;
-
   district?: string;
+  districtLink?: string;
   audio?: string;
   tags?: string;
   readMoreLink?: string;
@@ -20,35 +20,188 @@ interface MusicianFormData {
   yearsActiveEnd?: string;
   status?: "active" | "inactive";
   labelCrew?: string;
+  labelCrewLink?: string;
   associatedActs?: string;
+  associatedActsLinks?: string;
   frequentProducers?: string;
+  frequentProducersLink?: string;
   breakoutTrackName: string;
   breakoutTrackUrl?: string;
   definingProjectName: string;
   definingProjectYear?: string;
+  definingProjectLink?: string;
   fansOf?: string;
+  fansOfLink?: string;
+  videoEmbed?: string;
+  videoWidth?: string;
+  videoHeight?: string;
+  image?: FileList | null;
   socials: {
     instagram: string;
     youtube: string;
     spotify: string;
     soundcloud: string;
+    twitter: string;
   };
+}
+
+const allCities = [
+  "Alameda",
+  "Albany",
+  "Berkeley",
+  "Dublin",
+  "Emeryville",
+  "Fremont",
+  "Hayward",
+  "Livermore",
+  "Newark",
+  "Oakland",
+  "Piedmont",
+  "Pleasanton",
+  "San Leandro",
+  "Union City",
+  "Antioch",
+  "Brentwood",
+  "Clayton",
+  "Concord",
+  "Danville",
+  "El Cerrito",
+  "Hercules",
+  "Lafayette",
+  "Martinez",
+  "Moraga",
+  "Oakley",
+  "Orinda",
+  "Pinole",
+  "Pittsburg",
+  "Pleasant Hill",
+  "Richmond",
+  "San Pablo",
+  "San Ramon",
+  "Walnut Creek",
+  "Marin County",
+  "Belvedere",
+  "Corte Madera",
+  "Fairfax",
+  "Larkspur",
+  "Mill Valley",
+  "Novato",
+  "Ross",
+  "San Anselmo",
+  "San Rafael",
+  "Sausalito",
+  "Tiburon",
+  "Napa County",
+  "American Canyon",
+  "Calistoga",
+  "Napa",
+  "St. Helena",
+  "Yountville",
+  "San Francisco",
+  "San Mateo County",
+  "Atherton",
+  "Belmont",
+  "Brisbane",
+  "Burlingame",
+  "Colma",
+  "Daly City",
+  "East Palo Alto",
+  "Foster City",
+  "Half Moon Bay",
+  "Hillsborough",
+  "Menlo Park",
+  "Millbrae",
+  "Pacifica",
+  "Portola Valley",
+  "Redwood City",
+  "San Bruno",
+  "San Carlos",
+  "San Mateo",
+  "South San Francisco",
+  "Woodside",
+  "Campbell",
+  "Cupertino",
+  "Gilroy",
+  "Los Altos",
+  "Los Altos Hills",
+  "Los Gatos",
+  "Milpitas",
+  "Monte Sereno",
+  "Morgan Hill",
+  "Mountain View",
+  "Palo Alto",
+  "San Jose",
+  "Santa Clara",
+  "Saratoga",
+  "Sunnyvale",
+  "Benicia",
+  "Dixon",
+  "Fairfield",
+  "Rio Vista",
+  "Suisun City",
+  "Vacaville",
+  "Vallejo",
+  "Cloverdale",
+  "Cotati",
+  "Healdsburg",
+  "Petaluma",
+  "Rohnert Park",
+  "Santa Rosa",
+  "Sebastopol",
+  "Sonoma",
+  "Windsor",
+];
+
+const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
+
+function toYouTubeEmbed(url?: string | null) {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    if (hostname.includes("youtu.be")) {
+      const id = u.pathname.slice(1);
+      return `https://www.youtube.com/embed/${id}`;
+    }
+    if (hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return `https://www.youtube.com/embed/${v}`;
+      const pathParts = u.pathname.split("/");
+      const maybeId = pathParts[pathParts.length - 1];
+      if (maybeId) return `https://www.youtube.com/embed/${maybeId}`;
+    }
+    return url;
+  } catch {
+    return url || "";
+  }
+}
+
+function isYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    return hostname.includes("youtube.com") || hostname.includes("youtu.be");
+  } catch {
+    return false;
+  }
 }
 
 export default function EditMusicianPage() {
   const { userId } = useAuth();
   const router = useRouter();
   const { id } = useParams();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [audioType, setAudioType] = useState<"youtube" | "direct" | null>(null);
   const [formData, setFormData] = useState<MusicianFormData>({
     name: "",
     city: "",
     category: "",
-
     shortBio: "",
     website: "",
     artistStatus: "",
-
     district: "",
+    districtLink: "",
     audio: "",
     tags: "",
     readMoreLink: "",
@@ -56,18 +209,28 @@ export default function EditMusicianPage() {
     yearsActiveEnd: "",
     status: "active",
     labelCrew: "",
+    labelCrewLink: "",
     associatedActs: "",
+    associatedActsLinks: "",
     frequentProducers: "",
+    frequentProducersLink: "",
     breakoutTrackName: "",
     breakoutTrackUrl: "",
     definingProjectName: "",
     definingProjectYear: "",
+    definingProjectLink: "",
     fansOf: "",
+    fansOfLink: "",
+    videoEmbed: "",
+    videoWidth: "560",
+    videoHeight: "315",
+    image: null,
     socials: {
       instagram: "",
       youtube: "",
       spotify: "",
       soundcloud: "",
+      twitter: "",
     },
   });
   const [loading, setLoading] = useState(true);
@@ -89,12 +252,11 @@ export default function EditMusicianPage() {
           name: musician.name || "",
           city: musician.city || "",
           category: musician.category || "",
-
           shortBio: musician.shortBio || "",
           website: musician.website || "",
           artistStatus: musician.artistStatus || "",
-
           district: musician.district || "",
+          districtLink: musician.districtLink || "",
           audio: musician.audio || "",
           tags: Array.isArray(musician.tags)
             ? musician.tags.join(", ")
@@ -104,26 +266,40 @@ export default function EditMusicianPage() {
           yearsActiveEnd: musician.yearsActive?.end?.toString() || "",
           status: musician.status || "active",
           labelCrew: musician.labelCrew || "",
+          labelCrewLink: musician.labelCrewLink || "",
           associatedActs: Array.isArray(musician.associatedActs)
             ? musician.associatedActs.join(", ")
             : musician.associatedActs || "",
+          associatedActsLinks: musician.associatedActsLinks || "",
           frequentProducers: Array.isArray(musician.frequentProducers)
             ? musician.frequentProducers.join(", ")
             : musician.frequentProducers || "",
+          frequentProducersLink: musician.frequentProducersLink || "",
           breakoutTrackName: musician.breakoutTrack?.name || "",
           breakoutTrackUrl: musician.breakoutTrack?.url || "",
           definingProjectName: musician.definingProject?.name || "",
           definingProjectYear: musician.definingProject?.year?.toString() || "",
+          definingProjectLink: musician.definingProject?.link || "",
           fansOf: Array.isArray(musician.fansOf)
             ? musician.fansOf.join(", ")
             : musician.fansOf || "",
+          fansOfLink: musician.fansOfLink || "",
+          videoEmbed: musician.videoEmbed || "",
+          videoWidth: musician.videoWidth?.toString() || "560",
+          videoHeight: musician.videoHeight?.toString() || "315",
+          image: null,
           socials: {
             instagram: musician.socials?.instagram || "",
             youtube: musician.socials?.youtube || "",
             spotify: musician.socials?.spotify || "",
             soundcloud: musician.socials?.soundcloud || "",
+            twitter: musician.socials?.twitter || "",
           },
         });
+
+        if (musician.imageUrl) {
+          setImagePreview(musician.imageUrl);
+        }
       } catch (error) {
         console.error("Failed to fetch musician data:", error);
       } finally {
@@ -132,6 +308,18 @@ export default function EditMusicianPage() {
     };
     fetchData();
   }, [id, userId, router]);
+
+  useEffect(() => {
+    if (formData.audio) {
+      if (isYouTubeUrl(formData.audio)) {
+        setAudioType("youtube");
+      } else {
+        setAudioType("direct");
+      }
+    } else {
+      setAudioType(null);
+    }
+  }, [formData.audio]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -142,19 +330,21 @@ export default function EditMusicianPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      setImagePreview(URL.createObjectURL(file));
+      setFormData((prev) => ({ ...prev, image: files }));
+    }
+  };
+
   const handleSocialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       socials: { ...prev.socials, [name]: value },
     }));
-  };
-
-  const handleartistStatusChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const { value } = e.target;
-    setFormData((prev) => ({ ...prev, artistStatus: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -167,7 +357,9 @@ export default function EditMusicianPage() {
         category: formData.category,
         shortBio: formData.shortBio,
         website: formData.website,
+        artistStatus: formData.artistStatus,
         district: formData.district,
+        districtLink: formData.districtLink,
         audio: formData.audio,
         tags: formData.tags
           ? formData.tags.split(",").map((tag) => tag.trim())
@@ -181,12 +373,15 @@ export default function EditMusicianPage() {
         },
         status: formData.status,
         labelCrew: formData.labelCrew,
+        labelCrewLink: formData.labelCrewLink,
         associatedActs: formData.associatedActs
           ? formData.associatedActs.split(",").map((act) => act.trim())
           : [],
+        associatedActsLinks: formData.associatedActsLinks,
         frequentProducers: formData.frequentProducers
           ? formData.frequentProducers.split(",").map((prod) => prod.trim())
           : [],
+        frequentProducersLink: formData.frequentProducersLink,
         breakoutTrack: {
           name: formData.breakoutTrackName,
           url: formData.breakoutTrackUrl,
@@ -196,10 +391,19 @@ export default function EditMusicianPage() {
           year: formData.definingProjectYear
             ? parseInt(formData.definingProjectYear, 10)
             : null,
+          link: formData.definingProjectLink,
         },
         fansOf: formData.fansOf
           ? formData.fansOf.split(",").map((fan) => fan.trim())
           : [],
+        fansOfLink: formData.fansOfLink,
+        videoEmbed: formData.videoEmbed,
+        videoWidth: formData.videoWidth
+          ? parseInt(formData.videoWidth, 10)
+          : 560,
+        videoHeight: formData.videoHeight
+          ? parseInt(formData.videoHeight, 10)
+          : 315,
         socials: formData.socials,
       };
 
@@ -229,19 +433,19 @@ export default function EditMusicianPage() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mb-10">
+    <div className="max-w-4xl mx-auto p-8 my-10 bg-card rounded-xl shadow-lg border border-border">
       <h1 className="text-3xl font-bold mb-8 text-card-foreground border-b border-border pb-4">
         Edit Profile
       </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
+        {/* Basic Information Section */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
             Basic Information
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Name *
               </label>
               <input
@@ -249,56 +453,65 @@ export default function EditMusicianPage() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="Enter musician name"
                 required
               />
             </div>
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Category
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Category *
               </label>
               <input
                 type="text"
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Hip Hop, R&B, Pop"
+                required
               />
             </div>
+
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                City
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                City *
               </label>
-              <input
-                type="text"
+              <select
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
+                className="w-full px-3 py-2 border rounded-lg bg-background"
+                required
+              >
+                <option value="">Select a city</option>
+                {allCities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
             </div>
-
-            <div className="">
-              <label className="block text-card-foreground mb-1 font-medium">
-                Artist Status
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Status
               </label>
-
               <select
                 name="artistStatus"
                 value={formData.artistStatus}
-                onChange={handleartistStatusChange}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg bg-background"
               >
                 <option value="">Select a Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Incarcerated">Incarcerated</option>
-                <option value="Deceased">Deceased</option>
+                {status.map((stat) => (
+                  <option key={stat} value={stat}>
+                    {stat}
+                  </option>
+                ))}
               </select>
             </div>
-
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 District
               </label>
               <input
@@ -306,37 +519,92 @@ export default function EditMusicianPage() {
                 name="district"
                 value={formData.district}
                 onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="e.g., The Crest Side"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                District Link
+              </label>
+              <input
+                type="url"
+                name="districtLink"
+                value={formData.districtLink}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
               />
             </div>
           </div>
         </div>
 
-        {/* Address */}
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-card-foreground mb-1">
+            Artist Image
+          </label>
+          <div className="mt-1 flex items-center gap-6">
+            <span className="h-24 w-24 rounded-full overflow-hidden bg-muted border border-border">
+              {imagePreview ? (
+                <Image
+                  src={imagePreview}
+                  alt="Image Preview"
+                  width={96}
+                  height={96}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <svg
+                  className="h-full w-full text-muted-foreground"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M24 20.993V24H0v-2.993A2 2 0 002 18h20a2 2 0 002 2.007zM12 13a4 4 0 100-8 4 4 0 000 8z" />
+                </svg>
+              )}
+            </span>
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer bg-card py-2 px-4 border border-border rounded-md shadow-sm text-sm font-medium text-card-foreground hover:bg-accent transition-colors"
+            >
+              <span>Upload a file</span>
+              <input
+                id="file-upload"
+                type="file"
+                onChange={handleImageChange}
+                className="sr-only"
+                accept="image/*"
+              />
+            </label>
+          </div>
+        </div>
 
         {/* Bio */}
         <div>
-          <label className="block text-card-foreground mb-1 font-medium">
-            Short Bio
+          <label className="block text-sm font-medium text-card-foreground mb-1">
+            Short Bio *
           </label>
           <textarea
             name="shortBio"
             value={formData.shortBio}
             onChange={handleChange}
-            className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
             rows={4}
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+            placeholder="Tell us about the musician (max 500 characters)"
+            required
           />
         </div>
 
-        {/* Career Information */}
+        {/* Career Information Section */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
             Career Information
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Years Active (Start) *
               </label>
               <input
@@ -347,12 +615,13 @@ export default function EditMusicianPage() {
                 placeholder="2021"
                 min="1900"
                 max={new Date().getFullYear()}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 required
               />
             </div>
+
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Years Active (End)
               </label>
               <input
@@ -360,193 +629,64 @@ export default function EditMusicianPage() {
                 name="yearsActiveEnd"
                 value={formData.yearsActiveEnd}
                 onChange={handleChange}
-                placeholder="Leave empty if still active"
+                placeholder="Present"
                 min="1900"
                 max={new Date().getFullYear()}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Label/Crew
-              </label>
-              <input
-                type="text"
-                name="labelCrew"
-                value={formData.labelCrew}
-                onChange={handleChange}
-                placeholder="e.g., Independent / King Cutz"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Breakout Track Name *
-              </label>
-              <input
-                type="text"
-                name="breakoutTrackName"
-                value={formData.breakoutTrackName}
-                onChange={handleChange}
-                placeholder="e.g., First Day Out"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Breakout Track URL
-              </label>
-              <input
-                type="url"
-                name="breakoutTrackUrl"
-                value={formData.breakoutTrackUrl}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Defining Project Name *
-              </label>
-              <input
-                type="text"
-                name="definingProjectName"
-                value={formData.definingProjectName}
-                onChange={handleChange}
-                placeholder="e.g., Crest Story Deluxe"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Defining Project Year
-              </label>
-              <input
-                type="number"
-                name="definingProjectYear"
-                value={formData.definingProjectYear}
-                onChange={handleChange}
-                placeholder="2022"
-                min="1900"
-                max={new Date().getFullYear()}
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Music & Influences */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4 text-card-foreground">
-            Music & Influences
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Tags/Genres
-              </label>
-              <input
-                type="text"
-                name="tags"
-                value={formData.tags}
-                onChange={handleChange}
-                placeholder="e.g., Hip-Hop, Trap, West Coast"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
               <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list
-              </p>
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Associated Acts
-              </label>
-              <input
-                type="text"
-                name="associatedActs"
-                value={formData.associatedActs}
-                onChange={handleChange}
-                placeholder="e.g., Artist One, Artist Two"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list
-              </p>
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Frequent Producers
-              </label>
-              <input
-                type="text"
-                name="frequentProducers"
-                value={formData.frequentProducers}
-                onChange={handleChange}
-                placeholder="e.g., L-Phaze, Producer Name"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list
-              </p>
-            </div>
-            <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Fans Of (Influences)
-              </label>
-              <input
-                type="text"
-                name="fansOf"
-                value={formData.fansOf}
-                onChange={handleChange}
-                placeholder="e.g., Tupac, Nas, Jay-Z"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list
+                Comma-separated list of URLs for their influences
               </p>
             </div>
           </div>
         </div>
 
-        {/* Audio & Links */}
+        {/* Audio & Links Section */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
             Audio & Links
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Audio URL - Now accepts YouTube or Direct Links */}
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Audio URL
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Audio URL (YouTube or Direct MP3/WAV/OGG)
               </label>
               <input
                 type="url"
                 name="audio"
                 value={formData.audio}
                 onChange={handleChange}
-                placeholder="https://example.com/song.mp3"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="https://youtube.com/watch?v=... or https://example.com/song.mp3"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
+              <p className="text-muted-foreground text-xs mt-1">
+                {audioType === "youtube"
+                  ? "✓ YouTube link detected - will be converted to audio for playback"
+                  : audioType === "direct"
+                  ? "✓ Direct audio link detected"
+                  : "Paste a YouTube URL or direct audio file link (.mp3, .wav, .ogg)"}
+              </p>
+
+              {/* Audio Preview */}
+              {formData.audio && audioType === "direct" && (
+                <div className="mt-3">
+                  <audio
+                    controls
+                    src={formData.audio}
+                    className="w-full"
+                    style={{ maxHeight: "40px" }}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
             </div>
+
+            {/* Read More Link */}
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
-                Read More Link
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Deep Dives
               </label>
               <input
                 type="url"
@@ -554,11 +694,89 @@ export default function EditMusicianPage() {
                 value={formData.readMoreLink}
                 onChange={handleChange}
                 placeholder="https://example.com/bio"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Video Embed Section */}
+        <div>
+          <label className="block text-sm font-medium text-card-foreground mb-1">
+            YouTube Video (optional) — paste watch or embed URL
+          </label>
+          <input
+            type="url"
+            name="videoEmbed"
+            value={formData.videoEmbed}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+            placeholder="https://youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/embed/VIDEO_ID"
+          />
+
+          {/* Live Preview */}
+          {formData.videoEmbed && (
+            <div className="mt-4">
+              <div
+                style={{
+                  width: `${formData.videoWidth || "560"}px`,
+                  height: `${formData.videoHeight || "315"}px`,
+                  border: "1px solid rgba(148,163,184,0.35)",
+                  borderRadius: 6,
+                }}
+              >
+                <iframe
+                  title="video preview"
+                  src={toYouTubeEmbed(formData.videoEmbed)}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, display: "block" }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-card-foreground">
+                    Width (px)
+                  </label>
+                  <input
+                    type="number"
+                    name="videoWidth"
+                    value={formData.videoWidth}
+                    onChange={handleChange}
+                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
+                    placeholder="560"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm text-card-foreground">
+                    Height (px)
+                  </label>
+                  <input
+                    type="number"
+                    name="videoHeight"
+                    value={formData.videoHeight}
+                    onChange={handleChange}
+                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
+                    placeholder="315"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Social Links & Website */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Social Links & Website (Optional)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Website
               </label>
               <input
@@ -566,21 +784,12 @@ export default function EditMusicianPage() {
                 name="website"
                 value={formData.website}
                 onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://example.com"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
-          </div>
-        </div>
-
-        {/* Social Media */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4 text-card-foreground">
-            Social Links
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Instagram
               </label>
               <input
@@ -588,12 +797,12 @@ export default function EditMusicianPage() {
                 name="instagram"
                 value={formData.socials.instagram}
                 onChange={handleSocialChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://instagram.com/username"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 YouTube
               </label>
               <input
@@ -601,12 +810,12 @@ export default function EditMusicianPage() {
                 name="youtube"
                 value={formData.socials.youtube}
                 onChange={handleSocialChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://youtube.com/channel/..."
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 Spotify
               </label>
               <input
@@ -614,12 +823,12 @@ export default function EditMusicianPage() {
                 name="spotify"
                 value={formData.socials.spotify}
                 onChange={handleSocialChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://open.spotify.com/artist/..."
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
             </div>
             <div>
-              <label className="block text-card-foreground mb-1 font-medium">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
                 SoundCloud
               </label>
               <input
@@ -627,20 +836,35 @@ export default function EditMusicianPage() {
                 name="soundcloud"
                 value={formData.socials.soundcloud}
                 onChange={handleSocialChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
                 placeholder="https://soundcloud.com/username"
-                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Twitter/X
+              </label>
+              <input
+                type="url"
+                name="twitter"
+                value={formData.socials.twitter}
+                onChange={handleSocialChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://twitter.com/username"
               />
             </div>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full px-4 py-3 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors mt-6 font-medium disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? "Saving Changes..." : "Save Changes"}
-        </button>
+        <div className="pt-5">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
+          >
+            {isSubmitting ? "Saving Changes..." : "Save Changes"}
+          </button>
+        </div>
       </form>
     </div>
   );
