@@ -176,6 +176,32 @@ function toYouTubeEmbed(url?: string | null) {
   }
 }
 
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    
+    if (hostname.includes("youtu.be")) {
+      return u.pathname.slice(1).split("?")[0];
+    }
+    
+    if (hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      
+      const pathParts = u.pathname.split("/");
+      if (pathParts.includes("embed") || pathParts.includes("v")) {
+        return pathParts[pathParts.length - 1];
+      }
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function isYouTubeUrl(url: string): boolean {
   if (!url) return false;
   try {
@@ -635,6 +661,235 @@ export default function EditMusicianPage() {
                 className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
               <p className="text-muted-foreground text-xs mt-1">
+                Leave empty if still active
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Label/Crew
+              </label>
+              <input
+                type="text"
+                name="labelCrew"
+                value={formData.labelCrew}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Independent / King Cutz"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Label/Crew Link
+              </label>
+              <input
+                type="url"
+                name="labelCrewLink"
+                value={formData.labelCrewLink}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Breakout Track Name *
+              </label>
+              <input
+                type="text"
+                name="breakoutTrackName"
+                value={formData.breakoutTrackName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., First Day Out"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Breakout Track URL
+              </label>
+              <input
+                type="url"
+                name="breakoutTrackUrl"
+                value={formData.breakoutTrackUrl}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Name *
+              </label>
+              <input
+                type="text"
+                name="definingProjectName"
+                value={formData.definingProjectName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Crest Story Deluxe"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Year
+              </label>
+              <input
+                type="number"
+                name="definingProjectYear"
+                value={formData.definingProjectYear}
+                onChange={handleChange}
+                placeholder="2022"
+                min="1900"
+                max={new Date().getFullYear()}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Defining Project Link
+              </label>
+              <input
+                type="url"
+                name="definingProjectLink"
+                value={formData.definingProjectLink}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Tags and Lists Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+            Music & Influences
+          </h2>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Tags/Genres
+              </label>
+              <input
+                type="text"
+                name="tags"
+                value={formData.tags}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Hip-Hop, Trap, West Coast"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of genres/tags
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Associated Acts
+              </label>
+              <input
+                type="text"
+                name="associatedActs"
+                value={formData.associatedActs}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Bandlez Giddy, Artist Name"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of collaborators/associated artists
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Associated Acts Links
+              </label>
+              <input
+                type="url"
+                name="associatedActsLinks"
+                value={formData.associatedActsLinks}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://artistlink.com, https://artist2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of URLs for associated acts
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Frequent Producers
+              </label>
+              <input
+                type="text"
+                name="frequentProducers"
+                value={formData.frequentProducers}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., L-Phaze, Producer Name"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of producers they work with
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Frequent Producers Links
+              </label>
+              <input
+                type="url"
+                name="frequentProducersLink"
+                value={formData.frequentProducersLink}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://producerlink.com, https://producer2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of URLs for frequent producers
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Fans Of (Influences)
+              </label>
+              <input
+                type="text"
+                name="fansOf"
+                value={formData.fansOf}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., Tupac, Nas, Jay-Z"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
+                Comma-separated list of their musical influences
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                Fans Of Links
+              </label>
+              <input
+                type="url"
+                name="fansOfLink"
+                value={formData.fansOfLink}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="https://influencelink.com, https://influence2link.com"
+              />
+              <p className="text-muted-foreground text-xs mt-1">
                 Comma-separated list of URLs for their influences
               </p>
             </div>
@@ -669,6 +924,20 @@ export default function EditMusicianPage() {
               </p>
 
               {/* Audio Preview */}
+              {formData.audio && audioType === "youtube" && (
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-sm text-card-foreground mb-2">
+                    <strong>Preview:</strong> YouTube audio detected
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Video ID: {extractYouTubeId(formData.audio)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Note: On the musician profile, this will play as audio using YouTube's audio player.
+                  </p>
+                </div>
+              )}
+
               {formData.audio && audioType === "direct" && (
                 <div className="mt-3">
                   <audio
@@ -736,11 +1005,9 @@ export default function EditMusicianPage() {
                 />
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm text-card-foreground">
-                    Width (px)
-                  </label>
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
+                <label className="text-sm text-card-foreground">
+                  Width (px)
                   <input
                     type="number"
                     name="videoWidth"
@@ -749,12 +1016,10 @@ export default function EditMusicianPage() {
                     className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
                     placeholder="560"
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="text-sm text-card-foreground">
-                    Height (px)
-                  </label>
+                <label className="text-sm text-card-foreground">
+                  Height (px)
                   <input
                     type="number"
                     name="videoHeight"
@@ -763,6 +1028,10 @@ export default function EditMusicianPage() {
                     className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
                     placeholder="315"
                   />
+                </label>
+
+                <div className="md:col-span-2 text-sm text-muted-foreground">
+                  Adjust the width and height values to resize the video.
                 </div>
               </div>
             </div>

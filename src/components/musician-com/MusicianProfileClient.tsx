@@ -252,7 +252,6 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
         <div className="space-y-8">
           <div className="flex items-start justify-between">
             <div className="flex gap-12">
-
               <div className="flex flex-col gap-4">
                 <div
                   className="relative cursor-pointer w-36 h-36"
@@ -298,7 +297,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                               ? musician.videoEmbed
                               : musician.videoEmbed.replace(
                                   /(youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/,
-                                  "www.youtube.com/embed/$2"
+                                  "youtube.com/embed/$2"
                                 )
                           }
                           className="absolute top-0 left-0 w-full h-full rounded-lg"
@@ -404,18 +403,22 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {associatedActsArray.length > 0 && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Associated Acts:</span>
-                  <Link
-                    href={
-                      associatedActsLinksArray.length ===
-                      associatedActsArray.length
-                        ? associatedActsLinksArray[0]
-                        : "#"
-                    }
-                    target="_blank"
-                    className="text-blue-400 hover:underline"
-                  >
-                    {associatedActsArray.join(" ")}
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    {associatedActsArray.map((act, idx) => (
+                      <Link
+                        key={idx}
+                        href={
+                          associatedActsLinksArray[idx]
+                            ? associatedActsLinksArray[idx]
+                            : "#"
+                        }
+                        target="_blank"
+                        className="text-blue-400 hover:underline"
+                      >
+                        {act}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -437,17 +440,22 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
               {producersArray.length > 0 && (
                 <div className="grid grid-cols-[160px_1fr] gap-4">
                   <span className="text-gray-400">Frequent Producer(s):</span>
-                  <Link
-                    href={
-                      producersLinksArray.length === producersArray.length
-                        ? producersLinksArray[0]
-                        : "#"
-                    }
-                    target="_blank"
-                    className="text-blue-400 hover:underline"
-                  >
-                    {producersArray.join(" ")}
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    {producersArray.map((producer, idx) => (
+                      <Link
+                        key={idx}
+                        href={
+                          producersLinksArray[idx]
+                            ? producersLinksArray[idx]
+                            : "#"
+                        }
+                        target="_blank"
+                        className="text-blue-400 hover:underline"
+                      >
+                        {producer}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
 
