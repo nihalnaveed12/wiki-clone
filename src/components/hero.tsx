@@ -6,6 +6,7 @@ import Link from "next/link";
 import ArticleCard from "./article-card";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Pause, PlayIcon } from "lucide-react";
+import { Musicians } from "@/lib/api/musicians";
 
 interface Author {
   _id: string;
@@ -44,74 +45,158 @@ interface BlogsResponse {
   };
 }
 
-interface Musician {
-  socials: {
-    instagram: string;
-    youtube: string;
-    spotify: string;
-    soundcloud: string;
-  };
-  image: {
-    id: string;
-    url: string;
-  };
-  _id: string;
-  name: string;
-  city: string;
-  category: string;
-  country: string;
-  shortBio: string;
-  website: string;
-  createdAt: string;
-  audio: string;
-  address: string;
-  updatedAt: string;
-  __v: number;
+// Helper function to check if URL is YouTube
+function isYouTubeUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+    return hostname.includes("youtube.com") || hostname.includes("youtu.be");
+  } catch {
+    return false;
+  }
+}
+
+// Helper function to extract YouTube video ID
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const hostname = u.hostname.replace("www.", "");
+
+    if (hostname.includes("youtu.be")) {
+      return u.pathname.slice(1).split("?")[0];
+    }
+
+    if (hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+
+      const pathParts = u.pathname.split("/");
+      if (pathParts.includes("embed") || pathParts.includes("v")) {
+        return pathParts[pathParts.length - 1];
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export default function WikipediaHero() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [musicians, setMusicians] = useState<Musician[]>([]);
+  const [musicians, setMusicians] = useState<Musicians[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isYouTubeAudio, setIsYouTubeAudio] = useState(false);
+  const [currentYouTubeId, setCurrentYouTubeId] = useState<string | null>(null);
 
-  const handleToggleAudio = (musician: Musician) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const youtubePlayerRef = useRef<HTMLIFrameElement | null>(null);
+
+  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+  // Setup YouTube player messaging
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== "https://www.youtube.com") return;
+
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === "onStateChange") {
+          // 0: ended
+          if (data.info === 0) {
+            setPlayingId(null);
+          }
+        }
+      } catch (e) {
+        // Not a YouTube message
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const handleToggleAudio = (musician: Musicians) => {
     if (!musician.audio) {
       alert("No audio available for this artist.");
       return;
     }
 
-    // If clicking same musician → toggle pause
+    const isYT = isYouTubeUrl(musician.audio);
+
+    // If clicking same musician → toggle pause/play
     if (playingId === musician._id) {
-      audioRef.current?.pause();
-      audioRef.current = null;
+      if (isYouTubeAudio && youtubePlayerRef.current) {
+        // Pause YouTube
+        youtubePlayerRef.current.contentWindow?.postMessage(
+          JSON.stringify({ event: "command", func: "pauseVideo", args: "" }),
+          "*"
+        );
+      } else if (audioRef.current) {
+        // Pause regular audio
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
       setPlayingId(null);
+      setIsYouTubeAudio(false);
+      setCurrentYouTubeId(null);
       return;
     }
 
-    // Stop previous audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+    // Stop previous audio (if any)
+    if (playingId) {
+      if (isYouTubeAudio && youtubePlayerRef.current) {
+        youtubePlayerRef.current.contentWindow?.postMessage(
+          JSON.stringify({ event: "command", func: "stopVideo", args: "" }),
+          "*"
+        );
+      } else if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     }
 
     // Play new audio
-    const newAudio = new Audio(musician.audio);
-    audioRef.current = newAudio;
-    newAudio.play().catch((err) => console.error("Audio play error:", err));
-    newAudio.addEventListener("ended", () => setPlayingId(null));
-    setPlayingId(musician._id);
-  };
+    if (isYT) {
+      // Handle YouTube Audio
+      const videoId = extractYouTubeId(musician.audio);
+      if (videoId) {
+        setIsYouTubeAudio(true);
+        setCurrentYouTubeId(videoId);
+        setPlayingId(musician._id);
 
-  const BaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        // Wait for iframe to load, then play
+        setTimeout(() => {
+          youtubePlayerRef.current?.contentWindow?.postMessage(
+            JSON.stringify({ event: "command", func: "playVideo", args: "" }),
+            "*"
+          );
+        }, 500);
+      }
+    } else {
+      // Handle Direct Audio (MP3, WAV, OGG)
+      setIsYouTubeAudio(false);
+      setCurrentYouTubeId(null);
+
+      const newAudio = new Audio(musician.audio);
+      audioRef.current = newAudio;
+      newAudio.play().catch((err) => console.error("Audio play error:", err));
+      newAudio.addEventListener("ended", () => setPlayingId(null));
+      setPlayingId(musician._id);
+    }
+  };
 
   useEffect(() => {
     const getMusicians = async () => {
       try {
         const data = await fetchMusicians();
-        setMusicians(data || []);
+        console.log("Fetched musicians:", data);
+        setMusicians(data);
       } catch (err) {
         console.error("Error fetching musicians:", err);
       } finally {
@@ -143,6 +228,16 @@ export default function WikipediaHero() {
 
   return (
     <div className="flex flex-col items-center justify-center bg-background text-foreground py-6 md:py-12 px-4">
+      {/* Hidden YouTube iframe for audio playback */}
+      {isYouTubeAudio && currentYouTubeId && (
+        <iframe
+          ref={youtubePlayerRef}
+          src={`https://www.youtube.com/embed/${currentYouTubeId}?enablejsapi=1&controls=0`}
+          style={{ display: "none" }}
+          allow="autoplay"
+        />
+      )}
+
       <div className="w-full max-w-7xl flex flex-col items-center">
         {/* 🎵 Musicians Section */}
         <div className="w-full">

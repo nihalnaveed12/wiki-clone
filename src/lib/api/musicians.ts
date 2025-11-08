@@ -1,3 +1,5 @@
+
+ 
  export interface Musicians {
   _id: string;
   name: string;
@@ -17,11 +19,11 @@
     soundcloud: string;
   };
   createdAt: string;
-  submittedBy: string;
+  submittedBy?: string;
   audio?: string;
   tags?: string;
   readMoreLink?: string;
-  yearsActive: {
+  yearsActive?: {
     end?: string;
     start?: string;
   };
@@ -33,11 +35,11 @@
   districtLink?: string;
   frequentProducers?: string;
   frequentProducersLink?: string;
-  breakoutTrack: {
+  breakoutTrack?: {
     name?: string;
     url?: string;
   };
-  definingProject: {
+  definingProject?: {
     name?: string;
     year?: string;
     link?: string;
