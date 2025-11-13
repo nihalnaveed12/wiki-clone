@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 interface RapperParams {
   name: string;
   city: string;
+  state?: string;
   lat: number;
   lng: number;
   category: string;
@@ -167,6 +168,7 @@ export async function createRapper(params: RapperParams) {
     const rapper = await Rapper.create({
       name: params.name,
       city: params.city,
+      state: params.state || "",
       lat: params.lat,
       lng: params.lng,
       status: params.status || "active",

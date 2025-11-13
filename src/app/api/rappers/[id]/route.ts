@@ -67,6 +67,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       // Basic Fields
       if (formData.has("name")) updateData.name = formData.get("name");
       if (formData.has("city")) updateData.city = formData.get("city");
+      if (formData.has("state")) updateData.state = formData.get("state");
       if (formData.has("category")) updateData.category = formData.get("category");
       if (formData.has("website")) updateData.website = formData.get("website");
       if (formData.has("artistStatus")) updateData.artistStatus = formData.get("artistStatus");

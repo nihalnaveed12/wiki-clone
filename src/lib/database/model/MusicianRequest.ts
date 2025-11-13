@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IMusicianRequest extends Document {
     name: string;
     city: string;
+    state?: string;
     category: string;
     artistStatus?: string;
     website?: string;
@@ -62,6 +63,7 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
     {
         name: { type: String, required: true, trim: true },
         city: { type: String, required: true, trim: true },
+        state: { type: String, default: '', trim: true },
         category: { type: String, required: true, trim: true },
         artistStatus: { type: String, trim: true },
         website: { type: String, default: '' },

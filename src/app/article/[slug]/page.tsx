@@ -123,6 +123,12 @@ export default async function ArticlePage({ params }: PageProps) {
         <EditButton AuthorId={blog.author.clerkId} blogId={blog._id} />
       </div>
 
+      {/* {border} */}
+
+      <div className="">
+        <hr className="border-t-2 border-gray-500 mb-6" />
+      </div>
+
       <div className="flex flex-col gap-4">
         <div className="flex justify-between border-b-2 border-zinc-400 pb-2">
           <h1 className="text-3xl font-bold font-serif italic ">

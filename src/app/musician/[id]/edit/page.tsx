@@ -7,6 +7,7 @@ import Image from "next/image";
 interface MusicianFormData {
   name: string;
   city: string;
+  state?: string;
   category: string;
   shortBio: string;
   artistStatus?: string;
@@ -45,113 +46,6 @@ interface MusicianFormData {
   };
 }
 
-const allCities = [
-  "Alameda",
-  "Albany",
-  "Berkeley",
-  "Dublin",
-  "Emeryville",
-  "Fremont",
-  "Hayward",
-  "Livermore",
-  "Newark",
-  "Oakland",
-  "Piedmont",
-  "Pleasanton",
-  "San Leandro",
-  "Union City",
-  "Antioch",
-  "Brentwood",
-  "Clayton",
-  "Concord",
-  "Danville",
-  "El Cerrito",
-  "Hercules",
-  "Lafayette",
-  "Martinez",
-  "Moraga",
-  "Oakley",
-  "Orinda",
-  "Pinole",
-  "Pittsburg",
-  "Pleasant Hill",
-  "Richmond",
-  "San Pablo",
-  "San Ramon",
-  "Walnut Creek",
-  "Marin County",
-  "Belvedere",
-  "Corte Madera",
-  "Fairfax",
-  "Larkspur",
-  "Mill Valley",
-  "Novato",
-  "Ross",
-  "San Anselmo",
-  "San Rafael",
-  "Sausalito",
-  "Tiburon",
-  "Napa County",
-  "American Canyon",
-  "Calistoga",
-  "Napa",
-  "St. Helena",
-  "Yountville",
-  "San Francisco",
-  "San Mateo County",
-  "Atherton",
-  "Belmont",
-  "Brisbane",
-  "Burlingame",
-  "Colma",
-  "Daly City",
-  "East Palo Alto",
-  "Foster City",
-  "Half Moon Bay",
-  "Hillsborough",
-  "Menlo Park",
-  "Millbrae",
-  "Pacifica",
-  "Portola Valley",
-  "Redwood City",
-  "San Bruno",
-  "San Carlos",
-  "San Mateo",
-  "South San Francisco",
-  "Woodside",
-  "Campbell",
-  "Cupertino",
-  "Gilroy",
-  "Los Altos",
-  "Los Altos Hills",
-  "Los Gatos",
-  "Milpitas",
-  "Monte Sereno",
-  "Morgan Hill",
-  "Mountain View",
-  "Palo Alto",
-  "San Jose",
-  "Santa Clara",
-  "Saratoga",
-  "Sunnyvale",
-  "Benicia",
-  "Dixon",
-  "Fairfield",
-  "Rio Vista",
-  "Suisun City",
-  "Vacaville",
-  "Vallejo",
-  "Cloverdale",
-  "Cotati",
-  "Healdsburg",
-  "Petaluma",
-  "Rohnert Park",
-  "Santa Rosa",
-  "Sebastopol",
-  "Sonoma",
-  "Windsor",
-];
-
 const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
 
 function toYouTubeEmbed(url?: string | null) {
@@ -181,21 +75,21 @@ function extractYouTubeId(url: string): string | null {
   try {
     const u = new URL(url);
     const hostname = u.hostname.replace("www.", "");
-    
+
     if (hostname.includes("youtu.be")) {
       return u.pathname.slice(1).split("?")[0];
     }
-    
+
     if (hostname.includes("youtube.com")) {
       const v = u.searchParams.get("v");
       if (v) return v;
-      
+
       const pathParts = u.pathname.split("/");
       if (pathParts.includes("embed") || pathParts.includes("v")) {
         return pathParts[pathParts.length - 1];
       }
     }
-    
+
     return null;
   } catch {
     return null;
@@ -222,6 +116,7 @@ export default function EditMusicianPage() {
   const [formData, setFormData] = useState<MusicianFormData>({
     name: "",
     city: "",
+    state: "",
     category: "",
     shortBio: "",
     website: "",
@@ -277,6 +172,7 @@ export default function EditMusicianPage() {
         setFormData({
           name: musician.name || "",
           city: musician.city || "",
+          state: musician.state || "",
           category: musician.category || "",
           shortBio: musician.shortBio || "",
           website: musician.website || "",
@@ -380,6 +276,7 @@ export default function EditMusicianPage() {
       const submitData = {
         name: formData.name,
         city: formData.city,
+        state: formData.state,
         category: formData.category,
         shortBio: formData.shortBio,
         website: formData.website,
@@ -503,21 +400,31 @@ export default function EditMusicianPage() {
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 City *
               </label>
-              <select
+              <input
+                type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg bg-background"
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="eg., Los Angeles"
                 required
-              >
-                <option value="">Select a city</option>
-                {allCities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
+
+            <div className="">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                State
+              </label>
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., California"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Status
@@ -933,7 +840,8 @@ export default function EditMusicianPage() {
                     Video ID: {extractYouTubeId(formData.audio)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Note: On the musician profile, this will play as audio using YouTube's audio player.
+                    Note: On the musician profile, this will play as audio using
+                    YouTube's audio player.
                   </p>
                 </div>
               )}

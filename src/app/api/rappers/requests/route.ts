@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     // Basic fields
     const name = formData.get("name") as string;
     const city = formData.get("city") as string;
+    const state = formData.get("state") as string;
     const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const artistStatus = formData.get("artistStatus") as string;
@@ -162,6 +163,7 @@ export async function POST(request: NextRequest) {
     const result = await createMusicianRequest({
       name: name.trim(),
       city: city.trim(),
+      state: state?.trim() || undefined,
       category: category.trim(),
       artistStatus: artistStatus?.trim() || undefined,
       shortBio: bio.trim(),

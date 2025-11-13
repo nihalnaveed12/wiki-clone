@@ -9,6 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 interface MusicianRequestParams {
   name: string;
   city: string;
+  state?: string;
   category: string;
   artistStatus?: string;
   website?: string;
@@ -141,6 +142,7 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
     const request = await MusicianRequest.create({
       name: params.name,
       city: params.city,
+      state: params.state || "",
       category: params.category,
       artistStatus: params.artistStatus || "",
       website: params.website || "",
@@ -249,6 +251,7 @@ export async function approveMusicianRequest(_id: string) {
     const rapper = await Rapper.create({
       name: request.name,
       city: request.city,
+      state: request.state || "",
       lat,
       lng,
       category: request.category,

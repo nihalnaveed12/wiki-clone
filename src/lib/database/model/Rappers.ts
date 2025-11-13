@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IRapper extends Document {
     name: string;
     city: string;
+    state?: string;
     lat: number;
     lng: number;
     category: string;
@@ -61,6 +62,7 @@ const RapperSchema = new Schema<IRapper>(
     {
         name: { type: String, required: true, trim: true },
         city: { type: String, required: true, trim: true },
+        state: { type: String, default: '', trim: true },
         lat: { type: Number, required: true },
         lng: { type: Number, required: true },
         category: { type: String, required: true, trim: true },

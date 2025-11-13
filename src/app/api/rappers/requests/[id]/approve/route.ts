@@ -76,6 +76,7 @@ export async function POST(
     const rapper = await Rapper.create({
       name: musicianRequest.name,
       city: musicianRequest.city,
+      state: musicianRequest.state,
       lat,
       lng,
       category: musicianRequest.category,

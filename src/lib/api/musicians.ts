@@ -4,6 +4,7 @@
   _id: string;
   name: string;
   city: string;
+  state?: string
   category: string;
   shortBio: string;
   website: string;

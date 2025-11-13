@@ -11,6 +11,8 @@ import Image from "next/image";
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   city: z.string().min(1, "City is required"),
+  state: z.string().optional().or(z.literal("")),
+
   artistStatus: z.string().optional().or(z.literal("")),
   image: z.any().optional(),
   bio: z
@@ -32,11 +34,7 @@ const schema = z.object({
     .optional()
     .or(z.literal("")),
   twitter: z.string().url("Invalid Twitter URL").optional().or(z.literal("")),
-  audio: z
-    .string()
-    .url("Invalid URL")
-    .optional()
-    .or(z.literal("")),
+  audio: z.string().url("Invalid URL").optional().or(z.literal("")),
 
   // New Fields
   tags: z.string().optional().or(z.literal("")),
@@ -101,112 +99,7 @@ interface Props {
   submitForm: (data: FormData) => void | Promise<void>;
 }
 
-const allCities = [
-  "Alameda",
-  "Albany",
-  "Berkeley",
-  "Dublin",
-  "Emeryville",
-  "Fremont",
-  "Hayward",
-  "Livermore",
-  "Newark",
-  "Oakland",
-  "Piedmont",
-  "Pleasanton",
-  "San Leandro",
-  "Union City",
-  "Antioch",
-  "Brentwood",
-  "Clayton",
-  "Concord",
-  "Danville",
-  "El Cerrito",
-  "Hercules",
-  "Lafayette",
-  "Martinez",
-  "Moraga",
-  "Oakley",
-  "Orinda",
-  "Pinole",
-  "Pittsburg",
-  "Pleasant Hill",
-  "Richmond",
-  "San Pablo",
-  "San Ramon",
-  "Walnut Creek",
-  "Marin County",
-  "Belvedere",
-  "Corte Madera",
-  "Fairfax",
-  "Larkspur",
-  "Mill Valley",
-  "Novato",
-  "Ross",
-  "San Anselmo",
-  "San Rafael",
-  "Sausalito",
-  "Tiburon",
-  "Napa County",
-  "American Canyon",
-  "Calistoga",
-  "Napa",
-  "St. Helena",
-  "Yountville",
-  "San Francisco",
-  "San Mateo County",
-  "Atherton",
-  "Belmont",
-  "Brisbane",
-  "Burlingame",
-  "Colma",
-  "Daly City",
-  "East Palo Alto",
-  "Foster City",
-  "Half Moon Bay",
-  "Hillsborough",
-  "Menlo Park",
-  "Millbrae",
-  "Pacifica",
-  "Portola Valley",
-  "Redwood City",
-  "San Bruno",
-  "San Carlos",
-  "San Mateo",
-  "South San Francisco",
-  "Woodside",
-  "Campbell",
-  "Cupertino",
-  "Gilroy",
-  "Los Altos",
-  "Los Altos Hills",
-  "Los Gatos",
-  "Milpitas",
-  "Monte Sereno",
-  "Morgan Hill",
-  "Mountain View",
-  "Palo Alto",
-  "San Jose",
-  "Santa Clara",
-  "Saratoga",
-  "Sunnyvale",
-  "Benicia",
-  "Dixon",
-  "Fairfield",
-  "Rio Vista",
-  "Suisun City",
-  "Vacaville",
-  "Vallejo",
-  "Cloverdale",
-  "Cotati",
-  "Healdsburg",
-  "Petaluma",
-  "Rohnert Park",
-  "Santa Rosa",
-  "Sebastopol",
-  "Sonoma",
-  "Windsor",
-];
+
 
 const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
 
@@ -238,21 +131,21 @@ function extractYouTubeId(url: string): string | null {
   try {
     const u = new URL(url);
     const hostname = u.hostname.replace("www.", "");
-    
+
     if (hostname.includes("youtu.be")) {
       return u.pathname.slice(1).split("?")[0];
     }
-    
+
     if (hostname.includes("youtube.com")) {
       const v = u.searchParams.get("v");
       if (v) return v;
-      
+
       const pathParts = u.pathname.split("/");
       if (pathParts.includes("embed") || pathParts.includes("v")) {
         return pathParts[pathParts.length - 1];
       }
     }
-    
+
     return null;
   } catch {
     return null;
@@ -272,7 +165,7 @@ function isYouTubeUrl(url: string): boolean {
 }
 
 export default function MusicianForm({ submitForm }: Props) {
-  const [cities, setCities] = useState<string[]>(allCities);
+  
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [audioType, setAudioType] = useState<"youtube" | "direct" | null>(null);
@@ -405,22 +298,32 @@ export default function MusicianForm({ submitForm }: Props) {
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 City *
               </label>
-              <select
+
+              <input
                 {...register("city")}
-                disabled={!cities.length}
-                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
-              >
-                <option value="">Select a city</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., New York"
+              />
+
               <p className="text-destructive text-xs mt-1">
                 {errors.city?.message}
               </p>
             </div>
+
+            <div className="">
+              <label className="block text-sm font-medium text-card-foreground mb-1">
+                State
+              </label>
+              <input
+                {...register("state")}
+                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                placeholder="e.g., CA"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.state?.message}
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Status
@@ -816,7 +719,7 @@ export default function MusicianForm({ submitForm }: Props) {
                 className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
               />
               <p className="text-muted-foreground text-xs mt-1">
-                {audioType === "youtube" 
+                {audioType === "youtube"
                   ? "✓ YouTube link detected - will be converted to audio for playback"
                   : audioType === "direct"
                   ? "✓ Direct audio link detected"
@@ -825,7 +728,7 @@ export default function MusicianForm({ submitForm }: Props) {
               <p className="text-destructive text-xs mt-1">
                 {errors.audio?.message}
               </p>
-              
+
               {/* Audio Preview */}
               {audioWatch && audioType === "youtube" && (
                 <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
@@ -836,15 +739,16 @@ export default function MusicianForm({ submitForm }: Props) {
                     Video ID: {extractYouTubeId(audioWatch)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Note: On the musician profile, this will play as audio using YouTube's audio player.
+                    Note: On the musician profile, this will play as audio using
+                    YouTube's audio player.
                   </p>
                 </div>
               )}
-              
+
               {audioWatch && audioType === "direct" && (
                 <div className="mt-3">
-                  <audio 
-                    controls 
+                  <audio
+                    controls
                     src={audioWatch}
                     className="w-full"
                     style={{ maxHeight: "40px" }}

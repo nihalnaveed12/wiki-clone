@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     // Basic Fields
     const name = formData.get("name") as string;
     const city = formData.get("city") as string;
+    const state = formData.get("state") as string;
     const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const website = formData.get("website") as string;
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
     const result = await createRapper({
       name: name.trim(),
       city: city.trim(),
+      state: state?.trim() || undefined,
       lat,
       lng,
       category: category.trim(),

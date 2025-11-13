@@ -5,10 +5,11 @@ import Link from "next/link";
 import { MapPin, Globe, Pause, PlayIcon, ExternalLink } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-interface Musician {
+export interface Musician {
   _id: string;
   name: string;
   city: string;
+  state?: string;
   category: string;
   shortBio: string;
   website: string;
@@ -323,7 +324,9 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
                 <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
                   <MapPin className="w-4 h-4" />
-                  <span>{musician.city}, California</span>
+                  <span>{musician.city}, {musician.state && (
+                    musician.state
+                  ) }</span>
                 </div>
 
                 <p className="text-gray-300 leading-relaxed mb-4">
