@@ -95,8 +95,20 @@ export async function PUT(
     const youtubeUrlsRaw = formData.getAll("youtubeUrls") as string[];
     const youtubeUrls = youtubeUrlsRaw
       .map((url) => url.trim())
-      .filter((url) => url.length > 0)
-      .slice(0, 5); // max 5 videos
+      .filter((url) => url.length > 0);
+
+    const musicVideosRaw = formData.getAll("musicVideos") as string[];
+    const musicVideos = musicVideosRaw
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
+    const introVideosRaw = formData.getAll("introVideos") as string[];
+    const introVideos = introVideosRaw
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
+    const vlogVideosRaw = formData.getAll("vlogVideos") as string[];
+    const vlogVideos = vlogVideosRaw
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
 
     if (!title || !content) {
       return NextResponse.json(
@@ -135,6 +147,9 @@ export async function PUT(
       origin: origin || "",
       sideSection: sideSection || "",
       youtubeUrls: youtubeUrls.length ? youtubeUrls : [],
+      musicVideos: musicVideos.length ? musicVideos : [],
+      introVideos: introVideos.length ? introVideos : [],
+      vlogVideos: vlogVideos.length ? vlogVideos : [],
       alsoKnownAs: alsoKnownAs || "",
       realName: realName || "",
       genres: genres ? genres.split(",").map((g) => g.trim()) : [],

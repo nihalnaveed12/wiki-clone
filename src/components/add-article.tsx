@@ -35,13 +35,15 @@ export default function AddYourArticle() {
   const [associatedActs, setAssociatedActs] = useState("");
   const [labels, setLabels] = useState("");
 
-  // YouTube fields
+  // YouTube fields - ab har ek ke liye alag state
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>([""]);
+  const [musicVideos, setMusicVideos] = useState<string[]>([""]);
+  const [introVideos, setIntroVideos] = useState<string[]>([""]);
+  const [vlogVideos, setVlogVideos] = useState<string[]>([""]);
 
+  // YouTube URLs functions
   const addYoutubeField = () => {
-    if (youtubeUrls.length < 5) {
-      setYoutubeUrls([...youtubeUrls, ""]);
-    }
+    setYoutubeUrls([...youtubeUrls, ""]);
   };
 
   const removeYoutubeField = (index: number) => {
@@ -54,12 +56,57 @@ export default function AddYourArticle() {
     setYoutubeUrls(newUrls);
   };
 
+  // Music Videos functions
+  const addMusicVideo = () => {
+    setMusicVideos([...musicVideos, ""]);
+  };
+
+  const removeMusicVideo = (index: number) => {
+    setMusicVideos(musicVideos.filter((_, i) => i !== index));
+  };
+
+  const updateMusicVideo = (index: number, value: string) => {
+    const newUrls = [...musicVideos];
+    newUrls[index] = value;
+    setMusicVideos(newUrls);
+  };
+
+  // Intro Videos functions
+  const addIntroVideo = () => {
+    setIntroVideos([...introVideos, ""]);
+  };
+
+  const removeIntroVideo = (index: number) => {
+    setIntroVideos(introVideos.filter((_, i) => i !== index));
+  };
+
+  const updateIntroVideo = (index: number, value: string) => {
+    const newUrls = [...introVideos];
+    newUrls[index] = value;
+    setIntroVideos(newUrls);
+  };
+
+  // Vlog Videos functions
+  const addVlogVideo = () => {
+    setVlogVideos([...vlogVideos, ""]);
+  };
+
+  const removeVlogVideo = (index: number) => {
+    setVlogVideos(vlogVideos.filter((_, i) => i !== index));
+  };
+
+  const updateVlogVideo = (index: number, value: string) => {
+    const newUrls = [...vlogVideos];
+    newUrls[index] = value;
+    setVlogVideos(newUrls);
+  };
+
   const router = useRouter();
   const { isSignedIn, user } = useUser();
 
   // Function to validate YouTube URL
   const isValidYouTubeUrl = (url: string): boolean => {
-    if (!url.trim()) return true; // Empty is valid since it's optional
+    if (!url.trim()) return true;
     const youtubeRegex =
       /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
     return youtubeRegex.test(url);
@@ -91,8 +138,14 @@ export default function AddYourArticle() {
       return;
     }
 
-    // Validate YouTube URLs
-    for (const url of youtubeUrls) {
+    // Validate all YouTube URLs
+    const allUrls = [
+      ...youtubeUrls,
+      ...musicVideos,
+      ...introVideos,
+      ...vlogVideos,
+    ];
+    for (const url of allUrls) {
       if (url.trim() && !isValidYouTubeUrl(url)) {
         alert("One or more YouTube URLs are invalid");
         return;
@@ -123,9 +176,28 @@ export default function AddYourArticle() {
       formData.append("associatedActs", associatedActs);
       formData.append("labels", labels);
 
+      // Append all video URLs
       youtubeUrls.forEach((url) => {
         if (url.trim()) {
           formData.append("youtubeUrls", url.trim());
+        }
+      });
+
+      musicVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("musicVideos", url.trim());
+        }
+      });
+
+      introVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("introVideos", url.trim());
+        }
+      });
+
+      vlogVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("vlogVideos", url.trim());
         }
       });
 
@@ -161,7 +233,10 @@ export default function AddYourArticle() {
         setGenres("");
         setAssociatedActs("");
         setLabels("");
-        setYoutubeUrls([]);
+        setYoutubeUrls([""]);
+        setMusicVideos([""]);
+        setIntroVideos([""]);
+        setVlogVideos([""]);
         router.push("/articles-page");
       } else {
         alert(result.error || "Failed to create article");
@@ -339,6 +414,7 @@ export default function AddYourArticle() {
             disabled={loading}
           />
         </div>
+
         <div>
           <label
             htmlFor="sideSection"
@@ -349,7 +425,7 @@ export default function AddYourArticle() {
           <input
             id="sideSection"
             type="text"
-            placeholder=" e.g., Left, Right, Center (Political views) "
+            placeholder="e.g., Left, Right, Center (Political views)"
             value={sideSection}
             onChange={(e) => setSideSection(e.target.value)}
             className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
@@ -366,7 +442,8 @@ export default function AddYourArticle() {
             placeholder="Other names"
             value={alsoKnownAs}
             onChange={(e) => setAlsoKnownAs(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
           />
         </div>
 
@@ -379,7 +456,8 @@ export default function AddYourArticle() {
             placeholder="Enter real name"
             value={realName}
             onChange={(e) => setRealName(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
           />
         </div>
 
@@ -392,7 +470,8 @@ export default function AddYourArticle() {
             placeholder="Comma separated genres"
             value={genres}
             onChange={(e) => setGenres(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
           />
         </div>
 
@@ -405,7 +484,8 @@ export default function AddYourArticle() {
             placeholder="Comma separated acts"
             value={associatedActs}
             onChange={(e) => setAssociatedActs(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
           />
         </div>
 
@@ -418,17 +498,16 @@ export default function AddYourArticle() {
             placeholder="Comma separated labels"
             value={labels}
             onChange={(e) => setLabels(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            disabled={loading}
           />
         </div>
 
-        {/* YouTube Video URL - NEW FIELD */}
-        {/* YouTube Video URLs - Multiple Fields */}
+        {/* YouTube Video URLs */}
         <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
-            YouTube Video URLs (Max 5)
+            YouTube Video URLs
           </label>
-
           <div className="space-y-3">
             {youtubeUrls.map((url, index) => (
               <div key={index} className="flex gap-2 items-center">
@@ -457,15 +536,149 @@ export default function AddYourArticle() {
               </div>
             ))}
           </div>
-
-          {youtubeUrls.length < 5 && (
+          {youtubeUrls.length && (
             <button
               type="button"
               onClick={addYoutubeField}
-              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80"
-              disabled={loading}
+              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !youtubeUrls[youtubeUrls.length - 1]?.trim()}
             >
               + Add another video
+            </button>
+          )}
+        </div>
+
+        {/* Music Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Music Videos
+          </label>
+          <div className="space-y-3">
+            {musicVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateMusicVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {musicVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMusicVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {musicVideos.length && (
+            <button
+              type="button"
+              onClick={addMusicVideo}
+              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !musicVideos[musicVideos.length - 1]?.trim()}
+            >
+              + Add another music video
+            </button>
+          )}
+        </div>
+
+        {/* Intro Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Intro Video URLs
+          </label>
+          <div className="space-y-3">
+            {introVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateIntroVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {introVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeIntroVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {introVideos.length && (
+            <button
+              type="button"
+              onClick={addIntroVideo}
+              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !introVideos[introVideos.length - 1]?.trim()}
+            >
+              + Add another intro video
+            </button>
+          )}
+        </div>
+
+        {/* Vlog Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Vlog Video URLs
+          </label>
+          <div className="space-y-3">
+            {vlogVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateVlogVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {vlogVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeVlogVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {vlogVideos.length && (
+            <button
+              type="button"
+              onClick={addVlogVideo}
+              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !vlogVideos[vlogVideos.length - 1]?.trim()}
+            >
+              + Add another vlog video
             </button>
           )}
         </div>

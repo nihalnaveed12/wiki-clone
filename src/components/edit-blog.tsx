@@ -43,6 +43,9 @@ interface Blog {
   origin?: string;
   sideSection?: string;
   youtubeUrls?: string[];
+  musicVideos?: string[];
+  introVideos?: string[];
+  vlogVideos?: string[];
 
   alsoKnownAs?: string;
   realName?: string;
@@ -74,8 +77,19 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
   const [spouses, setSpouses] = useState(blog.spouses || "");
   const [origin, setOrigin] = useState(blog.origin || "");
   const [sideSection, setSideSection] = useState(blog.sideSection || "");
+
+  // Video URLs states
   const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
     blog.youtubeUrls && blog.youtubeUrls.length > 0 ? blog.youtubeUrls : [""]
+  );
+  const [musicVideos, setMusicVideos] = useState<string[]>(
+    blog.musicVideos && blog.musicVideos.length > 0 ? blog.musicVideos : [""]
+  );
+  const [introVideos, setIntroVideos] = useState<string[]>(
+    blog.introVideos && blog.introVideos.length > 0 ? blog.introVideos : [""]
+  );
+  const [vlogVideos, setVlogVideos] = useState<string[]>(
+    blog.vlogVideos && blog.vlogVideos.length > 0 ? blog.vlogVideos : [""]
   );
 
   // NEW FIELDS
@@ -88,10 +102,9 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
   const router = useRouter();
   const { isSignedIn, user } = useUser();
 
+  // YouTube URLs functions
   const addYoutubeField = () => {
-    if (youtubeUrls.length < 5) {
-      setYoutubeUrls([...youtubeUrls, ""]);
-    }
+    setYoutubeUrls([...youtubeUrls, ""]);
   };
 
   const removeYoutubeField = (index: number) => {
@@ -102,6 +115,59 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
     const newUrls = [...youtubeUrls];
     newUrls[index] = value;
     setYoutubeUrls(newUrls);
+  };
+
+  // Music Videos functions
+  const addMusicVideo = () => {
+    setMusicVideos([...musicVideos, ""]);
+  };
+
+  const removeMusicVideo = (index: number) => {
+    setMusicVideos(musicVideos.filter((_, i) => i !== index));
+  };
+
+  const updateMusicVideo = (index: number, value: string) => {
+    const newUrls = [...musicVideos];
+    newUrls[index] = value;
+    setMusicVideos(newUrls);
+  };
+
+  // Intro Videos functions
+  const addIntroVideo = () => {
+    setIntroVideos([...introVideos, ""]);
+  };
+
+  const removeIntroVideo = (index: number) => {
+    setIntroVideos(introVideos.filter((_, i) => i !== index));
+  };
+
+  const updateIntroVideo = (index: number, value: string) => {
+    const newUrls = [...introVideos];
+    newUrls[index] = value;
+    setIntroVideos(newUrls);
+  };
+
+  // Vlog Videos functions
+  const addVlogVideo = () => {
+    setVlogVideos([...vlogVideos, ""]);
+  };
+
+  const removeVlogVideo = (index: number) => {
+    setVlogVideos(vlogVideos.filter((_, i) => i !== index));
+  };
+
+  const updateVlogVideo = (index: number, value: string) => {
+    const newUrls = [...vlogVideos];
+    newUrls[index] = value;
+    setVlogVideos(newUrls);
+  };
+
+  // Function to validate YouTube URL
+  const isValidYouTubeUrl = (url: string): boolean => {
+    if (!url.trim()) return true;
+    const youtubeRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+    return youtubeRegex.test(url);
   };
 
   useEffect(() => {
@@ -143,6 +209,15 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
       return;
     }
 
+    // Validate all YouTube URLs
+    const allUrls = [...youtubeUrls, ...musicVideos, ...introVideos, ...vlogVideos];
+    for (const url of allUrls) {
+      if (url.trim() && !isValidYouTubeUrl(url)) {
+        alert("One or more YouTube URLs are invalid");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -170,9 +245,28 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
       formData.append("associatedActs", associatedActs);
       formData.append("labels", labels);
 
+      // Append all video URLs
       youtubeUrls.forEach((url) => {
         if (url.trim()) {
           formData.append("youtubeUrls", url.trim());
+        }
+      });
+
+      musicVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("musicVideos", url.trim());
+        }
+      });
+
+      introVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("introVideos", url.trim());
+        }
+      });
+
+      vlogVideos.forEach((url) => {
+        if (url.trim()) {
+          formData.append("vlogVideos", url.trim());
         }
       });
 
@@ -309,6 +403,7 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
             disabled={loading}
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
             Origin
@@ -321,6 +416,7 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
             disabled={loading}
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
             Side/Section
@@ -334,69 +430,76 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           />
         </div>
 
-         <div>
-          <label className="block text-sm font-medium mb-2 text-card-foreground">Also Known As</label>
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Also Known As
+          </label>
           <input
             type="text"
             value={alsoKnownAs}
             onChange={(e) => setAlsoKnownAs(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-card-foreground">Real Name</label>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Real Name
+          </label>
           <input
             type="text"
             value={realName}
             onChange={(e) => setRealName(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-card-foreground">Genres</label>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Genres
+          </label>
           <input
             type="text"
             value={genres}
             onChange={(e) => setGenres(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-card-foreground">Associated Acts</label>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Associated Acts
+          </label>
           <input
             type="text"
             value={associatedActs}
             onChange={(e) => setAssociatedActs(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 text-card-foreground">Labels</label>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Labels
+          </label>
           <input
             type="text"
             value={labels}
             onChange={(e) => setLabels(e.target.value)}
-            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground"
+            className="w-full px-4 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
         </div>
 
-
-
-        {/* YouTube Video URLs - Multiple Fields */}
+        {/* YouTube Video URLs */}
         <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
-            YouTube Video URLs (Max 5)
+            YouTube Video URLs
           </label>
-
           <div className="space-y-3">
             {youtubeUrls.map((url, index) => (
               <div key={index} className="flex gap-2 items-center">
@@ -405,7 +508,11 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
                   placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
                   value={url}
                   onChange={(e) => updateYoutubeUrl(index, e.target.value)}
-                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors`}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
                   disabled={loading}
                 />
                 {youtubeUrls.length > 1 && (
@@ -421,17 +528,143 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={addYoutubeField}
+            className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !youtubeUrls[youtubeUrls.length - 1]?.trim()}
+          >
+            + Add another video
+          </button>
+        </div>
 
-          {youtubeUrls.length < 5 && (
-            <button
-              type="button"
-              onClick={addYoutubeField}
-              className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80"
-              disabled={loading}
-            >
-              + Add another video
-            </button>
-          )}
+        {/* Music Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Music Videos
+          </label>
+          <div className="space-y-3">
+            {musicVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateMusicVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {musicVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMusicVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addMusicVideo}
+            className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !musicVideos[musicVideos.length - 1]?.trim()}
+          >
+            + Add another music video
+          </button>
+        </div>
+
+        {/* Intro Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Intro Video URLs
+          </label>
+          <div className="space-y-3">
+            {introVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateIntroVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {introVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeIntroVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addIntroVideo}
+            className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !introVideos[introVideos.length - 1]?.trim()}
+          >
+            + Add another intro video
+          </button>
+        </div>
+
+        {/* Vlog Videos */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-card-foreground">
+            Vlog Video URLs
+          </label>
+          <div className="space-y-3">
+            {vlogVideos.map((url, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  placeholder="e.g., https://youtu.be/dQw4w9WgXcQ"
+                  value={url}
+                  onChange={(e) => updateVlogVideo(index, e.target.value)}
+                  className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-card-foreground transition-colors ${
+                    url.trim() && !isValidYouTubeUrl(url)
+                      ? "border-destructive focus:ring-destructive"
+                      : "border-border"
+                  }`}
+                  disabled={loading}
+                />
+                {vlogVideos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeVlogVideo(index)}
+                    className="px-3 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    disabled={loading}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addVlogVideo}
+            className="mt-2 px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !vlogVideos[vlogVideos.length - 1]?.trim()}
+          >
+            + Add another vlog video
+          </button>
         </div>
 
         <div>
@@ -442,7 +675,7 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
-            className="w-full px-3 py-2 border border-border rounded-md bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
+            className="w-full px-3 py-2 border border-border rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent/80 bg-background text-card-foreground disabled:bg-muted disabled:text-muted-foreground transition-colors"
             disabled={loading}
           />
           {imagePreview && !removeImage && (
@@ -481,7 +714,7 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pt-6">
+        <div className="flex items-center gap-2 pt-12">
           <input
             id="published"
             type="checkbox"

@@ -20,6 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.6.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.510.0",
     "mongoose": "^8.15.1",

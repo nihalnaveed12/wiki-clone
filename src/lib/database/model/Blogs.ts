@@ -1,6 +1,5 @@
 // /lib/models/blogs.ts
-import mongoose, { Document, Schema } from 'mongoose';
-
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IBlog extends Document {
   title: string;
@@ -26,6 +25,9 @@ export interface IBlog extends Document {
 
   // New YouTube urls (up to 5)
   youtubeUrls: string[];
+  musicVideos: string[];
+  introVideos: string[];
+  vlogVideos: string[];
 
   // New info-box fields
   alsoKnownAs: string;
@@ -55,16 +57,16 @@ const BlogSchema = new Schema<IBlog>(
     image: {
       id: {
         type: String,
-        default: '',
+        default: "",
       },
       url: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     slug: {
@@ -86,42 +88,42 @@ const BlogSchema = new Schema<IBlog>(
     // Old bio fields
     bornDate: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     bornPlace: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     diedDate: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     diedPlace: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     occupation: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     spouses: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     origin: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     sideSection: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
 
@@ -132,23 +134,71 @@ const BlogSchema = new Schema<IBlog>(
       validate: [
         {
           validator: function (arr: string[]) {
-            // length check
-            return Array.isArray(arr) && arr.length <= 5;
+            // allow empty array; validate each non-empty entry
+            if (!Array.isArray(arr)) return false;
+            return arr.every((u) => {
+              if (!u || typeof u !== "string") return false;
+              const trimmed = u.trim();
+              if (trimmed === "") return false; // don't store empty strings
+              return youtubeRegex.test(trimmed);
+            });
           },
-          message: 'A maximum of 5 YouTube URLs is allowed.',
+          message: "One or more YouTube URLs are invalid.",
         },
+      ],
+    },
+
+    musicVideos: {
+      type: [String],
+      default: [],
+      validate: [
         {
           validator: function (arr: string[]) {
             // allow empty array; validate each non-empty entry
             if (!Array.isArray(arr)) return false;
             return arr.every((u) => {
-              if (!u || typeof u !== 'string') return false;
+              if (!u || typeof u !== "string") return false;
               const trimmed = u.trim();
-              if (trimmed === '') return false; // don't store empty strings
+              if (trimmed === "") return false; // don't store empty strings
               return youtubeRegex.test(trimmed);
             });
           },
-          message: 'One or more YouTube URLs are invalid.',
+        },
+      ],
+    },
+    introVideos: {
+      type: [String],
+      default: [],
+      validate: [
+        {
+          validator: function (arr: string[]) {
+            // allow empty array; validate each non-empty entry
+            if (!Array.isArray(arr)) return false;
+            return arr.every((u) => {
+              if (!u || typeof u !== "string") return false;
+              const trimmed = u.trim();
+              if (trimmed === "") return false; // don't store empty strings
+              return youtubeRegex.test(trimmed);
+            });
+          },
+        },
+      ],
+    },
+    vlogVideos: {
+      type: [String],
+      default: [],
+      validate: [
+        {
+          validator: function (arr: string[]) {
+            // allow empty array; validate each non-empty entry
+            if (!Array.isArray(arr)) return false;
+            return arr.every((u) => {
+              if (!u || typeof u !== "string") return false;
+              const trimmed = u.trim();
+              if (trimmed === "") return false; // don't store empty strings
+              return youtubeRegex.test(trimmed);
+            });
+          },
         },
       ],
     },
@@ -156,12 +206,12 @@ const BlogSchema = new Schema<IBlog>(
     // New info-box fields
     alsoKnownAs: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     realName: {
       type: String,
-      default: '',
+      default: "",
       trim: true,
     },
     genres: {
@@ -189,6 +239,6 @@ BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ tags: 1 });
 BlogSchema.index({ occupation: 1 });
 
-const Blog = mongoose.models?.Blog || mongoose.model<IBlog>('Blog', BlogSchema);
+const Blog = mongoose.models?.Blog || mongoose.model<IBlog>("Blog", BlogSchema);
 
 export default Blog;
