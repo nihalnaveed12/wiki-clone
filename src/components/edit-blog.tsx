@@ -584,7 +584,7 @@ export default function EditBlogComponent({ blog }: EditBlogProps) {
         {/* Intro Videos */}
         <div>
           <label className="block text-sm font-medium mb-2 text-card-foreground">
-            Intro Video URLs
+            Interview Video URLs
           </label>
           <div className="space-y-3">
             {introVideos.map((url, index) => (

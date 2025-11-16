@@ -52,7 +52,7 @@ export default function ClientVideoTabs({
 
   const tabs = [
     { id: "music", label: "Music Videos", content: renderVideos(musicVideos) },
-    { id: "intro", label: "Intro Videos", content: renderVideos(introVideos) },
+    { id: "intro", label: "Interview Videos", content: renderVideos(introVideos) },
     { id: "vlog", label: "Vlogs / Behind The Scenes", content: renderVideos(vlogVideos) },
     { id: "other", label: "Other Videos", content: renderVideos(youtubeUrls) },
   ];

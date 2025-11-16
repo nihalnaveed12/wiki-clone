@@ -195,7 +195,6 @@ export default function WikipediaHero() {
     const getMusicians = async () => {
       try {
         const data = await fetchMusicians();
-        console.log("Fetched musicians:", data);
         setMusicians(data);
       } catch (err) {
         console.error("Error fetching musicians:", err);
