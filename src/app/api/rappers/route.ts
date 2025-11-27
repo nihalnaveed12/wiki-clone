@@ -24,80 +24,119 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    throw new Error("Unauthorized: Please sign in");
+    return NextResponse.json(
+      { error: "Unauthorized: Please sign in" },
+      { status: 401 }
+    );
   }
 
   try {
     const formData = await request.formData();
 
     // Basic Fields
-    const name = formData.get("name") as string;
-    const city = formData.get("city") as string;
-    const state = formData.get("state") as string;
-    const bio = formData.get("bio") as string;
-    const category = formData.get("category") as string;
-    const website = formData.get("website") as string;
-    const artistStatus = formData.get("artistStatus") as string;
-    const imageFile = formData.get("image") as File;
+    const name = (formData.get("name") as string)?.trim();
+    const city = (formData.get("city") as string)?.trim();
+    const state = (formData.get("state") as string)?.trim();
+    const shortBio = (formData.get("bio") as string)?.trim();
+    const category = (formData.get("category") as string)?.trim();
+    const website = (formData.get("website") as string)?.trim();
+    const artistStatus = (formData.get("artistStatus") as string)?.trim();
 
     // Socials
-    const instagram = formData.get("instagram") as string;
-    const youtube = formData.get("youtube") as string;
-    const spotify = formData.get("spotify") as string;
-    const soundcloud = formData.get("soundcloud") as string;
-    const twitter = formData.get("twitter") as string;
+    const instagram = (formData.get("instagram") as string)?.trim();
+    const youtube = (formData.get("youtube") as string)?.trim();
+    const spotify = (formData.get("spotify") as string)?.trim();
+    const soundcloud = (formData.get("soundcloud") as string)?.trim();
+    const twitter = (formData.get("twitter") as string)?.trim();
+    const appleMusic = (formData.get("appleMusic") as string)?.trim();
 
-    // New Fields
-    const audio = formData.get("audio") as string;
-    const tagsString = formData.get("tags") as string;
-    const readMoreLink = formData.get("readMoreLink") as string;
-    const yearsActiveStart = formData.get("yearsActiveStart") as string;
-    const yearsActiveEnd = formData.get("yearsActiveEnd") as string;
-    const status = formData.get("status") as string;
-    const labelCrew = formData.get("labelCrew") as string;
-    const labelCrewLink = formData.get("labelCrewLink") as string;
+    // Hero Section
+    const heroBannerImageFile = formData.get("heroBannerImage") as File;
+    const heroTagsString = formData.get("heroTags") as string;
+
+    // Media Hub
+    const videosString = formData.get("videos") as string;
+
+    // Defining Tracks
+    const definingTracksString = formData.get("definingTracks") as string;
+
+    // Deep Dive
+    const deepDiveNarrative = (
+      formData.get("deepDiveNarrative") as string
+    )?.trim();
+
+    // At-a-Glance
+    const alsoKnownAsString = formData.get("alsoKnownAs") as string;
+    const born = (formData.get("born") as string)?.trim();
+    const origin = (formData.get("origin") as string)?.trim();
+    const primaryAffiliationName = (
+      formData.get("primaryAffiliationName") as string
+    )?.trim();
+    const primaryAffiliationLink = (
+      formData.get("primaryAffiliationLink") as string
+    )?.trim();
+    const notableCollaboratorsString = formData.get(
+      "notableCollaborators"
+    ) as string;
+    const protegesString = formData.get("proteges") as string;
+    const relatedArtistsString = formData.get("relatedArtists") as string;
+
+    // Label & Acts
+    const labelCrew = (formData.get("labelCrew") as string)?.trim();
+    const labelCrewLink = (formData.get("labelCrewLink") as string)?.trim();
     const associatedActsString = formData.get("associatedActs") as string;
-    const associatedActslinks = formData.get("associatedActsLinks") as string;
-    const district = formData.get("district") as string;
-    const districtLink = formData.get("districtLink") as string;
+    const associatedActsLinksString = formData.get(
+      "associatedActsLinks"
+    ) as string;
+
+    // Location & Producers
+    const district = (formData.get("district") as string)?.trim();
+    const districtLink = (formData.get("districtLink") as string)?.trim();
     const frequentProducersString = formData.get("frequentProducers") as string;
-    const frequentProducerslink = formData.get(
+    const frequentProducersLinkString = formData.get(
       "frequentProducersLink"
     ) as string;
-    const breakoutTrackName = formData.get("breakoutTrackName") as string;
-    const breakoutTrackUrl = formData.get("breakoutTrackUrl") as string;
-    const definingProjectName = formData.get("definingProjectName") as string;
+
+    // Breakout Track & Defining Project
+    const breakoutTrackName = (
+      formData.get("breakoutTrackName") as string
+    )?.trim();
+    const breakoutTrackUrl = (
+      formData.get("breakoutTrackUrl") as string
+    )?.trim();
+    const definingProjectName = (
+      formData.get("definingProjectName") as string
+    )?.trim();
     const definingProjectYear = formData.get("definingProjectYear") as string;
-    const definingProjectLink = formData.get("definingProjectLink") as string;
+    const definingProjectLink = (
+      formData.get("definingProjectLink") as string
+    )?.trim();
+
+    // Fans
     const fansOfString = formData.get("fansOf") as string;
-    const fansOflink = formData.get("fansOfLink") as string;
+    const fansOfLinkString = formData.get("fansOfLink") as string;
 
-    // ✅ New YouTube Embed Fields (optional)
-    const videoEmbed = formData.get("videoEmbed") as string;
-    const videoWidth = formData.get("videoWidth") as string;
-    const videoHeight = formData.get("videoHeight") as string;
+    // Years Active
+    const yearsActiveStart = formData.get("yearsActiveStart") as string;
+    const yearsActiveEnd = formData.get("yearsActiveEnd") as string;
 
-    // Validate required fields
-    const requiredFields = [
-      { field: "name", value: name },
-      { field: "city", value: city },
-      { field: "category", value: category },
-      { field: "bio", value: bio },
-    ];
+    // Status
+    const status = (formData.get("status") as string)?.trim() || "active";
 
-    const missingFields = requiredFields
-      .filter(({ value }) => !value || value.trim() === "")
-      .map(({ field }) => field);
-
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(", ")}` },
-        { status: 400 }
-      );
+    // Image Upload
+    let imageData = { id: "", url: "" };
+    const imageFile = formData.get("image") as File;
+    if (imageFile?.size && imageFile.name !== "undefined") {
+      imageData = await uploadToCloudinary(imageFile);
     }
 
-    // Parse array fields
-    const parseArray = (input: string): string[] => {
+    let heroBannerImageData = { id: "", url: "" };
+    if (heroBannerImageFile?.size && heroBannerImageFile.name !== "undefined") {
+      heroBannerImageData = await uploadToCloudinary(heroBannerImageFile);
+    }
+
+    // Helper to parse arrays from JSON or comma string
+    const parseArray = (input: string | null): string[] => {
       if (!input) return [];
       try {
         return JSON.parse(input);
@@ -109,114 +148,111 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    const tags = parseArray(tagsString);
+    // Parse all array fields
+    const heroTags = parseArray(heroTagsString);
+    const videos: {
+      title?: string;
+      type?: string;
+      embedUrl?: string;
+      isFeatured?: boolean;
+    }[] = videosString ? JSON.parse(videosString) : [];
+
+    const definingTracks: {
+      title?: string;
+      year?: number;
+      image?: { id?: string; url?: string };
+      externalLink?: string;
+    }[] = definingTracksString ? JSON.parse(definingTracksString) : [];
+
+    const alsoKnownAs = parseArray(alsoKnownAsString);
+    const notableCollaborators = parseArray(notableCollaboratorsString);
+    const proteges = parseArray(protegesString);
+    const relatedArtists = parseArray(relatedArtistsString);
     const associatedActs = parseArray(associatedActsString);
-    const associatedActsLinks = parseArray(associatedActslinks);
+    const associatedActsLinks = parseArray(associatedActsLinksString);
     const frequentProducers = parseArray(frequentProducersString);
-    const frequentProducersLink = parseArray(frequentProducerslink);
+    const frequentProducersLink = parseArray(frequentProducersLinkString);
     const fansOf = parseArray(fansOfString);
-    const fansOfLink = parseArray(fansOflink);
+    const fansOfLink = parseArray(fansOfLinkString);
 
-    // Handle image upload
-    let imageData = { id: "", url: "" };
-    if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
-      try {
-        imageData = await uploadToCloudinary(imageFile);
-      } catch (uploadError) {
-        console.error("Image upload error:", uploadError);
-        return NextResponse.json(
-          { error: "Failed to upload image. Please try again." },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Get coordinates from city
+    // Get coordinates
     const getCoordinates = async (city: string) => {
       const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
-      if (!apiKey) {
-        throw new Error("OpenCage API key is not configured.");
-      }
-
-      const query = city.trim();
+      if (!apiKey) throw new Error("OpenCage API key not configured");
       const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
-        query
+        city
       )}&key=${apiKey}&limit=1`;
-
       const res = await fetch(url);
       const data = await res.json();
-
       if (data.results?.length > 0) {
-        const { lat, lng } = data.results[0].geometry;
-        return { lat: Number(lat), lng: Number(lng) };
+        return {
+          lat: Number(data.results[0].geometry.lat),
+          lng: Number(data.results[0].geometry.lng),
+        };
       }
-
-      throw new Error(`Could not find coordinates for: ${query}`);
+      throw new Error(`Could not find coordinates for: ${city}`);
     };
-
     const { lat, lng } = await getCoordinates(city);
 
-    // Create rapper record
+    // Create rapper
     const result = await createRapper({
-      name: name.trim(),
-      city: city.trim(),
-      state: state?.trim() || undefined,
+      name,
+      city,
+      state: state || undefined,
       lat,
       lng,
-      category: category.trim(),
-      artistStatus: artistStatus?.trim() || undefined,
-      website: website?.trim() || undefined,
-      socials: {
-        instagram: instagram?.trim() || undefined,
-        youtube: youtube?.trim() || undefined,
-        spotify: spotify?.trim() || undefined,
-        soundcloud: soundcloud?.trim() || undefined,
-        twitter: twitter?.trim() || undefined,
-      },
+      category,
+      artistStatus: artistStatus || undefined,
+      website: website || undefined,
+      socials: { instagram, youtube, spotify, soundcloud, twitter, appleMusic },
       image: imageData,
-      shortBio: bio.trim(),
-      audio: audio?.trim() || undefined,
-      tags,
-      readMoreLink: readMoreLink?.trim() || undefined,
+      shortBio,
+      heroBannerImage: heroBannerImageData,
+      heroTags,
+      videos,
+      definingTracks,
+      deepDiveNarrative: deepDiveNarrative || "",
+      alsoKnownAs,
+      born: born || "",
+      origin: origin || "",
+      primaryAffiliation: {
+        name: primaryAffiliationName || "",
+        link: primaryAffiliationLink || "",
+      },
+      notableCollaborators,
+      proteges,
+      relatedArtists,
+      labelCrew: labelCrew || "",
+      labelCrewLink: labelCrewLink || "",
+      associatedActs,
+      associatedActsLinks,
+      district: district || "",
+      districtLink: districtLink || "",
+      frequentProducers,
+      frequentProducersLink,
+      breakoutTrack: {
+        name: breakoutTrackName || "",
+        url: breakoutTrackUrl || "",
+      },
+      definingProject: {
+        name: definingProjectName || "",
+        year: definingProjectYear
+          ? parseInt(definingProjectYear, 10)
+          : undefined,
+        link: definingProjectLink || "",
+      },
+      fansOf,
+      fansOfLink,
       yearsActive: {
         start: yearsActiveStart ? parseInt(yearsActiveStart, 10) : undefined,
         end: yearsActiveEnd ? parseInt(yearsActiveEnd, 10) : undefined,
       },
-      status: (status || "active") as "active" | "inactive",
-      labelCrew: labelCrew?.trim() || undefined,
-      labelCrewLink: labelCrewLink?.trim() || undefined,
-      associatedActs,
-      associatedActsLinks,
-      district: district?.trim() || undefined,
-      districtLink: districtLink?.trim() || undefined,
-      frequentProducers,
-      frequentProducersLink,
-      breakoutTrack: {
-        name: breakoutTrackName?.trim() || undefined,
-        url: breakoutTrackUrl?.trim() || undefined,
-      },
-      definingProject: {
-        name: definingProjectName?.trim() || undefined,
-        year: definingProjectYear
-          ? parseInt(definingProjectYear, 10)
-          : undefined,
-        link: definingProjectLink?.trim() || undefined,
-      },
-      fansOf,
-      fansOfLink,
+      status: status as "active" | "inactive",
       submittedBy: userId,
-
-      // ✅ New video fields
-      videoEmbed: videoEmbed?.trim() || "",
-      videoWidth: videoWidth ? parseInt(videoWidth, 10) : 560,
-      videoHeight: videoHeight ? parseInt(videoHeight, 10) : 315,
     });
 
     if (!result.success) {
-      const statusCode =
-        result.error?.includes("privileges") || result.error?.includes("Admin")
-          ? 403
-          : 400;
+      const statusCode = result.error?.includes("privileges") ? 403 : 400;
       return NextResponse.json({ error: result.error }, { status: statusCode });
     }
 

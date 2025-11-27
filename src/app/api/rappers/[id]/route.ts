@@ -13,7 +13,8 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-function parseArrayField(fieldString: string): string[] {
+// Helper to parse array fields (JSON string or comma-separated)
+function parseArrayField(fieldString: string | null): string[] {
   if (!fieldString) return [];
   try {
     return JSON.parse(fieldString);
@@ -35,13 +36,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: result.error }, { status: statusCode });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-    });
+    return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
     console.error("API Error - GET /rappers/[id]:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -65,115 +66,172 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       const formData = await request.formData();
 
       // Basic Fields
-      if (formData.has("name")) updateData.name = formData.get("name");
-      if (formData.has("city")) updateData.city = formData.get("city");
-      if (formData.has("state")) updateData.state = formData.get("state");
-      if (formData.has("category")) updateData.category = formData.get("category");
-      if (formData.has("website")) updateData.website = formData.get("website");
-      if (formData.has("artistStatus")) updateData.artistStatus = formData.get("artistStatus");
-      if (formData.has("shortBio")) updateData.shortBio = formData.get("shortBio");
-      if (formData.has("bio")) updateData.shortBio = formData.get("bio");
-
-      // Video Fields (new)
-      if (formData.has("videoEmbed"))
-        updateData.videoEmbed = formData.get("videoEmbed")?.toString().trim() || "";
-      if (formData.has("videoWidth"))
-        updateData.videoWidth = parseInt(formData.get("videoWidth") as string, 10) || 560;
-      if (formData.has("videoHeight"))
-        updateData.videoHeight = parseInt(formData.get("videoHeight") as string, 10) || 315;
+      const basicFields = [
+        "name",
+        "city",
+        "state",
+        "category",
+        "website",
+        "artistStatus",
+        "shortBio",
+        "bio",
+      ];
+      basicFields.forEach((field) => {
+        if (formData.has(field)) {
+          updateData[field === "bio" ? "shortBio" : field] = (
+            formData.get(field) as string
+          )?.trim();
+        }
+      });
 
       // Socials
-      if (formData.has("socials")) {
-        updateData.socials = JSON.parse(formData.get("socials") as string);
-      } else {
-        updateData.socials = {};
-        if (formData.has("instagram")) updateData.socials.instagram = formData.get("instagram");
-        if (formData.has("youtube")) updateData.socials.youtube = formData.get("youtube");
-        if (formData.has("spotify")) updateData.socials.spotify = formData.get("spotify");
-        if (formData.has("soundcloud")) updateData.socials.soundcloud = formData.get("soundcloud");
-      }
+      updateData.socials = updateData.socials || {};
+      [
+        "instagram",
+        "youtube",
+        "spotify",
+        "soundcloud",
+        "twitter",
+        "appleMusic",
+      ].forEach((field) => {
+        if (formData.has(field))
+          updateData.socials[field] = (formData.get(field) as string)?.trim();
+      });
 
-      // Other existing fields
-      if (formData.has("audio")) updateData.audio = formData.get("audio");
-      if (formData.has("tags"))
-        updateData.tags = parseArrayField(formData.get("tags") as string);
-      if (formData.has("readMoreLink"))
-        updateData.readMoreLink = formData.get("readMoreLink");
-
-      if (formData.has("yearsActive")) {
-        updateData.yearsActive = JSON.parse(formData.get("yearsActive") as string);
-      } else {
-        if (formData.has("yearsActiveStart") || formData.has("yearsActiveEnd")) {
-          updateData.yearsActive = {
-            start: formData.has("yearsActiveStart")
-              ? parseInt(formData.get("yearsActiveStart") as string, 10)
-              : undefined,
-            end: formData.has("yearsActiveEnd")
-              ? parseInt(formData.get("yearsActiveEnd") as string, 10)
-              : undefined,
-          };
+      // Hero Section
+      if (formData.has("heroTags"))
+        updateData.heroTags = parseArrayField(
+          formData.get("heroTags") as string
+        );
+      if (formData.has("heroBannerImage")) {
+        const heroFile = formData.get("heroBannerImage") as File;
+        if (heroFile?.size && heroFile.name !== "undefined") {
+          updateData.heroBannerImage = await uploadToCloudinary(heroFile);
         }
       }
 
-      if (formData.has("status")) updateData.status = formData.get("status");
-      if (formData.has("labelCrew")) updateData.labelCrew = formData.get("labelCrew");
-      if (formData.has("labelCrewLink")) updateData.labelCrewLink = formData.get("labelCrewLink");
+      // Media Hub
+      if (formData.has("videos")) {
+        const videosString = formData.get("videos") as string;
+        updateData.videos = videosString ? JSON.parse(videosString) : [];
+      }
 
-      if (formData.has("associatedActs"))
-        updateData.associatedActs = parseArrayField(formData.get("associatedActs") as string);
-      if (formData.has("associatedActsLinks"))
-        updateData.associatedActsLinks = parseArrayField(formData.get("associatedActsLinks") as string);
+      // Defining Tracks
+      if (formData.has("definingTracks")) {
+        const tracksString = formData.get("definingTracks") as string;
+        updateData.definingTracks = tracksString
+          ? JSON.parse(tracksString)
+          : [];
+      }
 
-      if (formData.has("district")) updateData.district = formData.get("district");
-      if (formData.has("districtLink")) updateData.districtLink = formData.get("districtLink");
+      // Deep Dive
+      if (formData.has("deepDiveNarrative"))
+        updateData.deepDiveNarrative = (
+          formData.get("deepDiveNarrative") as string
+        )?.trim();
 
-      if (formData.has("frequentProducers"))
-        updateData.frequentProducers = parseArrayField(formData.get("frequentProducers") as string);
-      if (formData.has("frequentProducersLink"))
-        updateData.frequentProducersLink = parseArrayField(formData.get("frequentProducersLink") as string);
+      // At-a-Glance Details
+      [
+        "alsoKnownAs",
+        "notableCollaborators",
+        "proteges",
+        "relatedArtists",
+        "associatedActs",
+        "associatedActsLinks",
+        "frequentProducers",
+        "frequentProducersLink",
+        "fansOf",
+        "fansOfLink",
+      ].forEach((field) => {
+        if (formData.has(field))
+          updateData[field] = parseArrayField(formData.get(field) as string);
+      });
 
-      if (formData.has("breakoutTrack")) {
-        updateData.breakoutTrack = JSON.parse(formData.get("breakoutTrack") as string);
-      } else if (formData.has("breakoutTrackName") || formData.has("breakoutTrackUrl")) {
-        updateData.breakoutTrack = {
-          name: formData.get("breakoutTrackName") || undefined,
-          url: formData.get("breakoutTrackUrl") || undefined,
+      [
+        "born",
+        "origin",
+        "labelCrew",
+        "labelCrewLink",
+        "district",
+        "districtLink",
+      ].forEach((field) => {
+        if (formData.has(field))
+          updateData[field] = (formData.get(field) as string)?.trim();
+      });
+
+      if (
+        formData.has("primaryAffiliationName") ||
+        formData.has("primaryAffiliationLink")
+      ) {
+        updateData.primaryAffiliation = {
+          name:
+            (formData.get("primaryAffiliationName") as string)?.trim() || "",
+          link:
+            (formData.get("primaryAffiliationLink") as string)?.trim() || "",
         };
       }
 
+      // Breakout Track
+      if (formData.has("breakoutTrack")) {
+        updateData.breakoutTrack = JSON.parse(
+          formData.get("breakoutTrack") as string
+        );
+      } else if (
+        formData.has("breakoutTrackName") ||
+        formData.has("breakoutTrackUrl")
+      ) {
+        updateData.breakoutTrack = {
+          name: (formData.get("breakoutTrackName") as string)?.trim(),
+          url: (formData.get("breakoutTrackUrl") as string)?.trim(),
+        };
+      }
+
+      // Defining Project
       if (formData.has("definingProject")) {
-        updateData.definingProject = JSON.parse(formData.get("definingProject") as string);
+        updateData.definingProject = JSON.parse(
+          formData.get("definingProject") as string
+        );
       } else if (
         formData.has("definingProjectName") ||
         formData.has("definingProjectYear") ||
         formData.has("definingProjectLink")
       ) {
         updateData.definingProject = {
-          name: formData.get("definingProjectName") || undefined,
+          name: (formData.get("definingProjectName") as string)?.trim(),
           year: formData.has("definingProjectYear")
             ? parseInt(formData.get("definingProjectYear") as string, 10)
             : undefined,
-          link: formData.get("definingProjectLink") || undefined,
+          link: (formData.get("definingProjectLink") as string)?.trim(),
         };
       }
 
-      if (formData.has("fansOf"))
-        updateData.fansOf = parseArrayField(formData.get("fansOf") as string);
-      if (formData.has("fansOfLink"))
-        updateData.fansOfLink = parseArrayField(formData.get("fansOfLink") as string);
+      // Years Active
+      if (formData.has("yearsActive")) {
+        updateData.yearsActive = JSON.parse(
+          formData.get("yearsActive") as string
+        );
+      } else if (
+        formData.has("yearsActiveStart") ||
+        formData.has("yearsActiveEnd")
+      ) {
+        updateData.yearsActive = {
+          start: formData.has("yearsActiveStart")
+            ? parseInt(formData.get("yearsActiveStart") as string, 10)
+            : undefined,
+          end: formData.has("yearsActiveEnd")
+            ? parseInt(formData.get("yearsActiveEnd") as string, 10)
+            : undefined,
+        };
+      }
 
-      // Image upload
+      // Status
+      if (formData.has("status"))
+        updateData.status = (formData.get("status") as string)?.trim();
+
+      // Image
       const imageFile = formData.get("image") as File;
-      if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
-        try {
-          updateData.image = await uploadToCloudinary(imageFile);
-        } catch (uploadError) {
-          console.error("Image upload error:", uploadError);
-          return NextResponse.json(
-            { error: "Failed to upload image. Please try again." },
-            { status: 500 }
-          );
-        }
+      if (imageFile?.size && imageFile.name !== "undefined") {
+        updateData.image = await uploadToCloudinary(imageFile);
       }
     }
 
@@ -187,14 +245,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (!result.success) {
       let statusCode = 400;
       if (
-        result.error?.includes("Admin privileges required") ||
+        result.error?.includes("Admin privileges") ||
         result.error?.includes("Unauthorized")
-      ) {
+      )
         statusCode = 403;
-      } else if (result.error?.includes("not found")) {
-        statusCode = 404;
-      }
-
+      else if (result.error?.includes("not found")) statusCode = 404;
       return NextResponse.json({ error: result.error }, { status: statusCode });
     }
 
@@ -206,7 +261,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("API Error - PUT /rappers/[id]:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }
@@ -214,12 +271,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { userId } = await auth();
-  if (!userId) {
+  if (!userId)
     return NextResponse.json(
       { error: "Unauthorized: Please sign in" },
       { status: 401 }
     );
-  }
 
   try {
     const { id } = await params;
@@ -228,25 +284,21 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!result.success) {
       let statusCode = 400;
       if (
-        result.error?.includes("Admin privileges required") ||
+        result.error?.includes("Admin privileges") ||
         result.error?.includes("Unauthorized")
-      ) {
+      )
         statusCode = 403;
-      } else if (result.error?.includes("not found")) {
-        statusCode = 404;
-      }
-
+      else if (result.error?.includes("not found")) statusCode = 404;
       return NextResponse.json({ error: result.error }, { status: statusCode });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: result.message,
-    });
+    return NextResponse.json({ success: true, message: result.message });
   } catch (error) {
     console.error("API Error - DELETE /rappers/[id]:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

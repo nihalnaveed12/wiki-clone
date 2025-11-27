@@ -12,31 +12,67 @@ interface RequestsTabProps {
 }
 
 interface MusicianRequest {
-  socials: {
-    instagram: string;
-    youtube: string;
-    spotify: string;
-    soundcloud: string;
-  };
-  image: {
-    id: string;
-    url: string;
-  };
-  _id: string;
   name: string;
   city: string;
-  country: string;
-  address: string;
+  state?: string;
   category: string;
-  website: string;
-  shortBio: string;
+  artistStatus?: string;
   status: "pending" | "approved" | "rejected";
+  website?: string;
+  socials?: {
+    instagram?: string;
+    youtube?: string;
+    spotify?: string;
+    soundcloud?: string;
+    twitter?: string;
+    appleMusic?: string;
+  };
+  heroBannerImage?: { id?: string; url?: string };
+  heroTags?: string[];
+  image: { id: string; url: string };
+  shortBio: string;
+  audio?: string;
+  videos?: {
+    title?: string;
+    type?: string;
+    url?: string;
+    isFeatured?: boolean;
+  }[];
+  definingTracks?: {
+    title?: string;
+    year?: number;
+    image?: { id?: string; url?: string };
+    externalLink?: string;
+  }[];
+  deepDiveNarrative?: any;
+  alsoKnownAs?: string[];
+  born?: string;
+  origin?: string;
+  primaryAffiliation?: { name?: string; link?: string };
+  notableCollaborators?: string[];
+  proteges?: string[];
+  relatedArtists?: string[];
+ 
+  readMoreLink?: string;
+  yearsActive?: { start?: number; end?: number };
+  labelCrew?: string;
+  labelCrewLink?: string;
+  associatedActs?: string[];
+  associatedActsLinks?: string[];
+  district?: string;
+  districtLink?: string;
+  frequentProducers?: string[];
+  frequentProducersLink?: string[];
+  
+  breakoutTrack?: { name?: string; url?: string };
+  definingProject?: { name?: string; year?: number; link?: string };
+  fansOf?: string[];
+  fansOfLink?: string[];
   submittedBy?: string;
-  reviewedBy?: string;
+  createdAt: string;
+  _id: string;
   reviewedAt?: string;
   rejectionReason?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default function RequestsTab({ baseUrl }: RequestsTabProps) {
@@ -51,6 +87,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
       const result = await getAllMusicianRequestsAPI();
       if (result.success) {
         setRequests(result.data);
+        console.log("Fetched requests:", result.data);
       } else {
         alert("Failed to fetch requests: " + result.error);
       }
@@ -165,7 +202,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
               <div>
                 <h3 className="text-xl font-bold text-card-foreground">{request.name}</h3>
                 <p className="text-muted-foreground">
-                  {request.category} • {request.city}, {request.country}
+                  {request.category} • {request.city}, {request.state}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Submitted: {new Date(request.createdAt).toLocaleDateString()}
@@ -179,7 +216,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
 
           <div className="mb-4">
             <p className="text-card-foreground mb-2">
-              <strong>Address:</strong> {request.address}
+              <strong>District:</strong> {request.district}
             </p>
             <p className="text-card-foreground mb-2">
               <strong>Bio:</strong> {request.shortBio}
@@ -199,7 +236,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
             )}
 
             <div className="flex flex-wrap gap-2 mt-2">
-              {request.socials.instagram && (
+              {request.socials?.instagram && (
                 <a
                   href={request.socials.instagram}
                   target="_blank"
@@ -209,7 +246,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                   Instagram
                 </a>
               )}
-              {request.socials.youtube && (
+              {request.socials?.youtube && (
                 <a
                   href={request.socials.youtube}
                   target="_blank"
@@ -219,7 +256,7 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                   YouTube
                 </a>
               )}
-              {request.socials.spotify && (
+              {request.socials?.spotify && (
                 <a
                   href={request.socials.spotify}
                   target="_blank"
@@ -229,9 +266,9 @@ export default function RequestsTab({ baseUrl }: RequestsTabProps) {
                   Spotify
                 </a>
               )}
-              {request.socials.soundcloud && (
+              {request.socials?.soundcloud && (
                 <a
-                  href={request.socials.soundcloud}
+                  href={request.socials?.soundcloud}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline text-sm transition-colors"

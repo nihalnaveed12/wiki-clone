@@ -1,3 +1,5 @@
+// app/api/rappers/requests/route.ts
+
 import { NextResponse, NextRequest } from "next/server";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { createMusicianRequest } from "@/lib/actions/musicianRequest.actions";
@@ -6,12 +8,12 @@ import MusicianRequest from "@/lib/database/model/MusicianRequest";
 import User from "@/lib/database/model/User";
 import { auth } from "@clerk/nextjs/server";
 
-// Check admin access
+// --------------------------------------------------
+// ADMIN CHECK
+// --------------------------------------------------
 async function checkAdminAccess(): Promise<void> {
   const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized: Please sign in");
-  }
+  if (!userId) throw new Error("Unauthorized: Please sign in");
 
   await dbConnect();
   const user = await User.findOne({ clerkId: userId });
@@ -21,9 +23,11 @@ async function checkAdminAccess(): Promise<void> {
   }
 }
 
-// Parse array fields from string format
-function parseArrayField(fieldString: string): string[] {
-  if (!fieldString) return [];
+// --------------------------------------------------
+// SAFE ARRAY PARSER
+// --------------------------------------------------
+function parseArrayField(fieldString: string | File | null): string[] {
+  if (!fieldString || typeof fieldString !== "string") return [];
   try {
     return JSON.parse(fieldString);
   } catch {
@@ -34,6 +38,9 @@ function parseArrayField(fieldString: string): string[] {
   }
 }
 
+// --------------------------------------------------
+// GET (ALL REQUESTS)
+// --------------------------------------------------
 export async function GET() {
   try {
     await checkAdminAccess();
@@ -41,30 +48,27 @@ export async function GET() {
 
     const requests = await MusicianRequest.find({}).sort({ createdAt: -1 });
 
-    return NextResponse.json({
-      success: true,
-      data: requests,
-    });
+    return NextResponse.json({ success: true, data: requests });
   } catch (error) {
-    console.error("Error fetching musician requests:", error);
-    const statusCode =
+    const status =
       error instanceof Error &&
-      (error.message.includes("privileges") || error.message.includes("Admin"))
+      (error.message.includes("Admin") || error.message.includes("privileges"))
         ? 403
         : 500;
 
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch requests",
+        error: error instanceof Error ? error.message : "Failed",
       },
-      { status: statusCode }
+      { status }
     );
   }
 }
 
-// ✅ POST: Create new musician request
+// --------------------------------------------------
+// POST: CREATE MUSICIAN REQUEST
+// --------------------------------------------------
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized: Please sign in");
@@ -72,168 +76,214 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
-    // Basic fields
+    // BASIC FIELDS
     const name = formData.get("name") as string;
     const city = formData.get("city") as string;
     const state = formData.get("state") as string;
-    const bio = formData.get("bio") as string;
     const category = formData.get("category") as string;
     const artistStatus = formData.get("artistStatus") as string;
+    const shortBio = formData.get("shortBio") as string;
     const website = formData.get("website") as string;
-    const imageFile = formData.get("image") as File;
 
-    // Socials
+    const imageFile = formData.get("image") as File;
+    const heroBannerFile = formData.get("heroBannerImage") as File;
+
+    // SOCIALS
     const instagram = formData.get("instagram") as string;
     const youtube = formData.get("youtube") as string;
     const spotify = formData.get("spotify") as string;
     const soundcloud = formData.get("soundcloud") as string;
+    const twitter = formData.get("twitter") as string;
+    const appleMusic = formData.get("appleMusic") as string;
 
-    // New video fields (✅ added)
-    const videoEmbed = formData.get("videoEmbed") as string;
-    const videoWidth = formData.get("videoWidth") as string;
-    const videoHeight = formData.get("videoHeight") as string;
+    // NEW FIELDS
+    const deepDiveNarrative = formData.get("deepDiveNarrative") as string;
+    const born = formData.get("born") as string;
+    const origin = formData.get("origin") as string;
 
-    // Other optional fields
+    const primaryAffiliationName = formData.get(
+      "primaryAffiliationName"
+    ) as string;
+    const primaryAffiliationLink = formData.get(
+      "primaryAffiliationLink"
+    ) as string;
+
+    const heroTags = parseArrayField(formData.get("heroTags") as string);
+    const alsoKnownAs = parseArrayField(formData.get("alsoKnownAs") as string);
+    const notableCollaborators = parseArrayField(
+      formData.get("notableCollaborators") as string
+    );
+    const proteges = parseArrayField(formData.get("proteges") as string);
+    const relatedArtists = parseArrayField(
+      formData.get("relatedArtists") as string
+    );
+
+    // OLD FIELDS (still required)
     const audio = formData.get("audio") as string;
-    const tagsString = formData.get("tags") as string;
     const readMoreLink = formData.get("readMoreLink") as string;
+
     const yearsActiveStart = formData.get("yearsActiveStart") as string;
     const yearsActiveEnd = formData.get("yearsActiveEnd") as string;
+
     const labelCrew = formData.get("labelCrew") as string;
     const labelCrewLink = formData.get("labelCrewLink") as string;
-    const associatedActsString = formData.get("associatedActs") as string;
-    const associatedActslink = formData.get("associatedActsLinks") as string;
-    const districtLink = formData.get("districtLink") as string;
+
+    const associatedActs = parseArrayField(
+      formData.get("associatedActs") as string
+    );
+    const associatedActsLinks = parseArrayField(
+      formData.get("associatedActsLinks") as string
+    );
+
     const district = formData.get("district") as string;
-    const frequentProducersString = formData.get("frequentProducers") as string;
-    const frequentProducersStringLink = formData.get(
-      "frequentProducersLink"
-    ) as string;
+    const districtLink = formData.get("districtLink") as string;
+
+    const frequentProducers = parseArrayField(
+      formData.get("frequentProducers") as string
+    );
+    const frequentProducersLink = parseArrayField(
+      formData.get("frequentProducersLink") as string
+    );
+
+    const fansOf = parseArrayField(formData.get("fansOf") as string);
+    const fansOfLink = parseArrayField(formData.get("fansOfLink") as string);
+
+    // BREAKOUT TRACK
     const breakoutTrackName = formData.get("breakoutTrackName") as string;
     const breakoutTrackUrl = formData.get("breakoutTrackUrl") as string;
+
+    // DEFINING PROJECT
     const definingProjectName = formData.get("definingProjectName") as string;
     const definingProjectLink = formData.get("definingProjectLink") as string;
     const definingProjectYear = formData.get("definingProjectYear") as string;
-    const fansOfString = formData.get("fansOf") as string;
-    const fansOfStringLink = formData.get("fansOfLink") as string;
 
-    // Required field check
-    const requiredFields = [
-      { field: "name", value: name },
-      { field: "city", value: city },
-      { field: "category", value: category },
-      { field: "bio", value: bio },
-    ];
+    // VIDEOS
+    let videos = [];
+    const videosString = formData.get("videos") as string;
+    if (videosString) {
+      try {
+        videos = JSON.parse(videosString);
+      } catch {
+        videos = [];
+      }
+    }
 
-    const missingFields = requiredFields
-      .filter(({ value }) => !value || value.trim() === "")
-      .map(({ field }) => field);
+    // DEFINING TRACKS
+    let definingTracks = [];
+    const definingTracksString = formData.get("definingTracks") as string;
+    if (definingTracksString) {
+      try {
+        definingTracks = JSON.parse(definingTracksString);
+      } catch {
+        definingTracks = [];
+      }
+    }
 
-    if (missingFields.length > 0) {
+    // IMAGE UPLOADS
+    // IMAGE UPLOADS
+    if (!imageFile || imageFile.size === 0) {
       return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(", ")}` },
+        { error: "Artist image is required" },
         { status: 400 }
       );
     }
 
-    // Image upload
-    let imageData = { id: "", url: "" };
-    if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
-      try {
-        imageData = await uploadToCloudinary(imageFile);
-      } catch (uploadError) {
-        console.error("Image upload error:", uploadError);
-        return NextResponse.json(
-          { error: "Failed to upload image. Please try again." },
-          { status: 500 }
-        );
-      }
+    let image;
+    try {
+      image = await uploadToCloudinary(imageFile);
+    } catch (err) {
+      console.error("Cloudinary upload failed:", err);
+      return NextResponse.json(
+        { error: "Image upload failed. Try again." },
+        { status: 500 }
+      );
     }
 
-    // Parse array fields
-    const tags = parseArrayField(tagsString);
-    const associatedActs = parseArrayField(associatedActsString);
-    const associatedActsLinks = parseArrayField(associatedActslink);
-    const frequentProducers = parseArrayField(frequentProducersString);
-    const frequentProducersLink = parseArrayField(frequentProducersStringLink);
-    const fansOf = parseArrayField(fansOfString);
-    const fansOfLink = parseArrayField(fansOfStringLink);
+    if (!image || !image.url) {
+      return NextResponse.json(
+        { error: "Invalid image response from Cloudinary" },
+        { status: 500 }
+      );
+    }
 
-    // ✅ Create musician request
+    let heroBannerImage: { id?: string; url?: string } | undefined;
+    if (heroBannerFile && heroBannerFile.size > 0) {
+      heroBannerImage = await uploadToCloudinary(heroBannerFile);
+    }
+
+    // SUBMIT REQUEST
     const result = await createMusicianRequest({
-      name: name.trim(),
-      city: city.trim(),
-      state: state?.trim() || undefined,
-      category: category.trim(),
-      artistStatus: artistStatus?.trim() || undefined,
-      shortBio: bio.trim(),
-      website: website?.trim() || undefined,
-      image: imageData,
+      name,
+      city,
+      state,
+      category,
+      artistStatus,
+      website,
+      shortBio,
+      image,
+      heroBannerImage,
       socials: {
-        instagram: instagram?.trim() || undefined,
-        youtube: youtube?.trim() || undefined,
-        spotify: spotify?.trim() || undefined,
-        soundcloud: soundcloud?.trim() || undefined,
+        instagram,
+        youtube,
+        spotify,
+        soundcloud,
+        twitter,
+        appleMusic,
       },
-      audio: audio?.trim() || undefined,
-      tags,
-      readMoreLink: readMoreLink?.trim() || undefined,
+      heroTags,
+      alsoKnownAs,
+      born,
+      origin,
+      primaryAffiliation: {
+        name: primaryAffiliationName,
+        link: primaryAffiliationLink,
+      },
+      notableCollaborators,
+      proteges,
+      relatedArtists,
+      audio,
+      videos,
+      definingTracks,
+      deepDiveNarrative,
+      readMoreLink,
       yearsActive: {
-        start: yearsActiveStart ? parseInt(yearsActiveStart, 10) : undefined,
-        end: yearsActiveEnd ? parseInt(yearsActiveEnd, 10) : undefined,
+        start: yearsActiveStart ? Number(yearsActiveStart) : undefined,
+        end: yearsActiveEnd ? Number(yearsActiveEnd) : undefined,
       },
-      labelCrew: labelCrew?.trim() || undefined,
-      labelCrewLink: labelCrewLink?.trim() || undefined,
-      associatedActs: associatedActs || undefined,
-      associatedActsLinks: associatedActsLinks || undefined,
-      district: district?.trim() || undefined,
-      districtLink: districtLink?.trim() || undefined,
+      labelCrew,
+      labelCrewLink,
+      associatedActs,
+      associatedActsLinks,
+      district,
+      districtLink,
       frequentProducers,
       frequentProducersLink,
       breakoutTrack: {
-        name: breakoutTrackName?.trim() || undefined,
-        url: breakoutTrackUrl?.trim() || undefined,
+        name: breakoutTrackName,
+        url: breakoutTrackUrl,
       },
       definingProject: {
-        name: definingProjectName?.trim() || undefined,
-        link: definingProjectLink?.trim() || undefined,
-        year: definingProjectYear
-          ? parseInt(definingProjectYear, 10)
-          : undefined,
+        name: definingProjectName,
+        link: definingProjectLink,
+        year: definingProjectYear ? Number(definingProjectYear) : undefined,
       },
       fansOf,
       fansOfLink,
-      // ✅ include new video fields
-
-      videoEmbed: videoEmbed?.trim() || "",
-      videoWidth: videoWidth ? parseInt(videoWidth, 10) : 560,
-      videoHeight: videoHeight ? parseInt(videoHeight, 10) : 315,
-
       submittedBy: userId,
     });
 
     if (!result.success) {
-      const statusCode =
-        result.error?.includes("privileges") || result.error?.includes("Admin")
-          ? 403
-          : 400;
-      return NextResponse.json({ error: result.error }, { status: statusCode });
+      return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
     return NextResponse.json(
-      {
-        success: true,
-        data: result.data,
-        message: result.message,
-      },
+      { success: true, data: result.data, message: result.message },
       { status: 201 }
     );
   } catch (error) {
-    console.error("API Error - POST /rappers/requests:", error);
+    console.error("POST /rappers/requests error:", error);
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
+      { error: error instanceof Error ? error.message : "Internal error" },
       { status: 500 }
     );
   }

@@ -23,10 +23,10 @@ export default async function MusicianProfilePage({ params }: PageProps) {
   const musician:Musician = res.data;
   const canEdit = userId && musician.submittedBy === userId;
 
-  console.log("MusicianProfilePage musician:", musician);
+  
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="">
       <MusicianProfileClient musician={musician} canEdit={canEdit} />
     </div>
   );

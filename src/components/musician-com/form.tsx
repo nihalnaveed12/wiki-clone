@@ -1,44 +1,80 @@
 // @components/form.tsx
-
 "use client";
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useForm, useFieldArray } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+/* ---------------------------
+   Validation schema
+   - audio accepts YouTube OR audio file URL
+----------------------------*/
+const videoSchema = z.object({
+  title: z.string().optional().or(z.literal("")),
+  type: z.string().optional().or(z.literal("")),
+  embedUrl: z.string().optional().or(z.literal("")),
+  isFeatured: z.boolean().optional(),
+});
+
+const definingTrackSchema = z.object({
+  title: z.string().optional().or(z.literal("")),
+  year: z.string().optional().or(z.literal("")),
+  externalLink: z.string().optional().or(z.literal("")),
+  image: z.any().optional(),
+});
 
 const schema = z.object({
+  // basic
   name: z.string().min(1, "Name is required"),
+  category: z.string().min(1, "Category is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().optional().or(z.literal("")),
-
   artistStatus: z.string().optional().or(z.literal("")),
-  image: z.any().optional(),
-  bio: z
-    .string()
-    .min(1, "Bio is required")
-    .max(500, "Bio must be under 500 characters"),
-  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
-  category: z.string().min(1, "Category is required"),
-  instagram: z
-    .string()
-    .url("Invalid Instagram URL")
-    .optional()
-    .or(z.literal("")),
-  youtube: z.string().url("Invalid YouTube URL").optional().or(z.literal("")),
-  spotify: z.string().url("Invalid Spotify URL").optional().or(z.literal("")),
-  soundcloud: z
-    .string()
-    .url("Invalid SoundCloud URL")
-    .optional()
-    .or(z.literal("")),
-  twitter: z.string().url("Invalid Twitter URL").optional().or(z.literal("")),
-  audio: z.string().url("Invalid URL").optional().or(z.literal("")),
+  district: z.string().optional().or(z.literal("")),
+  districtLink: z.string().optional().or(z.literal("")),
+  born: z.string().optional().or(z.literal("")),
+  origin: z.string().optional().or(z.literal("")),
 
-  // New Fields
-  tags: z.string().optional().or(z.literal("")),
-  readMoreLink: z.string().url("Invalid URL").optional().or(z.literal("")),
+  // images
+  image: z.any().optional(),
+  heroBannerImage: z.any().optional(),
+
+  // bios & narrative
+  shortBio: z
+    .string()
+    .min(1, "Short bio is required")
+    .max(500, "Max 500 characters"),
+  deepDiveNarrative: z.string().optional().or(z.literal("")),
+
+  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  // socials
+  instagram: z.string().optional().or(z.literal("")),
+  youtube: z.string().optional().or(z.literal("")),
+  spotify: z.string().optional().or(z.literal("")),
+  soundcloud: z.string().optional().or(z.literal("")),
+  twitter: z.string().optional().or(z.literal("")),
+  appleMusic: z.string().optional().or(z.literal("")),
+
+  // arrays stored via comma-inputs (we'll parse on submit)
+  heroTags: z.string().optional().or(z.literal("")),
+  notableCollaborators: z.string().optional().or(z.literal("")),
+  proteges: z.string().optional().or(z.literal("")),
+  relatedArtists: z.string().optional().or(z.literal("")),
+  alsoKnownAs: z.string().optional().or(z.literal("")),
+  fansOf: z.string().optional().or(z.literal("")),
+  fansOfLink: z.string().optional().or(z.literal("")),
+  associatedActs: z.string().optional().or(z.literal("")),
+  associatedActsLinks: z.string().optional().or(z.literal("")),
+  frequentProducers: z.string().optional().or(z.literal("")),
+  frequentProducersLink: z.string().optional().or(z.literal("")),
+
+  // primary affiliation (flat inputs)
+  primaryAffiliationName: z.string().optional().or(z.literal("")),
+  primaryAffiliationLink: z.string().optional().or(z.literal("")),
+
+  // years active
   yearsActiveStart: z
     .string()
     .regex(/^\d{4}$/, "Must be a valid year")
@@ -49,60 +85,57 @@ const schema = z.object({
     .regex(/^\d{4}$/, "Must be a valid year")
     .optional()
     .or(z.literal("")),
+
+  // breakout track
+  breakoutTrackName: z.string().optional().or(z.literal("")),
+  breakoutTrackUrl: z.string().optional().or(z.literal("")),
+
+  // defining project
+  definingProjectName: z.string().optional().or(z.literal("")),
+  definingProjectYear: z.string().optional().or(z.literal("")),
+  definingProjectLink: z.string().optional().or(z.literal("")),
+
+  // audio — accept YouTube or direct audio URL
+  audio: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (!val || val === "") return true;
+        try {
+          const u = new URL(val);
+          const host = u.hostname.replace("www.", "");
+          const isYT =
+            host.includes("youtube.com") || host.includes("youtu.be");
+          const isAudioExt = /\.(mp3|wav|ogg|m4a)$/i.test(val);
+          return isYT || isAudioExt;
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: "Must be a YouTube URL or an audio file URL (mp3/wav/ogg/m4a)",
+      }
+    ),
+
+  // dynamic arrays
+  videos: z.array(videoSchema).optional(),
+  definingTracks: z.array(definingTrackSchema).optional(),
+  readMoreLink: z.string().url("Invalid URL").optional().or(z.literal("")),
   labelCrew: z.string().optional().or(z.literal("")),
   labelCrewLink: z.string().url("Invalid URL").optional().or(z.literal("")),
-  associatedActs: z.string().optional().or(z.literal("")),
-  associatedActsLinks: z
-    .string()
-    .url("Invalid Url")
-    .optional()
-    .or(z.literal("")),
-  district: z.string().optional().or(z.literal("")),
-  districtLink: z.string().url("Invalid URL").optional().or(z.literal("")),
-  frequentProducers: z.string().optional().or(z.literal("")),
-  frequentProducersLink: z
-    .string()
-    .url("Invalid Url")
-    .optional()
-    .or(z.literal("")),
-  breakoutTrackName: z.string().optional().or(z.literal("")),
-  breakoutTrackUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  definingProjectName: z.string().optional().or(z.literal("")),
-  definingProjectYear: z
-    .string()
-    .regex(/^\d{4}$/, "Must be a valid year")
-    .optional()
-    .or(z.literal("")),
-  definingProjectLink: z
-    .string()
-    .url("Invalid URL")
-    .optional()
-    .or(z.literal("")),
-  fansOf: z.string().optional().or(z.literal("")),
-  fansOfLink: z.string().url("Invalid Url").optional().or(z.literal("")),
-  videoEmbed: z.string().url("Invalid video URL").optional().or(z.literal("")),
-  videoWidth: z
-    .string()
-    .regex(/^\d+$/, "Width must be a number")
-    .optional()
-    .or(z.literal("")),
-  videoHeight: z
-    .string()
-    .regex(/^\d+$/, "Height must be a number")
-    .optional()
-    .or(z.literal("")),
 });
 
 export type FormData = z.infer<typeof schema>;
 
 interface Props {
-  submitForm: (data: FormData) => void | Promise<void>;
+  submitForm: (data: any) => void | Promise<void>;
 }
 
-
-
-const status = ["Active", "Inactive", "Incarcerated", "Deceased"];
-
+/* ---------------------------
+   URL helpers (keep your old logic)
+----------------------------*/
 function toYouTubeEmbed(url?: string | null) {
   if (!url) return "";
   try {
@@ -125,35 +158,29 @@ function toYouTubeEmbed(url?: string | null) {
   }
 }
 
-// Extract YouTube video ID from URL
 function extractYouTubeId(url: string): string | null {
   if (!url) return null;
   try {
     const u = new URL(url);
     const hostname = u.hostname.replace("www.", "");
-
     if (hostname.includes("youtu.be")) {
       return u.pathname.slice(1).split("?")[0];
     }
-
     if (hostname.includes("youtube.com")) {
       const v = u.searchParams.get("v");
       if (v) return v;
-
       const pathParts = u.pathname.split("/");
       if (pathParts.includes("embed") || pathParts.includes("v")) {
         return pathParts[pathParts.length - 1];
       }
     }
-
     return null;
   } catch {
     return null;
   }
 }
 
-// Check if URL is a YouTube link
-function isYouTubeUrl(url: string): boolean {
+function isYouTubeUrl(url?: string | null) {
   if (!url) return false;
   try {
     const u = new URL(url);
@@ -164,9 +191,12 @@ function isYouTubeUrl(url: string): boolean {
   }
 }
 
+/* ---------------------------
+   Component
+----------------------------*/
 export default function MusicianForm({ submitForm }: Props) {
-  
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [audioType, setAudioType] = useState<"youtube" | "direct" | null>(null);
 
@@ -176,118 +206,195 @@ export default function MusicianForm({ submitForm }: Props) {
     watch,
     reset,
     setValue,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      videoEmbed: "",
-      videoWidth: "560",
-      videoHeight: "315",
+      videos: [],
+      definingTracks: [],
     } as Partial<FormData>,
   });
 
-  const imageWatch = watch("image");
-  const videoEmbedWatch = watch("videoEmbed");
-  const videoWidthWatch = watch("videoWidth");
-  const videoHeightWatch = watch("videoHeight");
+  // dynamic arrays
+  const videosField = useFieldArray({ control, name: "videos" as any });
+  const tracksField = useFieldArray({ control, name: "definingTracks" as any });
+
+  // watchers
+  const imageWatch = watch("image" as any);
+  const bannerWatch = watch("heroBannerImage" as any);
   const audioWatch = watch("audio");
 
+  // image preview
   useEffect(() => {
-    if (imageWatch && imageWatch.length > 0) {
-      const file = imageWatch[0];
+    if (imageWatch && (imageWatch as FileList).length > 0) {
+      const file = (imageWatch as FileList)[0];
       setImagePreview(URL.createObjectURL(file));
-    } else {
-      setImagePreview(null);
-    }
+    } else setImagePreview(null);
   }, [imageWatch]);
 
-  // Detect audio type
+  // banner preview
   useEffect(() => {
-    if (audioWatch) {
-      if (isYouTubeUrl(audioWatch)) {
+    if (bannerWatch && (bannerWatch as FileList).length > 0) {
+      const file = (bannerWatch as FileList)[0];
+      setBannerPreview(URL.createObjectURL(file));
+    } else setBannerPreview(null);
+  }, [bannerWatch]);
+
+  // audio detection
+  useEffect(() => {
+    if (!audioWatch) {
+      setAudioType(null);
+      return;
+    }
+    try {
+      const u = new URL(audioWatch);
+      const host = u.hostname.replace("www.", "");
+      if (host.includes("youtube") || host.includes("youtu.be")) {
         setAudioType("youtube");
+      } else if (/\.(mp3|wav|ogg|m4a)$/i.test(audioWatch)) {
+        setAudioType("direct");
       } else {
+        // unknown but leave as direct for preview attempt
         setAudioType("direct");
       }
-    } else {
+    } catch {
       setAudioType(null);
     }
   }, [audioWatch]);
 
-  const previewRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (previewRef.current && videoWidthWatch && videoHeightWatch) {
-      previewRef.current.style.width = `${videoWidthWatch}px`;
-      previewRef.current.style.height = `${videoHeightWatch}px`;
-    }
-  }, [videoWidthWatch, videoHeightWatch]);
+  // resizable youtube preview
 
-  const onPreviewMouseUp = () => {
-    const el = previewRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
-
-    setValue("videoWidth", String(width));
-    setValue("videoHeight", String(height));
-  };
+  const prepareCommaArray = (val?: string) =>
+    (val || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
+      // Construct final object mapping to your Musician model
       const prepared = {
-        ...data,
-        videoEmbed: data.videoEmbed?.trim() || "",
-        videoWidth: data.videoWidth?.toString() || "560",
-        videoHeight: data.videoHeight?.toString() || "315",
-      } as FormData;
+        name: data.name,
+        city: data.city,
+        state: data.state || undefined,
+
+        category: data.category,
+        artistStatus: data.artistStatus || undefined,
+        website: data.website || undefined,
+        socials: {
+          instagram: data.instagram || undefined,
+          youtube: data.youtube || undefined,
+          spotify: data.spotify || undefined,
+          soundcloud: data.soundcloud || undefined,
+          twitter: data.twitter || undefined,
+          appleMusic: data.appleMusic || undefined,
+        },
+        heroBannerImage: data.heroBannerImage
+          ? data.heroBannerImage[0]
+          : undefined,
+        heroTags: prepareCommaArray(data.heroTags),
+        image: data.image ? data.image[0] : undefined,
+        shortBio: data.shortBio,
+        audio: data.audio || undefined,
+        videos: (data.videos || []).map((video) => ({
+          ...video,
+          embedUrl: toYouTubeEmbed(video.embedUrl),
+        })),
+        definingTracks: (data.definingTracks || []).map((t: any) => ({
+          title: t.title || "",
+          year: t.year ? Number(t.year) : undefined,
+          externalLink: t.externalLink || "",
+          image: t.image ? t.image[0] : undefined,
+        })),
+        deepDiveNarrative: data.deepDiveNarrative || undefined,
+        alsoKnownAs: prepareCommaArray(data.alsoKnownAs),
+        born: data.born || undefined,
+        origin: data.origin || undefined,
+        primaryAffiliation: {
+          name: data.primaryAffiliationName || undefined,
+          link: data.primaryAffiliationLink || undefined,
+        },
+        notableCollaborators: prepareCommaArray(data.notableCollaborators),
+        proteges: prepareCommaArray(data.proteges),
+        relatedArtists: prepareCommaArray(data.relatedArtists),
+        readMoreLink: data.readMoreLink || undefined,
+        yearsActiveStart: data.yearsActiveStart,
+        yearsActiveEnd: data.yearsActiveEnd,
+        labelCrew: data.labelCrew || undefined,
+        labelCrewLink: data.labelCrewLink || undefined,
+        associatedActs: prepareCommaArray(data.associatedActs),
+        associatedActsLinks: prepareCommaArray(data.associatedActsLinks),
+        district: data.district || undefined,
+        districtLink: data.districtLink || undefined,
+        frequentProducers: prepareCommaArray(data.frequentProducers),
+        frequentProducersLink: prepareCommaArray(data.frequentProducersLink),
+        breakoutTrack: {
+          name: data.breakoutTrackName || undefined,
+          url: data.breakoutTrackUrl || undefined,
+        },
+        status: undefined,
+        definingProject: {
+          name: data.definingProjectName || undefined,
+          year: data.definingProjectYear
+            ? Number(data.definingProjectYear)
+            : undefined,
+          link: data.definingProjectLink || undefined,
+        },
+        fansOf: prepareCommaArray(data.fansOf),
+        fansOfLink: prepareCommaArray(data.fansOfLink),
+      };
 
       await submitForm(prepared);
-      console.log("Form submitted:", prepared);
       reset();
       setImagePreview(null);
-      setAudioType(null);
-    } catch (error) {
-      console.error("Form submission error:", error);
+      setBannerPreview(null);
+    } catch (err) {
+      console.error("Submit error:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* ---------------------------
+     UI — modern card layout
+  ----------------------------*/
   return (
-    <div className="max-w-4xl mx-auto p-8 my-10 bg-card rounded-xl shadow-lg border border-border">
-      <h1 className="text-3xl font-bold mb-8 text-card-foreground border-b border-border pb-4">
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <h1 className="text-3xl font-semibold text-card-foreground">
         Musician Registration
       </h1>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information Section */}
-        <div>
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+        {/* Card: Basic */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-4 text-card-foreground">
             Basic Information
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Name *
               </label>
               <input
                 {...register("name")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="Enter musician name"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Artist name"
               />
               <p className="text-destructive text-xs mt-1">
                 {errors.name?.message}
               </p>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Category *
               </label>
               <input
                 {...register("category")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Hip Hop, R&B, Pop"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., Hip Hop"
               />
               <p className="text-destructive text-xs mt-1">
                 {errors.category?.message}
@@ -295,76 +402,85 @@ export default function MusicianForm({ submitForm }: Props) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 City *
               </label>
-
               <input
                 {...register("city")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., New York"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="City"
               />
-
               <p className="text-destructive text-xs mt-1">
                 {errors.city?.message}
               </p>
             </div>
 
-            <div className="">
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 State
               </label>
               <input
                 {...register("state")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., CA"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="State"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.state?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Born
+              </label>
+              <input
+                {...register("born")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., January 1, 1990"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Origin
+              </label>
+              <input
+                {...register("origin")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., Bronx, NY"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Status
               </label>
               <select
                 {...register("artistStatus")}
-                disabled={!status.length}
-                className="w-full px-3 py-2 border rounded-lg bg-background disabled:bg-muted"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               >
-                <option value="">Select a Status</option>
-                {status.map((stat) => (
-                  <option key={stat} value={stat}>
-                    {stat}
-                  </option>
-                ))}
+                <option value="">Select</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Incarcerated">Incarcerated</option>
+                <option value="Deceased">Deceased</option>
               </select>
-              <p className="text-destructive text-xs mt-1">
-                {errors.artistStatus?.message}
-              </p>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 District
               </label>
               <input
                 {...register("district")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., The Crest Side"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.district?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 District Link
               </label>
               <input
                 {...register("districtLink")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
                 placeholder="https://..."
               />
               <p className="text-destructive text-xs mt-1">
@@ -374,67 +490,204 @@ export default function MusicianForm({ submitForm }: Props) {
           </div>
         </div>
 
-        {/* Image Upload */}
-        <div>
-          <label className="block text-sm font-medium text-card-foreground mb-1">
-            Artist Image
-          </label>
-          <div className="mt-1 flex items-center gap-6">
-            <span className="h-24 w-24 rounded-full overflow-hidden bg-muted border border-border">
-              {imagePreview ? (
-                <Image
-                  src={imagePreview}
-                  alt="Image Preview"
-                  width={96}
-                  height={96}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <svg
-                  className="h-full w-full text-muted-foreground"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M24 20.993V24H0v-2.993A2 2 0 002 18h20a2 2 0 002 2.007zM12 13a4 4 0 100-8 4 4 0 000 8z" />
-                </svg>
-              )}
-            </span>
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer bg-card py-2 px-4 border border-border rounded-md shadow-sm text-sm font-medium text-card-foreground hover:bg-accent transition-colors"
-            >
-              <span>Upload a file</span>
-              <input
-                id="file-upload"
-                {...register("image")}
-                type="file"
-                className="sr-only"
-                accept="image/*"
-              />
-            </label>
+        {/* Card: Media */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border space-y-4">
+          <h2 className="text-xl font-medium text-card-foreground">Images</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-28 rounded-full overflow-hidden bg-muted border border-border flex items-center justify-center">
+                {imagePreview ? (
+                  <Image
+                    src={imagePreview}
+                    alt="artist"
+                    width={112}
+                    height={112}
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="text-sm text-muted-foreground">No Image</div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-card-foreground">
+                  Artist Image
+                </label>
+                <label className="inline-block bg-primary text-primary-foreground px-3 py-2 rounded cursor-pointer hover:bg-primary/90 transition-colors">
+                  Upload
+                  <input
+                    {...register("image")}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Square or portrait image recommended
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-48 rounded overflow-hidden bg-muted border border-border flex items-center justify-center">
+                {bannerPreview ? (
+                  <Image
+                    src={bannerPreview}
+                    alt="banner"
+                    width={192}
+                    height={112}
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="text-sm text-muted-foreground">No Banner</div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-card-foreground">
+                  Hero Banner Image
+                </label>
+                <label className="inline-block bg-primary text-primary-foreground px-3 py-2 rounded cursor-pointer hover:bg-primary/90 transition-colors">
+                  Upload
+                  <input
+                    {...register("heroBannerImage" as any)}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Wide banner recommended
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Bio */}
-        <div>
-          <label className="block text-sm font-medium text-card-foreground mb-1">
-            Short Bio *
-          </label>
-          <textarea
-            {...register("bio")}
-            rows={4}
-            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-            placeholder="Tell us about the musician (max 500 characters)"
-          />
-          <p className="text-destructive text-xs mt-1">{errors.bio?.message}</p>
+        {/* Card: Bio */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Bio & Narrative
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Short Bio *
+              </label>
+              <textarea
+                {...register("shortBio")}
+                rows={4}
+                className="w-full p-3 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Short bio (max 500 chars)"
+              />
+              <p className="text-destructive text-xs mt-1">
+                {errors.shortBio?.message}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Deep Dive Narrative
+              </label>
+              <textarea
+                {...register("deepDiveNarrative")}
+                rows={5}
+                className="w-full p-3 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Longer bio / deep dive"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Career Information Section */}
-        <div>
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">
-            Career Information
+        {/* Card: Tags & Arrays (comma inputs) */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Tags & Influences
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Tags / Genres
+              </label>
+              <input
+                {...register("heroTags")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., Hip-Hop, Trap"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Comma-separated
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Also Known As
+              </label>
+              <input
+                {...register("alsoKnownAs")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., Stage Name, Nickname"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Notable Collaborators
+              </label>
+              <input
+                {...register("notableCollaborators")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Comma separated"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Proteges
+              </label>
+              <input
+                {...register("proteges")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Related Artists
+              </label>
+              <input
+                {...register("relatedArtists")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Fans Of (Influences)
+              </label>
+              <input
+                {...register("fansOf")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="e.g., Tupac, Nas"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Fans Of Links
+              </label>
+              <input
+                {...register("fansOfLink")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Comma-separated URLs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Card: Career */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Career & Projects
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-1">
                 Years Active (Start) *
@@ -471,482 +724,406 @@ export default function MusicianForm({ submitForm }: Props) {
                 {errors.yearsActiveEnd?.message}
               </p>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Label/Crew
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Primary Affiliation
               </label>
               <input
-                {...register("labelCrew")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Independent / King Cutz"
+                {...register("primaryAffiliationName")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Affiliation name"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.labelCrew?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Label/Crew Link
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Primary Affiliation Link
               </label>
               <input
-                {...register("labelCrewLink")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                {...register("primaryAffiliationLink")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
                 placeholder="https://..."
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.labelCrewLink?.message}
-              </p>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Breakout Track Name *
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Label / Crew
               </label>
               <input
-                {...register("breakoutTrackName")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., First Day Out"
+                {...register("labelCrew" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Label or crew name"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.breakoutTrackName?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Breakout Track URL
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Label / Crew Link
               </label>
               <input
-                {...register("breakoutTrackUrl")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                {...register("labelCrewLink" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
                 placeholder="https://..."
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.breakoutTrackUrl?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Defining Project Name *
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Defining Project Name
               </label>
               <input
-                {...register("definingProjectName")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Crest Story Deluxe"
+                {...register("definingProjectName" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.definingProjectName?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Defining Project Year
               </label>
               <input
-                {...register("definingProjectYear")}
+                {...register("definingProjectYear" as any)}
                 type="number"
-                placeholder="2022"
-                min="1900"
-                max={new Date().getFullYear()}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.definingProjectYear?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Defining Project Link
               </label>
               <input
-                {...register("definingProjectLink")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://..."
+                {...register("definingProjectLink" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.definingProjectLink?.message}
-              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Breakout Track Name
+              </label>
+              <input
+                {...register("breakoutTrackName" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Breakout Track URL
+              </label>
+              <input
+                {...register("breakoutTrackUrl" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              />
             </div>
           </div>
         </div>
 
-        {/* Tags and Lists Section */}
-        <div>
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">
-            Music & Influences
+        {/* Card: Associated / Producers */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Associated Acts & Producers
           </h2>
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Tags/Genres
-              </label>
-              <input
-                {...register("tags")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Hip-Hop, Trap, West Coast"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of genres/tags
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.tags?.message}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Associated Acts
               </label>
               <input
-                {...register("associatedActs")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Bandlez Giddy, Artist Name"
+                {...register("associatedActs" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Comma separated names"
               />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of collaborators/associated artists
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.associatedActs?.message}
-              </p>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Associated Acts Links
               </label>
               <input
-                {...register("associatedActsLinks")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://artistlink.com, https://artist2link.com"
+                {...register("associatedActsLinks" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Comma separated URLs"
               />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of URLs for associated acts
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.associatedActsLinks?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Frequent Producers
               </label>
               <input
-                {...register("frequentProducers")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., L-Phaze, Producer Name"
+                {...register("frequentProducers" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
               />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of producers they work with
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.frequentProducers?.message}
-              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
                 Frequent Producers Links
               </label>
               <input
-                {...register("frequentProducersLink")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://producerlink.com, https://producer2link.com"
+                {...register("frequentProducersLink" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="Comma separated URLs"
               />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of URLs for frequent producers
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.frequentProducersLink?.message}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Fans Of (Influences)
-              </label>
-              <input
-                {...register("fansOf")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="e.g., Tupac, Nas, Jay-Z"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of their musical influences
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.fansOf?.message}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Fans Of Links
-              </label>
-              <input
-                {...register("fansOfLink")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://influencelink.com, https://influence2link.com"
-              />
-              <p className="text-muted-foreground text-xs mt-1">
-                Comma-separated list of URLs for their influences
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.fansOfLink?.message}
-              </p>
             </div>
           </div>
         </div>
 
-        {/* Audio & Links Section */}
-        <div>
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">
+        {/* Card: Audio & Links */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
             Audio & Links
           </h2>
-          <div className="space-y-6">
-            {/* Audio URL - Now accepts YouTube or Direct Links */}
+
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Audio URL (YouTube or Direct MP3/WAV/OGG)
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Audio URL (YouTube or direct audio)
               </label>
               <input
-                {...register("audio")}
-                placeholder="https://youtube.com/watch?v=... or https://example.com/song.mp3"
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                {...register("audio" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="YouTube link or https://example.com/song.mp3"
               />
-              <p className="text-muted-foreground text-xs mt-1">
-                {audioType === "youtube"
-                  ? "✓ YouTube link detected - will be converted to audio for playback"
-                  : audioType === "direct"
-                  ? "✓ Direct audio link detected"
-                  : "Paste a YouTube URL or direct audio file link (.mp3, .wav, .ogg)"}
-              </p>
-              <p className="text-destructive text-xs mt-1">
-                {errors.audio?.message}
-              </p>
+              {errors.audio && (
+                <p className="text-destructive text-xs mt-1">
+                  {(errors.audio as any).message}
+                </p>
+              )}
 
-              {/* Audio Preview */}
-              {audioWatch && audioType === "youtube" && (
-                <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border">
-                  <p className="text-sm text-card-foreground mb-2">
-                    <strong>Preview:</strong> YouTube audio detected
+              {/* Audio preview */}
+              {audioWatch && isYouTubeUrl(audioWatch) && (
+                <div className="mt-3 p-3 bg-muted border border-border rounded">
+                  <p className="text-sm font-medium mb-2 text-card-foreground">
+                    YouTube Audio Preview
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Video ID: {extractYouTubeId(audioWatch)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Note: On the musician profile, this will play as audio using
-                    YouTube's audio player.
-                  </p>
+                  <iframe
+                    src={toYouTubeEmbed(audioWatch)}
+                    width="100%"
+                    height={160}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="rounded"
+                  />
                 </div>
               )}
 
-              {audioWatch && audioType === "direct" && (
-                <div className="mt-3">
-                  <audio
-                    controls
-                    src={audioWatch}
-                    className="w-full"
-                    style={{ maxHeight: "40px" }}
-                  >
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
-              )}
+              {audioWatch &&
+                !isYouTubeUrl(audioWatch) &&
+                /\.(mp3|wav|ogg|m4a)$/i.test(audioWatch) && (
+                  <div className="mt-3">
+                    <audio controls src={audioWatch} className="w-full" />
+                  </div>
+                )}
+
+              <p className="text-xs text-muted-foreground mt-2">
+                Accepted: YouTube links or direct audio file URLs (.mp3, .wav,
+                .ogg, .m4a)
+              </p>
             </div>
 
-            {/* Read More Link */}
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Deep Dives
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Read More / Deep Dive Link
               </label>
               <input
-                {...register("readMoreLink")}
-                placeholder="https://example.com/bio"
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
+                {...register("readMoreLink" as any)}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="https://..."
               />
-              <p className="text-destructive text-xs mt-1">
-                {errors.readMoreLink?.message}
-              </p>
             </div>
           </div>
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-card-foreground mb-1">
-            YouTube Video (optional) — paste watch or embed URL
-          </label>
-          <input
-            {...register("videoEmbed")}
-            className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-            placeholder="https://youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/embed/VIDEO_ID"
-          />
-          <p className="text-destructive text-xs mt-1">
-            {errors.videoEmbed?.message}
-          </p>
-
-          {/* Live Preview + resizable container */}
-          {videoEmbedWatch ? (
-            <div className="mt-4">
-              <div
-                ref={previewRef}
-                onMouseUp={onPreviewMouseUp}
-                style={{
-                  resize: "both",
-                  overflow: "auto",
-                  width: `${videoWidthWatch || "560"}px`,
-                  height: `${videoHeightWatch || "315"}px`,
-                  border: "1px solid rgba(148,163,184,0.35)",
-                  borderRadius: 6,
-                }}
-              >
-                <iframe
-                  title="video preview"
-                  src={toYouTubeEmbed(videoEmbedWatch)}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, display: "block" }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
-                <label className="text-sm text-card-foreground">
-                  Width (px)
-                  <input
-                    {...register("videoWidth")}
-                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
-                    placeholder="560"
-                  />
-                  <p className="text-destructive text-xs mt-1">
-                    {errors.videoWidth?.message}
-                  </p>
-                </label>
-
-                <label className="text-sm text-card-foreground">
-                  Height (px)
-                  <input
-                    {...register("videoHeight")}
-                    className="w-full px-2 py-1 border border-border rounded mt-1 bg-background text-card-foreground"
-                    placeholder="315"
-                  />
-                  <p className="text-destructive text-xs mt-1">
-                    {errors.videoHeight?.message}
-                  </p>
-                </label>
-
-                <div className="md:col-span-2 text-sm text-muted-foreground">
-                  You can drag the preview corner to resize — the width/height
-                  fields will update when you release the mouse.
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-xs mt-2">
-              Paste a YouTube URL above to preview and set size.
-            </p>
-          )}
-        </div>
-
-        {/* Social Links & Website */}
-        <div>
-          <h2 className="text-xl font-semibold text-card-foreground mb-4">
-            Social Links & Website (Optional)
+        {/* Card: Dynamic Videos */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Videos
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Website
-              </label>
-              <input
-                {...register("website")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://example.com"
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.website?.message}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Instagram
-              </label>
-              <input
-                {...register("instagram")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://instagram.com/username"
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.instagram?.message}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                YouTube
-              </label>
-              <input
-                {...register("youtube")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://youtube.com/channel/..."
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.youtube?.message}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Spotify
-              </label>
-              <input
-                {...register("spotify")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://open.spotify.com/artist/..."
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.spotify?.message}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                SoundCloud
-              </label>
-              <input
-                {...register("soundcloud")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://soundcloud.com/username"
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.soundcloud?.message}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">
-                Twitter/X
-              </label>
-              <input
-                {...register("twitter")}
-                className="w-full px-3 py-2 border border-border rounded-lg shadow-sm focus:border-primary focus:ring-primary bg-background text-card-foreground"
-                placeholder="https://twitter.com/username"
-              />
-              <p className="text-destructive text-xs mt-1">
-                {errors.twitter?.message}
-              </p>
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() =>
+                videosField.append({
+                  title: "",
+                  type: "",
+                  embedUrl: "",
+                  isFeatured: false,
+                })
+              }
+              className="inline-block px-3 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+            >
+              Add Video
+            </button>
+
+            <div className="space-y-4 mt-3">
+              {videosField.fields.map((f, idx) => (
+                <div key={f.id} className="border border-border rounded p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      {...register(`videos.${idx}.title` as const)}
+                      placeholder="Title"
+                      className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                    />
+                    <label htmlFor="">
+                      Type:
+                      <select
+                        {...register(`videos.${idx}.type` as const)}
+                        className="ml-2 p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                      >
+                        <option value="Music Video">Music Video</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Vlog Videos">Vlog Videos</option>
+                        <option value="Other Videos">Other Videos</option>
+                      </select>
+                    </label>
+                    <input
+                      {...register(`videos.${idx}.embedUrl` as const)}
+                      placeholder="Embed URL"
+                      className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 mt-3">
+                    <label className="flex items-center gap-2 text-card-foreground">
+                      <input
+                        type="checkbox"
+                        {...register(`videos.${idx}.isFeatured` as const)}
+                      />
+                      <span className="text-sm">Featured</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => videosField.remove(idx)}
+                      className="ml-auto px-2 py-1 bg-destructive text-destructive-foreground rounded text-sm hover:bg-destructive/90 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="pt-5">
+        {/* Card: Defining Tracks (dynamic with image) */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Defining Tracks
+          </h2>
+          <button
+            type="button"
+            onClick={() =>
+              tracksField.append({
+                title: "",
+                year: "",
+                externalLink: "",
+                image: null,
+              })
+            }
+            className="px-3 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+          >
+            Add Track
+          </button>
+
+          <div className="space-y-4 mt-4">
+            {tracksField.fields.map((f, idx) => (
+              <div key={f.id} className="border border-border rounded p-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <input
+                    {...register(`definingTracks.${idx}.title` as const)}
+                    placeholder="Title"
+                    className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                  />
+                  <input
+                    {...register(`definingTracks.${idx}.year` as const)}
+                    placeholder="Year"
+                    className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                  />
+                  <input
+                    {...register(`definingTracks.${idx}.externalLink` as const)}
+                    placeholder="External link"
+                    className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                  />
+                </div>
+                <div className="mt-3">
+                  <label className="block text-sm mb-1 text-card-foreground">
+                    Track Image
+                  </label>
+                  <input
+                    type="file"
+                    {...register(`definingTracks.${idx}.image` as const)}
+                    accept="image/*"
+                  />
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => tracksField.remove(idx)}
+                    className="px-2 py-1 bg-destructive text-destructive-foreground rounded text-sm hover:bg-destructive/90 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Card: YouTube Embed Preview (resizable) */}
+
+        {/* Card: Website & Socials */}
+        <div className="bg-card shadow-sm rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-medium mb-3 text-card-foreground">
+            Website & Socials
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              {...register("website" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="Website"
+            />
+            <input
+              {...register("instagram" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="Instagram URL"
+            />
+            <input
+              {...register("youtube" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="YouTube channel / URL"
+            />
+            <input
+              {...register("spotify" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="Spotify URL"
+            />
+            <input
+              {...register("soundcloud" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="SoundCloud URL"
+            />
+            <input
+              {...register("twitter" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="Twitter/X URL"
+            />
+            <input
+              {...register("appleMusic" as any)}
+              className="p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+              placeholder="Apple Music URL"
+            />
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div className="flex justify-end">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded shadow hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Registering Musician..." : "Register Musician"}
+            {isSubmitting ? "Submitting..." : "Register Musician"}
           </button>
         </div>
       </form>

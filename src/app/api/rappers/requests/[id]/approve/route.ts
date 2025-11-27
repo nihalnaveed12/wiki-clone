@@ -73,6 +73,7 @@ export async function POST(
 
     const { lat, lng } = await getCoordinates(musicianRequest.city);
 
+    // Create rapper with new fields
     const rapper = await Rapper.create({
       name: musicianRequest.name,
       city: musicianRequest.city,
@@ -87,11 +88,14 @@ export async function POST(
         youtube: musicianRequest.socials.youtube || "",
         spotify: musicianRequest.socials.spotify || "",
         soundcloud: musicianRequest.socials.soundcloud || "",
+        twitter: musicianRequest.socials.twitter || "",
+        appleMusic: musicianRequest.socials.appleMusic || "",
       },
-      image: musicianRequest.image,
+      image: musicianRequest.image || { id: "", url: "" },
+      heroBannerImage: musicianRequest.heroBannerImage || { id: "", url: "" },
+      heroTags: musicianRequest.heroTags || [],
       shortBio: musicianRequest.shortBio,
       audio: musicianRequest.audio || "",
-      tags: musicianRequest.tags || [],
       readMoreLink: musicianRequest.readMoreLink || "",
       yearsActive: {
         start: musicianRequest.yearsActive.start || null,
@@ -115,12 +119,18 @@ export async function POST(
         link: musicianRequest.definingProject.link || "",
         year: musicianRequest.definingProject.year || null,
       },
+      definingTracks: musicianRequest.definingTracks || [],
+      deepDiveNarrative: musicianRequest.deepDiveNarrative || "",
+      alsoKnownAs: musicianRequest.alsoKnownAs || "",
+      born: musicianRequest.born || "",
+      origin: musicianRequest.origin || "",
+      primaryAffiliation: musicianRequest.primaryAffiliation || { name: "", link: "" },
+      notableCollaborators: musicianRequest.notableCollaborators || [],
+      proteges: musicianRequest.proteges || [],
+      relatedArtists: musicianRequest.relatedArtists || [],
+      videos: musicianRequest.videos || [],
       fansOf: musicianRequest.fansOf || [],
       fansOfLink: musicianRequest.fansOfLink || [],
-      // ✅ New Video Fields (flattened, not nested)
-      videoEmbed: musicianRequest.videoEmbed || "",
-      videoWidth: musicianRequest.videoWidth || 560,
-      videoHeight: musicianRequest.videoHeight || 315,
       submittedBy: musicianRequest.submittedBy,
     });
 

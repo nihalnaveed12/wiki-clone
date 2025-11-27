@@ -5,16 +5,22 @@ import { addMusicianReq } from "@/lib/api/requestMusicians";
 
 export default function MusicianFormPage() {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  async function submitForm(data: MusicianFormData) {
+  async function submitForm(data: any) {
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === "image" && value?.length) {
-        formData.append("image", value[0]);
-      } else if (value) {
+
+    for (const [key, value] of Object.entries(data)) {
+      if (value === null || value === undefined) {
+        continue;
+      }
+
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (typeof value === "object") {
+        formData.append(key, JSON.stringify(value));
+      } else {
         formData.append(key, String(value));
       }
-    });
-
+    }
 
     try {
       const response = await addMusicianReq(formData, BASE_URL);

@@ -2,8 +2,9 @@
 
 import dbConnect from "@/lib/database/mongodb";
 import Rapper from "@/lib/database/model/Rappers";
-import User from "../database/model/User";
+import User from "@/lib/database/model/User";
 import { auth } from "@clerk/nextjs/server";
+import { Types } from "mongoose";
 
 interface RapperParams {
   name: string;
@@ -14,22 +15,54 @@ interface RapperParams {
   category: string;
   artistStatus?: string;
   website?: string;
-  socials: {
+  socials?: {
     instagram?: string;
     youtube?: string;
     spotify?: string;
     soundcloud?: string;
     twitter?: string;
+    appleMusic?: string;
   };
+  heroBannerImage?: {
+    id?: string;
+    url?: string;
+  };
+  heroTags?: string[];
   image: {
     id: string;
     url: string;
   };
   shortBio: string;
   audio?: string;
-  tags: string[];
+  videos?: {
+    title?: string;
+    type?: string;
+    embedUrl?: string;
+    isFeatured?: boolean;
+  }[];
+  definingTracks?: {
+    title?: string;
+    year?: number;
+    image?: {
+      id?: string;
+      url?: string;
+    };
+    externalLink?: string;
+  }[];
+  deepDiveNarrative?: any;
+  alsoKnownAs?: string[];
+  born?: string;
+  origin?: string;
+  primaryAffiliation?: {
+    name?: string;
+    link?: string;
+  };
+  notableCollaborators?: string[];
+  proteges?: string[];
+  relatedArtists?: string[];
+ 
   readMoreLink?: string;
-  yearsActive: {
+  yearsActive?: {
     start?: number;
     end?: number;
   };
@@ -39,18 +72,15 @@ interface RapperParams {
   associatedActsLinks?: string[];
   district?: string;
   districtLink?: string;
-  frequentProducers: string[];
-  frequentProducersLink: string[];
-  videoEmbed?: string;
-  videoWidth?: number;
-  videoHeight?: number;
-
-  breakoutTrack: {
+  frequentProducers?: string[];
+  frequentProducersLink?: string[];
+  
+  breakoutTrack?: {
     name?: string;
     url?: string;
   };
-  status: "active" | "inactive";
-  definingProject: {
+  status?: "active" | "inactive";
+  definingProject?: {
     name?: string;
     year?: number;
     link?: string;
@@ -161,9 +191,8 @@ export async function createRapper(params: RapperParams) {
     await dbConnect();
 
     const existingRapper = await Rapper.findOne({ name: params.name });
-    if (existingRapper) {
+    if (existingRapper)
       throw new Error("A rapper with this name already exists");
-    }
 
     const rapper = await Rapper.create({
       name: params.name,
@@ -171,25 +200,39 @@ export async function createRapper(params: RapperParams) {
       state: params.state || "",
       lat: params.lat,
       lng: params.lng,
-      status: params.status || "active",
       category: params.category,
       artistStatus: params.artistStatus || "",
       website: params.website || "",
+      status: params.status || "active",
       socials: {
-        instagram: params.socials.instagram || "",
-        youtube: params.socials.youtube || "",
-        spotify: params.socials.spotify || "",
-        soundcloud: params.socials.soundcloud || "",
-        twitter: params.socials.twitter || "",
+        instagram: params.socials?.instagram || "",
+        youtube: params.socials?.youtube || "",
+        spotify: params.socials?.spotify || "",
+        soundcloud: params.socials?.soundcloud || "",
+        twitter: params.socials?.twitter || "",
+        appleMusic: params.socials?.appleMusic || "",
       },
+      heroBannerImage: params.heroBannerImage || {},
+      heroTags: params.heroTags || [],
       image: params.image,
       shortBio: params.shortBio,
       audio: params.audio || "",
-      tags: params.tags || [],
+      videos: params.videos || [],
+      definingTracks: params.definingTracks || [],
+      deepDiveNarrative: params.deepDiveNarrative || "",
+      alsoKnownAs: params.alsoKnownAs || [],
+      born: params.born || "",
+      origin: params.origin || "",
+      primaryAffiliation: params.primaryAffiliation || {},
+      notableCollaborators: params.notableCollaborators || [],
+      proteges: params.proteges || [],
+      relatedArtists: params.relatedArtists || [],
+
+      
       readMoreLink: params.readMoreLink || "",
       yearsActive: {
-        start: params.yearsActive.start || null,
-        end: params.yearsActive.end || null,
+        start: params.yearsActive?.start || null,
+        end: params.yearsActive?.end || null,
       },
       labelCrew: params.labelCrew || "",
       labelCrewLink: params.labelCrewLink || "",
@@ -199,21 +242,11 @@ export async function createRapper(params: RapperParams) {
       districtLink: params.districtLink || "",
       frequentProducers: params.frequentProducers || [],
       frequentProducersLink: params.frequentProducersLink || [],
-      breakoutTrack: {
-        name: params.breakoutTrack.name || "",
-        url: params.breakoutTrack.url || "",
-      },
-      definingProject: {
-        name: params.definingProject.name || "",
-        link: params.definingProject.link || "",
-        year: params.definingProject.year || null,
-      },
+     
+      breakoutTrack: params.breakoutTrack || {},
+      definingProject: params.definingProject || {},
       fansOf: params.fansOf || [],
       fansOfLink: params.fansOfLink || [],
-      videoEmbed: params.videoEmbed || "",
-      videoWidth: params.videoWidth || null,
-      videoHeight: params.videoHeight || null,
-
       submittedBy: params.submittedBy,
     });
 
@@ -231,38 +264,52 @@ export async function createRapper(params: RapperParams) {
   }
 }
 
-export async function getAllRappers() {
-  try {
-    await dbConnect();
-    const rappers = await Rapper.find({}).sort({ createdAt: -1 });
-    return {
-      success: true,
-      data: JSON.parse(JSON.stringify(rappers)),
-    };
-  } catch (error) {
-    console.error("Error fetching rappers:", error);
-    return {
-      success: false,
-      error: "Failed to fetch rappers",
-    };
-  }
-}
-
 export async function updateRapper(params: UpdateRapperParams) {
   try {
     await checkAdminOrOwnerAccess(params._id);
     await dbConnect();
 
-    const { _id, ...updateData } = params;
+    const {
+      _id,
+      relatedArtists,
+      socials,
+      heroBannerImage,
+      heroTags,
+      videos,
+      definingTracks,
+      deepDiveNarrative,
+      primaryAffiliation,
+      breakoutTrack,
+      definingProject,
+      ...updateData
+    } = params;
 
-    const rapper = await Rapper.findByIdAndUpdate(_id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const rapper = await Rapper.findByIdAndUpdate(
+      _id,
+      {
+        ...updateData,
+        relatedArtists: relatedArtists || [],
+        socials: {
+          instagram: socials?.instagram || "",
+          youtube: socials?.youtube || "",
+          spotify: socials?.spotify || "",
+          soundcloud: socials?.soundcloud || "",
+          twitter: socials?.twitter || "",
+          appleMusic: socials?.appleMusic || "",
+        },
+        heroBannerImage: heroBannerImage || {},
+        heroTags: heroTags || [],
+        videos: videos || [],
+        definingTracks: definingTracks || [],
+        deepDiveNarrative: deepDiveNarrative || "",
+        primaryAffiliation: primaryAffiliation || {},
+        breakoutTrack: breakoutTrack || {},
+        definingProject: definingProject || {},
+      },
+      { new: true, runValidators: true }
+    );
 
-    if (!rapper) {
-      throw new Error("Rapper not found");
-    }
+    if (!rapper) throw new Error("Rapper not found");
 
     return {
       success: true,
@@ -324,6 +371,23 @@ export async function getRapperById(_id: string) {
     return {
       success: false,
       error: "Failed to fetch rapper",
+    };
+  }
+}
+
+export async function getAllRappers() {
+  try {
+    await dbConnect();
+    const rappers = await Rapper.find({}).sort({ createdAt: -1 });
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(rappers)),
+    };
+  } catch (error) {
+    console.error("Error fetching rappers:", error);
+    return {
+      success: false,
+      error: "Failed to fetch rappers",
     };
   }
 }
