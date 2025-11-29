@@ -115,20 +115,28 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         const videosString = formData.get("videos") as string;
         updateData.videos = videosString ? JSON.parse(videosString) : [];
       }
-
-      // Defining Tracks
-      if (formData.has("definingTracks")) {
-        const tracksString = formData.get("definingTracks") as string;
-        updateData.definingTracks = tracksString
-          ? JSON.parse(tracksString)
-          : [];
-      }
-
+      
+    
       // Deep Dive
       if (formData.has("deepDiveNarrative"))
         updateData.deepDiveNarrative = (
           formData.get("deepDiveNarrative") as string
         )?.trim();
+      if (formData.has("videoEmbed")) {
+        updateData.videoEmbed = (formData.get("videoEmbed") as string)?.trim();
+      }
+      if (formData.has("videoWidth")) {
+        const videoWidth = formData.get("videoWidth") as string;
+        if (videoWidth) {
+          updateData.videoWidth = parseInt(videoWidth, 10);
+        }
+      }
+      if (formData.has("videoHeight")) {
+        const videoHeight = formData.get("videoHeight") as string;
+        if (videoHeight) {
+          updateData.videoHeight = parseInt(videoHeight, 10);
+        }
+      }
 
       // At-a-Glance Details
       [

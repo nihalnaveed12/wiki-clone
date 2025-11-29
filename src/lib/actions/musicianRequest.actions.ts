@@ -40,6 +40,9 @@ interface MusicianRequestParams {
     externalLink?: string;
   }[];
   deepDiveNarrative?: any;
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
   alsoKnownAs?: string[];
   born?: string;
   origin?: string;
@@ -134,6 +137,9 @@ export async function createMusicianRequest(params: MusicianRequestParams) {
       videos: params.videos || [],
       definingTracks: params.definingTracks || [],
       deepDiveNarrative: params.deepDiveNarrative || "",
+      videoEmbed: params.videoEmbed || "",
+      videoWidth: params.videoWidth || 16,
+      videoHeight: params.videoHeight || 9,
       alsoKnownAs: params.alsoKnownAs || [],
       born: params.born || "",
       origin: params.origin || "",
@@ -225,6 +231,9 @@ export async function approveMusicianRequest(_id: string) {
       videos: request.videos || [],
       definingTracks: request.definingTracks || [],
       deepDiveNarrative: request.deepDiveNarrative || "",
+      videoEmbed: request.videoEmbed || "",
+      videoWidth: request.videoWidth || 16,
+      videoHeight: request.videoHeight || 9,
       socials: request.socials || {},
       heroBannerImage: request.heroBannerImage || {},
       heroTags: request.heroTags || [],

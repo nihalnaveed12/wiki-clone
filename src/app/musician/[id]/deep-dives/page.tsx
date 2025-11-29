@@ -1,8 +1,7 @@
-
 import { auth } from "@clerk/nextjs/server";
 import { getMusicianByIdAPI } from "@/lib/api/musicians";
-
-import MusicianProfileClient from "@/components/musician-com/MusicianProfileClient";
+import DeepDivesClient from "@/components/musician-com/deepDivesClient";
+import { Musician } from "@/components/musician-com/deepDivesClient";
 
 
 interface PageProps {
@@ -20,14 +19,14 @@ export default async function MusicianProfilePage({ params }: PageProps) {
     return <p className="text-center text-gray-400 py-8">Musician not found or failed to load.</p>;
   }
 
-  const musician = res.data;
+  const musician:Musician = res.data;
   const canEdit = userId && musician.submittedBy === userId;
 
   
 
   return (
     <div className="">
-      <MusicianProfileClient musician={musician} canEdit={canEdit} />
+      <DeepDivesClient musician={musician} canEdit={canEdit} />
     </div>
   );
 }

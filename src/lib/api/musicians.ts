@@ -1,57 +1,7 @@
-
+import { Musician} from "@/components/musician-com/deepDivesClient"
  
- export interface Musicians {
-  _id: string;
-  name: string;
-  city: string;
-  state?: string
-  category: string;
-  shortBio: string;
-  website: string;
-  artistStatus?: string;
-  image: {
-    id: string;
-    url: string;
-  };
-  socials: {
-    instagram: string;
-    youtube: string;
-    spotify: string;
-    soundcloud: string;
-  };
-  createdAt: string;
-  submittedBy?: string;
-  audio?: string;
-  tags?: string;
-  readMoreLink?: string;
-  yearsActive?: {
-    end?: string;
-    start?: string;
-  };
-  labelCrew?: string;
-  labelCrewLink?: string;
-  associatedActs?: string;
-  associatedActsLinks?: string;
-  district?: string;
-  districtLink?: string;
-  frequentProducers?: string;
-  frequentProducersLink?: string;
-  breakoutTrack?: {
-    name?: string;
-    url?: string;
-  };
-  definingProject?: {
-    name?: string;
-    year?: string;
-    link?: string;
-  };
-  fansOf?: string;
-  fansOfLink?: string;
-  videoEmbed?: string;
-  videoWidth?: number;
-  videoHeight?: number;
-}
-export async function fetchMusicians(baseUrl: string):Promise<Musicians[]>  {
+ 
+export async function fetchMusicians(baseUrl: string):Promise<Musician[]>  {
   const res = await fetch(`${baseUrl}/api/rappers`);
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json()

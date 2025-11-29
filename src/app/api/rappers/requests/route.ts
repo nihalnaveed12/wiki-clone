@@ -98,6 +98,9 @@ export async function POST(request: NextRequest) {
 
     // NEW FIELDS
     const deepDiveNarrative = formData.get("deepDiveNarrative") as string;
+    const videoEmbed = formData.get("videoEmbed") as string;
+    const videoWidth = formData.get("videoWidth") as string;
+    const videoHeight = formData.get("videoHeight") as string;
     const born = formData.get("born") as string;
     const origin = formData.get("origin") as string;
 
@@ -245,6 +248,9 @@ export async function POST(request: NextRequest) {
       videos,
       definingTracks,
       deepDiveNarrative,
+      videoEmbed,
+      videoWidth: videoWidth ? Number(videoWidth) : undefined,
+      videoHeight: videoHeight ? Number(videoHeight) : undefined,
       readMoreLink,
       yearsActive: {
         start: yearsActiveStart ? Number(yearsActiveStart) : undefined,

@@ -47,6 +47,9 @@ const schema = z.object({
     .min(1, "Short bio is required")
     .max(500, "Max 500 characters"),
   deepDiveNarrative: z.string().optional().or(z.literal("")),
+  videoEmbed: z.string().optional().or(z.literal("")),
+  videoWidth: z.string().optional().or(z.literal("")),
+  videoHeight: z.string().optional().or(z.literal("")),
 
   website: z.string().url("Invalid website URL").optional().or(z.literal("")),
   // socials
@@ -309,6 +312,9 @@ export default function MusicianForm({ submitForm }: Props) {
           image: t.image ? t.image[0] : undefined,
         })),
         deepDiveNarrative: data.deepDiveNarrative || undefined,
+        videoEmbed: data.videoEmbed || undefined,
+        videoWidth: data.videoWidth ? Number(data.videoWidth) : undefined,
+        videoHeight: data.videoHeight ? Number(data.videoHeight) : undefined,
         alsoKnownAs: prepareCommaArray(data.alsoKnownAs),
         born: data.born || undefined,
         origin: data.origin || undefined,
@@ -592,6 +598,40 @@ export default function MusicianForm({ submitForm }: Props) {
                 className="w-full p-3 border border-border rounded bg-background text-card-foreground transition-colors"
                 placeholder="Longer bio / deep dive"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-card-foreground">
+                Video Embed URL
+              </label>
+              <input
+                {...register("videoEmbed")}
+                className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                placeholder="YouTube or Vimeo embed URL"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-card-foreground">
+                  Video Width
+                </label>
+                <input
+                  {...register("videoWidth")}
+                  type="number"
+                  className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                  placeholder="16"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-card-foreground">
+                  Video Height
+                </label>
+                <input
+                  {...register("videoHeight")}
+                  type="number"
+                  className="w-full p-2 border border-border rounded bg-background text-card-foreground transition-colors"
+                  placeholder="9"
+                />
+              </div>
             </div>
           </div>
         </div>

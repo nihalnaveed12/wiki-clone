@@ -50,6 +50,9 @@ interface RapperParams {
     externalLink?: string;
   }[];
   deepDiveNarrative?: any;
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
   alsoKnownAs?: string[];
   born?: string;
   origin?: string;
@@ -220,6 +223,9 @@ export async function createRapper(params: RapperParams) {
       videos: params.videos || [],
       definingTracks: params.definingTracks || [],
       deepDiveNarrative: params.deepDiveNarrative || "",
+      videoEmbed: params.videoEmbed || "",
+      videoWidth: params.videoWidth || 16,
+      videoHeight: params.videoHeight || 9,
       alsoKnownAs: params.alsoKnownAs || [],
       born: params.born || "",
       origin: params.origin || "",
@@ -281,6 +287,9 @@ export async function updateRapper(params: UpdateRapperParams) {
       primaryAffiliation,
       breakoutTrack,
       definingProject,
+      videoEmbed,
+      videoWidth,
+      videoHeight,
       ...updateData
     } = params;
 
@@ -305,6 +314,9 @@ export async function updateRapper(params: UpdateRapperParams) {
         primaryAffiliation: primaryAffiliation || {},
         breakoutTrack: breakoutTrack || {},
         definingProject: definingProject || {},
+        videoEmbed: videoEmbed,
+        videoWidth: videoWidth,
+        videoHeight: videoHeight,
       },
       { new: true, runValidators: true }
     );

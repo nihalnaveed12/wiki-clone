@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRapper, getAllRappers } from "@/lib/actions/rapper.actions";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { auth } from "@clerk/nextjs/server";
+import { de } from "zod/v4/locales";
 
 export async function GET() {
   try {
@@ -64,6 +65,9 @@ export async function POST(request: NextRequest) {
     const deepDiveNarrative = (
       formData.get("deepDiveNarrative") as string
     )?.trim();
+    const videoEmbed = (formData.get("videoEmbed") as string)?.trim();
+    const videoWidth = formData.get("videoWidth") as string;
+    const videoHeight = formData.get("videoHeight") as string;
 
     // At-a-Glance
     const alsoKnownAsString = formData.get("alsoKnownAs") as string;
@@ -157,6 +161,17 @@ export async function POST(request: NextRequest) {
       isFeatured?: boolean;
     }[] = videosString ? JSON.parse(videosString) : [];
 
+    let definingtracksImage = { id: "", url: "" };
+    if (
+      formData.get("definingTracksImage") &&
+      (formData.get("definingTracksImage") as File).size &&
+      (formData.get("definingTracksImage") as File).name !== "undefined"
+    ) {
+      definingtracksImage = await uploadToCloudinary(
+        formData.get("definingTracksImage") as File
+      );
+    }
+
     const definingTracks: {
       title?: string;
       year?: number;
@@ -210,8 +225,15 @@ export async function POST(request: NextRequest) {
       heroBannerImage: heroBannerImageData,
       heroTags,
       videos,
-      definingTracks,
+      definingTracks: definingTracks.map((track) => ({
+        ...track,
+        year: track.year ? parseInt(track.year.toString(), 10) : undefined,
+        image: definingtracksImage,
+      })),
       deepDiveNarrative: deepDiveNarrative || "",
+      videoEmbed: videoEmbed || undefined,
+      videoWidth: videoWidth ? parseInt(videoWidth, 10) : undefined,
+      videoHeight: videoHeight ? parseInt(videoHeight, 10) : undefined,
       alsoKnownAs,
       born: born || "",
       origin: origin || "",

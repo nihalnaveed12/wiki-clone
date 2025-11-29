@@ -66,6 +66,9 @@ export interface IRapper extends Document {
 
   // Deep dive (rich text)
   deepDiveNarrative?: any; // rich text - store as HTML/Delta/JSON. Use Mixed.
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
 
   // At-a-glance details
   alsoKnownAs?: string[];
@@ -175,6 +178,9 @@ const RapperSchema = new Schema<IRapper>(
 
     // Deep dive narrative - rich text: using Mixed to allow HTML / Quill Delta / JSON
     deepDiveNarrative: { type: Schema.Types.Mixed, default: '' },
+    videoEmbed: { type: String },
+    videoWidth: { type: Number },
+    videoHeight: { type: Number },
 
     // At-a-glance
     alsoKnownAs: { type: [String], default: [] },

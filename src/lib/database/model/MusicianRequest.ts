@@ -44,6 +44,9 @@ export interface IMusicianRequest extends Document {
     externalLink?: string;
   }[];
   deepDiveNarrative?: any; // rich text
+  videoEmbed?: string;
+  videoWidth?: number;
+  videoHeight?: number;
   alsoKnownAs?: string[];
   born?: string;
   origin?: string;
@@ -149,6 +152,9 @@ const MusicianRequestSchema = new Schema<IMusicianRequest>(
     },
 
     deepDiveNarrative: { type: Schema.Types.Mixed, default: "" },
+    videoEmbed: { type: String, default: "" },
+    videoWidth: { type: Number, default: 16 },
+    videoHeight: { type: Number, default: 9 },
     alsoKnownAs: { type: [String], default: [] },
     born: { type: String, default: "" },
     origin: { type: String, default: "" },
