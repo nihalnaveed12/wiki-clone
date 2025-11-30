@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchMusicians } from "@/lib/api/musicians";
-import { Musicians } from "@/lib/api/musicians";
+import { Musician } from "../musician-com/deepDivesClient";
 import MusicianDeleteButton from "../musician-com/MusicianDeleteButton";
 
 export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
-  const [musicians, setMusicians] = useState<Musicians[]>([]);
+  const [musicians, setMusicians] = useState<Musician[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -88,52 +88,53 @@ export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
                   </a>
                 </p>
               )}
-
-              <div className="flex flex-wrap gap-2 mt-2">
-                {m.socials.instagram && (
-                  <a
-                    href={m.socials.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm transition-colors"
-                  >
-                    Instagram
-                  </a>
-                )}
-                {m.socials.youtube && (
-                  <a
-                    href={m.socials.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm transition-colors"
-                  >
-                    YouTube
-                  </a>
-                )}
-                {m.socials.spotify && (
-                  <a
-                    href={m.socials.spotify}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm transition-colors"
-                  >
-                    Spotify
-                  </a>
-                )}
-                {m.socials.soundcloud && (
-                  <a
-                    href={m.socials.soundcloud}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm transition-colors"
-                  >
-                    SoundCloud
-                  </a>
-                )}
-              </div>
+              {m.socials && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {m.socials && (
+                    <a
+                      href={m.socials.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm transition-colors"
+                    >
+                      Instagram
+                    </a>
+                  )}
+                  {m.socials.youtube && (
+                    <a
+                      href={m.socials.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm transition-colors"
+                    >
+                      YouTube
+                    </a>
+                  )}
+                  {m.socials.spotify && (
+                    <a
+                      href={m.socials.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm transition-colors"
+                    >
+                      Spotify
+                    </a>
+                  )}
+                  {m.socials.soundcloud && (
+                    <a
+                      href={m.socials.soundcloud}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm transition-colors"
+                    >
+                      SoundCloud
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
-            <MusicianDeleteButton id={m._id} />
+            {m._id && <MusicianDeleteButton id={m._id} />}
           </div>
         ))}
     </div>

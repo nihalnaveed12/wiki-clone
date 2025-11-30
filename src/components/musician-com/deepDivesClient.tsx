@@ -153,6 +153,7 @@ export interface Musician {
   fansOfLink?: string[];
   submittedBy?: string;
   _id?: string;
+  createdAt: string;
 }
 
 interface Props {

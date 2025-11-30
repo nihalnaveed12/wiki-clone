@@ -6,7 +6,7 @@ import Link from "next/link";
 import ArticleCard from "./article-card";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Pause, PlayIcon } from "lucide-react";
-import { Musicians } from "@/lib/api/musicians";
+import { Musician } from "@/components/musician-com/deepDivesClient";
 
 interface Author {
   _id: string;
@@ -86,7 +86,7 @@ function extractYouTubeId(url: string): string | null {
 
 export default function WikipediaHero() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [musicians, setMusicians] = useState<Musicians[]>([]);
+  const [musicians, setMusicians] = useState<Musician[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -120,7 +120,7 @@ export default function WikipediaHero() {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  const handleToggleAudio = (musician: Musicians) => {
+  const handleToggleAudio = (musician: Musician) => {
     if (!musician.audio) {
       alert("No audio available for this artist.");
       return;
@@ -168,7 +168,7 @@ export default function WikipediaHero() {
       if (videoId) {
         setIsYouTubeAudio(true);
         setCurrentYouTubeId(videoId);
-        setPlayingId(musician._id);
+        setPlayingId(musician._id || null);
 
         // Wait for iframe to load, then play
         setTimeout(() => {
@@ -187,7 +187,7 @@ export default function WikipediaHero() {
       audioRef.current = newAudio;
       newAudio.play().catch((err) => console.error("Audio play error:", err));
       newAudio.addEventListener("ended", () => setPlayingId(null));
-      setPlayingId(musician._id);
+      setPlayingId(musician._id || null);
     }
   };
 
