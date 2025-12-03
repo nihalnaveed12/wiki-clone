@@ -315,7 +315,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                 {tags[0]}
               </span>
             )}
-            <h1 className="text-7xl md:text-6xl font-bold text-white text-balance">
+            <h1 className="text-9xl  font-bold text-white text-balance">
               {musician.name}
             </h1>
             {tags[1] && (
@@ -417,8 +417,8 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
       </div>
 
       {/* NAVIGATION TABS */}
-      <div className="border-b border-gray-700 bg-black sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 flex gap-8 overflow-x-auto">
+      <div className="border-b border-gray-700 p-2 bg-black sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 flex gap-8 justify-center overflow-x-auto">
           {[
             { id: "music", label: "Music Videos" },
             { id: "interview", label: "Interview Videos" },
@@ -559,7 +559,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
                               </div>
                             </div>
                           </div>
-                          <p className="text-xs text-gray-300 p-2 line-clamp-2">
+                          <p className="text-lg text-gray-300 p-2 line-clamp-2">
                             {video.title}
                           </p>
                         </div>
