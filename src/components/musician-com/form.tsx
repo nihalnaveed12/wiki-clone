@@ -22,7 +22,7 @@ const definingTrackSchema = z.object({
   title: z.string().optional().or(z.literal("")),
   year: z.string().optional().or(z.literal("")),
   externalLink: z.string().optional().or(z.literal("")),
-  image: z.any().optional(),
+  image: z.union([z.any(), z.object({ id: z.string(), url: z.string() })]).optional(),
 });
 
 const schema = z.object({
@@ -302,13 +302,13 @@ export default function MusicianForm({ submitForm }: Props) {
         shortBio: data.shortBio,
         audio: data.audio || undefined,
         videos: (data.videos || []).map((video) => ({
-          ...video,
-          embedUrl: toYouTubeEmbed(video.embedUrl),
+        ...video,
+        embedUrl: toYouTubeEmbed(video.embedUrl),
         })),
         definingTracks: (data.definingTracks || []).map((t: any) => ({
-          title: t.title || "",
-          year: t.year ? Number(t.year) : undefined,
-          externalLink: t.externalLink || "",
+        title: t.title || "",
+        year: t.year ? Number(t.year) : undefined,
+        externalLink: t.externalLink || "",
           image: t.image ? t.image[0] : undefined,
         })),
         deepDiveNarrative: data.deepDiveNarrative || undefined,

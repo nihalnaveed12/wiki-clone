@@ -279,9 +279,9 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
   const filteredVideos =
     musician.videos?.filter((v) => {
       if (activeTab === "music") return v.type === "Music Video";
-      if (activeTab === "interview") return v.type === "interview";
-      if (activeTab === "vlog") return v.type === "vlog" || v.type === "behind";
-      return v.type === "other";
+      if (activeTab === "interview") return v.type === "Interview";
+      if (activeTab === "vlog") return v.type === "Vlog Videos" 
+      if (activeTab === "other") return v.type === "Other Videos";
     }) || [];
 
   return (
@@ -296,13 +296,13 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
       )}
 
       {/* HERO BANNER */}
-      <div className="relative w-full h-80 bg-gray-900 overflow-hidden">
+      <div className="relative w-full h-96 bg-gray-900 overflow-hidden">
         {musician.heroBannerImage?.url && (
           <Image
             src={musician.heroBannerImage.url || "/placeholder.svg"}
             alt={musician.name}
             fill
-            className="object-cover"
+            className="object-cover "
           />
         )}
         <div className="absolute inset-0 bg-black/50" />
@@ -311,15 +311,15 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
           {/* Hero Tags and Artist Name */}
           <div className="flex items-center justify-center gap-6 md:gap-12">
             {tags[0] && (
-              <span className="text-gray-300 text-sm font-medium">
+              <span className="text-gray-300 text-lg font-medium">
                 {tags[0]}
               </span>
             )}
-            <h1 className="text-5xl md:text-6xl font-bold text-white text-balance">
+            <h1 className="text-7xl md:text-6xl font-bold text-white text-balance">
               {musician.name}
             </h1>
             {tags[1] && (
-              <span className="text-gray-300 text-sm font-medium">
+              <span className="text-gray-300 text-lg font-medium">
                 {tags[1]}
               </span>
             )}
@@ -442,10 +442,10 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
 
       {/* MAIN CONTENT - 3 COLUMNS */}
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 ">
           {/* LEFT COLUMN: DEFINING TRACKS */}
-          <div>
-            <h2 className="text-lg font-bold mb-6 uppercase tracking-wide text-gray-100">
+          <div className="border-2 p-4 rounded-[12px] bg-background h-fit" >
+            <h2 className="text-lg  font-bold mb-6 uppercase tracking-wide text-gray-100">
               ## DEFINING TRACKS
             </h2>
             <div className="space-y-4">
@@ -497,46 +497,16 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
           </div>
 
           {/* MIDDLE COLUMN: DEEP DIVE NARRATIVE */}
-          <div>
+          <div className="border-2 p-4 rounded-[12px] bg-background h-fit">
             <h2 className="text-lg font-bold mb-6 uppercase tracking-wide text-gray-100">
               ## DEEP DIVE NARRATIVE
             </h2>
             <div className="space-y-4">
               {musician.deepDiveNarrative && (
-                <p className="text-sm text-gray-300 leading-relaxed line-clamp-6">
+                <p className="text-sm text-gray-300 leading-relaxed ">
                   {musician.deepDiveNarrative}
                 </p>
               )}
-
-             <div className="">
-                  {musician.videoEmbed && (
-                    <div className="mt-6">
-                      <div
-                        className="relative border border-gray-700 rounded-lg resize overflow-hidden bg-black"
-                        style={{
-                          width: musician.videoWidth || 400,
-                          height: musician.videoHeight || 300,
-                          minWidth: 100,
-                          minHeight: 100,
-                          resize: "both",
-                        }}
-                      >
-                        <iframe
-                          src={
-                            musician.videoEmbed.includes("youtube.com/embed/")
-                              ? musician.videoEmbed
-                              : musician.videoEmbed.replace(
-                                  /(youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/,
-                                  "youtube.com/embed/$2"
-                                )
-                          }
-                          className="absolute top-0 left-0 w-full h-full rounded-lg"
-                          allowFullScreen
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
 
               {filteredVideos.length > 0 && (
                 <div className="mt-6 space-y-3">
@@ -602,7 +572,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
           </div>
 
           {/* RIGHT COLUMN: AT-A-GLANCE */}
-          <div>
+          <div className="border-2 p-4 rounded-[12px] bg-background h-fit">
             <h2 className="text-lg font-bold mb-6 uppercase tracking-wide text-gray-100">
               AT-A-GLANCE
             </h2>

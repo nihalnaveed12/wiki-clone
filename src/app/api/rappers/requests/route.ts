@@ -172,15 +172,29 @@ export async function POST(request: NextRequest) {
     }
 
     // DEFINING TRACKS
-    let definingTracks = [];
     const definingTracksString = formData.get("definingTracks") as string;
-    if (definingTracksString) {
-      try {
-        definingTracks = JSON.parse(definingTracksString);
-      } catch {
-        definingTracks = [];
-      }
-    }
+    const parsedDefiningTracks: {
+      title?: string;
+      year?: string;
+      image?: File;
+      externalLink?: string;
+    }[] = definingTracksString ? JSON.parse(definingTracksString) : [];
+
+    const processedDefiningTracks = await Promise.all(
+      parsedDefiningTracks.map(async (track, index) => {
+        let trackImageData = { id: "", url: "" };
+        const trackImageFile = formData.get(`definingTracks[${index}].image`) as File;
+        if (trackImageFile?.size && trackImageFile.name !== "undefined") {
+          trackImageData = await uploadToCloudinary(trackImageFile);
+        }
+        return {
+          title: track.title,
+          year: track.year ? parseInt(track.year, 10) : undefined,
+          externalLink: track.externalLink,
+          image: trackImageData,
+        };
+      })
+    );
 
     // IMAGE UPLOADS
     // IMAGE UPLOADS
@@ -246,7 +260,7 @@ export async function POST(request: NextRequest) {
       relatedArtists,
       audio,
       videos,
-      definingTracks,
+      definingTracks: processedDefiningTracks,
       deepDiveNarrative,
       videoEmbed,
       videoWidth: videoWidth ? Number(videoWidth) : undefined,

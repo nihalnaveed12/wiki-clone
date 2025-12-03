@@ -115,9 +115,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         const videosString = formData.get("videos") as string;
         updateData.videos = videosString ? JSON.parse(videosString) : [];
       }
-      
-    
-      // Deep Dive
+
+      if (formData.has("definingTracks")) {
+        const definingTracksString = formData.get("definingTracks") as string;
+        const parsedDefiningTracks: {
+          title?: string;
+          year?: string;
+          externalLink?: string;
+        }[] = definingTracksString ? JSON.parse(definingTracksString) : [];
+
+        const processedDefiningTracks = await Promise.all(
+          parsedDefiningTracks.map(async (track, index) => {
+            let trackImageData = { id: "", url: "" };
+            const trackImageFile = formData.get(`definingTracks[${index}].image`) as File;
+            if (trackImageFile?.size && trackImageFile.name !== "undefined") {
+              trackImageData = await uploadToCloudinary(trackImageFile);
+            }
+            return {
+              title: track.title,
+              year: track.year ? parseInt(track.year, 10) : undefined,
+              externalLink: track.externalLink,
+              image: trackImageData,
+            };
+          })
+        );
+        updateData.definingTracks = processedDefiningTracks;
+      }
       if (formData.has("deepDiveNarrative"))
         updateData.deepDiveNarrative = (
           formData.get("deepDiveNarrative") as string

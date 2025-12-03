@@ -3,7 +3,6 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Musician } from "@/components/musician-com/deepDivesClient";
 
 interface Video {
   title?: string;
@@ -217,6 +216,8 @@ export default function EditMusicianPage() {
           definingTracks: (musician.definingTracks || []).map((t: any) => ({
             ...t,
             year: t.year?.toString(),
+            existingImageUrl: t.image?.url || undefined,
+            image: null, // Reset file input for new upload
           })),
           image: null,
           heroBannerImage: null,
@@ -373,16 +374,21 @@ export default function EditMusicianPage() {
 
     // Handle defining tracks with potential file uploads
     const definingTracksData = formData.definingTracks.map((track) => {
-      const trackData: any = { ...track };
-      delete trackData.image; // remove file object before stringifying
-      return trackData;
+      // Only send existingImageUrl if no new file is selected
+      const imageInfo = track.image instanceof File ? undefined : track.existingImageUrl ? { url: track.existingImageUrl } : undefined;
+      return {
+        title: track.title,
+        year: track.year ? Number(track.year) : undefined,
+        externalLink: track.externalLink,
+        image: imageInfo, // Send existing image info if no new file
+      };
     });
 
     submission.append("definingTracks", JSON.stringify(definingTracksData));
 
     formData.definingTracks.forEach((track, index) => {
       if (track.image instanceof File) {
-        submission.append(`definingTrackImage_${index}`, track.image);
+        submission.append(`definingTracks[${index}].image`, track.image);
       }
     });
 

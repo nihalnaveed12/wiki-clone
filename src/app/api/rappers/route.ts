@@ -161,16 +161,28 @@ export async function POST(request: NextRequest) {
       isFeatured?: boolean;
     }[] = videosString ? JSON.parse(videosString) : [];
 
-    let definingtracksImage = { id: "", url: "" };
-    if (
-      formData.get("definingTracksImage") &&
-      (formData.get("definingTracksImage") as File).size &&
-      (formData.get("definingTracksImage") as File).name !== "undefined"
-    ) {
-      definingtracksImage = await uploadToCloudinary(
-        formData.get("definingTracksImage") as File
-      );
-    }
+    const parsedDefiningTracks: {
+      title?: string;
+      year?: string;
+      image?: File; // Temporarily keep as File to process
+      externalLink?: string;
+    }[] = definingTracksString ? JSON.parse(definingTracksString) : [];
+
+    const processedDefiningTracks = await Promise.all(
+      parsedDefiningTracks.map(async (track, index) => {
+        let trackImageData = { id: "", url: "" };
+        const trackImageFile = formData.get(`definingTracks[${index}].image`) as File;
+        if (trackImageFile?.size && trackImageFile.name !== "undefined") {
+          trackImageData = await uploadToCloudinary(trackImageFile);
+        }
+        return {
+          title: track.title,
+          year: track.year ? parseInt(track.year, 10) : undefined,
+          externalLink: track.externalLink,
+          image: trackImageData,
+        };
+      })
+    );
 
     const definingTracks: {
       title?: string;
@@ -225,11 +237,7 @@ export async function POST(request: NextRequest) {
       heroBannerImage: heroBannerImageData,
       heroTags,
       videos,
-      definingTracks: definingTracks.map((track) => ({
-        ...track,
-        year: track.year ? parseInt(track.year.toString(), 10) : undefined,
-        image: definingtracksImage,
-      })),
+      definingTracks: processedDefiningTracks,
       deepDiveNarrative: deepDiveNarrative || "",
       videoEmbed: videoEmbed || undefined,
       videoWidth: videoWidth ? parseInt(videoWidth, 10) : undefined,

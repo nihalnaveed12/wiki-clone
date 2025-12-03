@@ -234,7 +234,7 @@ export default function MusicianProfileClient({ musician, canEdit }: Props) {
     ? musician.fansOfLink.split(",").map((l) => l.trim())
     : [];
 
-  console.log("MusicianProfileClient rendered with musician:", musician);
+  console.log("MusicianProfileClient render:", musician);
 
   return (
     <div className="bg-black text-white min-h-screen">

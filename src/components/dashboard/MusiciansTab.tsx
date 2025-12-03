@@ -7,7 +7,6 @@ import MusicianDeleteButton from "../musician-com/MusicianDeleteButton";
 export default function MusiciansTab({ baseUrl }: { baseUrl: string }) {
   const [musicians, setMusicians] = useState<Musician[]>([]);
   const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadMusicians();
